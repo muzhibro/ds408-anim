@@ -1,0 +1,283 @@
+{
+  "framesTotal": 1949,
+  "cases": 69,
+  "digest": "4e8ef54476d96afe",
+  "perCase": {
+    "list/head#0": {
+      "n": 24,
+      "sha": "ff7bf07e816a1922"
+    },
+    "list/tail#0": {
+      "n": 26,
+      "sha": "28811a1bd0faec9e"
+    },
+    "list/reverse#0": {
+      "n": 29,
+      "sha": "19b248121f1d9740"
+    },
+    "list/kth#0": {
+      "n": 13,
+      "sha": "98babc664a287a8a"
+    },
+    "list/mid#0": {
+      "n": 13,
+      "sha": "2fd53f1317af63c1"
+    },
+    "list/loop#0": {
+      "n": 20,
+      "sha": "97c6a9f156cef5e1"
+    },
+    "list/common#0": {
+      "n": 11,
+      "sha": "47db3e951a46bb46"
+    },
+    "list/absdup#0": {
+      "n": 28,
+      "sha": "187456f5c8c653a7"
+    },
+    "list/delnode#0": {
+      "n": 7,
+      "sha": "9e7c0ccb8d3f595f"
+    },
+    "list/merge#0": {
+      "n": 37,
+      "sha": "a9bba342a7364323"
+    },
+    "list/split#0": {
+      "n": 31,
+      "sha": "6f3a83cf3f8dfa78"
+    },
+    "list/reorder#0": {
+      "n": 46,
+      "sha": "2721455dc1476cdb"
+    },
+    "list/doubly#0": {
+      "n": 13,
+      "sha": "41c7ee0040466f2f"
+    },
+    "list/sorted#0": {
+      "n": 10,
+      "sha": "c43fb39306201e36"
+    },
+    "tree/tree-pre#0": {
+      "n": 45,
+      "sha": "0788d2054ebcce4c"
+    },
+    "tree/tree-in-nr#0": {
+      "n": 30,
+      "sha": "673b64c7c2f5d64f"
+    },
+    "tree/tree-level#0": {
+      "n": 16,
+      "sha": "60414233823545d4"
+    },
+    "tree/tree-height#0": {
+      "n": 31,
+      "sha": "9fc6b1996172d141"
+    },
+    "tree/tree-complete#0": {
+      "n": 18,
+      "sha": "394526250f9e1891"
+    },
+    "tree/tree-balanced#0": {
+      "n": 21,
+      "sha": "9e7252837128862f"
+    },
+    "tree/tree-bst#0": {
+      "n": 12,
+      "sha": "aaec5ae331a632b7"
+    },
+    "tree/tree-bst#1": {
+      "n": 24,
+      "sha": "c47f2c45d53aa2f9"
+    },
+    "tree/tree-bst#2": {
+      "n": 12,
+      "sha": "033b244950460d7d"
+    },
+    "tree/tree-bst#3": {
+      "n": 11,
+      "sha": "33ae63cf520c8984"
+    },
+    "tree/tree-lca#0": {
+      "n": 18,
+      "sha": "ec770d60200bc658"
+    },
+    "tree/tree-swap#0": {
+      "n": 16,
+      "sha": "4c543a088d5a6a80"
+    },
+    "graph/graph-dfs#0": {
+      "n": 20,
+      "sha": "67ac3b50740da927"
+    },
+    "graph/graph-bfs#0": {
+      "n": 21,
+      "sha": "038b35b88b856251"
+    },
+    "graph/graph-topo#0": {
+      "n": 34,
+      "sha": "0eae9156a2f980e2"
+    },
+    "graph/graph-dijkstra#0": {
+      "n": 19,
+      "sha": "492a6542a4854b02"
+    },
+    "graph/graph-prim#0": {
+      "n": 12,
+      "sha": "e5a4e98cee45f6c9"
+    },
+    "graph/graph-kruskal#0": {
+      "n": 14,
+      "sha": "ebe9da6e73c16848"
+    },
+    "search/srch-binary#0": {
+      "n": 10,
+      "sha": "c1c76de4374324ff"
+    },
+    "search/srch-binary#1": {
+      "n": 8,
+      "sha": "7f61cdfdd9ba4e38"
+    },
+    "search/srch-binary#2": {
+      "n": 11,
+      "sha": "6dfe37d34b3de1ed"
+    },
+    "search/srch-binary#3": {
+      "n": 11,
+      "sha": "a8e45d1085142db9"
+    },
+    "search/srch-binary#4": {
+      "n": 4,
+      "sha": "0a23e84b0bbb6881"
+    },
+    "search/srch-bst#0": {
+      "n": 4,
+      "sha": "511608a4b45ba6ce"
+    },
+    "search/srch-hash#0": {
+      "n": 20,
+      "sha": "86f632686ea36c4f"
+    },
+    "sort/sort-insert#0": {
+      "n": 51,
+      "sha": "9f025c1d9a244a0f"
+    },
+    "sort/sort-insert#1": {
+      "n": 23,
+      "sha": "8aa806e7c661dc19"
+    },
+    "sort/sort-insert#2": {
+      "n": 71,
+      "sha": "dfe88772318a62ca"
+    },
+    "sort/sort-insert#3": {
+      "n": 38,
+      "sha": "86a3fbdd1668b155"
+    },
+    "sort/sort-insert#4": {
+      "n": 14,
+      "sha": "768ebf9a51a3ee17"
+    },
+    "sort/sort-bubble#0": {
+      "n": 57,
+      "sha": "7b4bab9f02b88c2e"
+    },
+    "sort/sort-bubble#1": {
+      "n": 12,
+      "sha": "a9e9c36b110bfa86"
+    },
+    "sort/sort-bubble#2": {
+      "n": 71,
+      "sha": "05e585d6e8feafd9"
+    },
+    "sort/sort-bubble#3": {
+      "n": 35,
+      "sha": "e627358211d51644"
+    },
+    "sort/sort-bubble#4": {
+      "n": 14,
+      "sha": "c2f4ee18bde6d5db"
+    },
+    "sort/sort-select#0": {
+      "n": 51,
+      "sha": "d9681ca836d74f05"
+    },
+    "sort/sort-select#1": {
+      "n": 44,
+      "sha": "1dbccebeecf75a90"
+    },
+    "sort/sort-select#2": {
+      "n": 47,
+      "sha": "f1d3781528192481"
+    },
+    "sort/sort-select#3": {
+      "n": 48,
+      "sha": "671c91a00c1459e4"
+    },
+    "sort/sort-select#4": {
+      "n": 16,
+      "sha": "60b70cdce228dd12"
+    },
+    "sort/sort-quick#0": {
+      "n": 45,
+      "sha": "73a95f42e1ce62cc"
+    },
+    "sort/sort-quick#1": {
+      "n": 45,
+      "sha": "d9d22a1c9354b9c2"
+    },
+    "sort/sort-quick#2": {
+      "n": 51,
+      "sha": "1728f3fa1f58689d"
+    },
+    "sort/sort-quick#3": {
+      "n": 40,
+      "sha": "7ffb1a730772c8bd"
+    },
+    "sort/sort-quick#4": {
+      "n": 16,
+      "sha": "9274e123e2c81b42"
+    },
+    "sort/sort-heap#0": {
+      "n": 49,
+      "sha": "64a4cd6d7b1d639f"
+    },
+    "sort/sort-heap#1": {
+      "n": 54,
+      "sha": "8804a3e76e355c7e"
+    },
+    "sort/sort-heap#2": {
+      "n": 41,
+      "sha": "eb0847dddfcd8e9a"
+    },
+    "sort/sort-heap#3": {
+      "n": 47,
+      "sha": "85540bed1244ef33"
+    },
+    "sort/sort-heap#4": {
+      "n": 23,
+      "sha": "87ccd09877eec59c"
+    },
+    "sort/sort-merge#0": {
+      "n": 47,
+      "sha": "7f8761abdacb11e3"
+    },
+    "sort/sort-merge#1": {
+      "n": 43,
+      "sha": "fe12d0b06232658e"
+    },
+    "sort/sort-merge#2": {
+      "n": 44,
+      "sha": "2766081f41e815bf"
+    },
+    "sort/sort-merge#3": {
+      "n": 43,
+      "sha": "00614d098df9ce8b"
+    },
+    "sort/sort-merge#4": {
+      "n": 19,
+      "sha": "ef4e6426e4171da7"
+    }
+  }
+}

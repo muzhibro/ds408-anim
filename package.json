@@ -1,0 +1,20 @@
+{
+  "name": "ds408-anim",
+  "version": "2.0.0",
+  "private": true,
+  "description": "408 数据结构算法过程的可交互动画：38 个模板、69 个用例、1949 帧逐步演示",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test \"tests/**/*.test.mjs\"",
+    "check": "npm run build && npm test",
+    "digest": "node scripts/frame-digest.mjs",
+    "digest:write": "node scripts/frame-digest.mjs --write",
+    "dump": "node scripts/dump-frames.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

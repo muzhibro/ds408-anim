@@ -1,0 +1,217 @@
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: flex; flex-direction: column; overflow: hidden;
+    background: #0b1020; color: #e6edf7;
+    font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  }
+  header { display: flex; align-items: center; gap: 16px; padding: 10px 18px; border-bottom: 1px solid #1e293b; }
+  .brand { font-size: 15px; font-weight: 700; letter-spacing: .3px; white-space: nowrap; }
+  .brand .sub { font-weight: 400; font-size: 12px; color: #7d8ba3; margin-left: 8px; }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tab {
+    background: #131c30; color: #9fb0c9; border: 1px solid #22304d; border-radius: 999px;
+    padding: 5px 13px; font-size: 12.5px; cursor: pointer; font-family: inherit;
+  }
+  .tab:hover { border-color: #35507f; color: #d6e4fb; }
+  .tab.on { background: linear-gradient(180deg, #1d4ed8, #1e3a8a); border-color: #3b82f6; color: #fff; }
+  .hint { margin-left: auto; font-size: 11.5px; color: #64748b; white-space: nowrap; }
+
+  main { flex: 1; display: flex; min-height: 0; }
+  .left { width: 430px; min-width: 300px; display: flex; flex-direction: column; border-right: 1px solid #1e293b; }
+  .pick { padding: 10px 12px; border-bottom: 1px solid #16203a; }
+  select {
+    width: 100%; background: #111a2e; color: #dbe7fb; border: 1px solid #24314e;
+    border-radius: 7px; padding: 7px 9px; font-size: 13px; font-family: inherit;
+  }
+  #caseSel { margin-top: 6px; background: #0d1626; border-color: #2b3b5c; color: #b9cbe6; font-size: 12.5px; }
+  #caseSel::before { content: '案例'; }
+  .note { margin: 8px 2px 0; font-size: 12px; line-height: 1.6; color: #8fa3c0; }
+  .note b { color: #cfe0ff; font-weight: 600; }
+  .codebox { flex: 1; overflow: auto; padding: 6px 0 40px; }
+  .code { font-family: "Cascadia Code", Consolas, "Courier New", monospace; font-size: 12.5px; line-height: 1.62; }
+  .cline { display: block; position: relative; white-space: pre-wrap; word-break: break-word; padding: 0 14px 0 44px; color: #b7c6dd; }
+  .cline .no { position: absolute; left: 4px; top: 0; width: 28px; text-align: right; color: #41526e; user-select: none; }
+  .cline.hl { background: rgba(56,189,248,.13); box-shadow: inset 2px 0 0 #38bdf8; color: #eaf4ff; }
+  .cline.hl .no { color: #7ea9d8; }
+  /* 当前这一行的判定条件（if/while 括号里那一段）单独提亮，箭头指向的就是它 */
+  .cond {
+    background: rgba(167,139,250,.34); box-shadow: inset 0 -2px 0 #a78bfa;
+    border-radius: 3px; color: #fff; padding: 0 2px;
+  }
+  /* 上一层的判定条件（当前行是它的语句体时）用淡一点的样式带出来 */
+  .cond.soft { background: rgba(167,139,250,.10); box-shadow: inset 0 -1px 0 rgba(167,139,250,.45); color: #cbbff0; }
+
+  .right { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .desc { padding: 10px 18px; font-size: 13.5px; line-height: 1.55; color: #cfe0f7; min-height: 44px; }
+  .desc .badge { color: #38bdf8; font-weight: 700; margin-right: 6px; }
+  .stagewrap { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 18px; overflow: auto; }
+  .svgholder { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; justify-content: center; }
+  svg#stage { width: 100%; height: auto; display: block; }
+  .extra { padding: 6px 18px 4px; display: flex; flex-wrap: wrap; gap: 8px 18px; font-family: "Cascadia Code", Consolas, monospace; font-size: 12px; color: #8ea6c6; min-height: 30px; }
+  .extra b { color: #cfe0ff; font-weight: 600; }
+  .extra .cur { color: #38bdf8; }
+
+  /* 递归调用栈：竖着的"桶"，栈底在下、栈顶在上，进栈/出栈用箭头标出 */
+  /* 右侧信息栏：邻接表（图）+ 递归栈（放在画面左边，视线不用跑到最右） */
+  .sidecol {
+    width: 300px; flex: 0 0 300px; display: flex; flex-direction: column;
+    gap: 10px; justify-content: center; align-items: stretch;
+  }
+  .card {
+    background: rgba(17,26,46,.5); border: 1px solid #1c2942; border-radius: 11px;
+    padding: 10px 11px 9px; font-family: "Cascadia Code", Consolas, monospace;
+  }
+  .dspanel { display: none; }
+  .dspanel.on { display: block; }
+  .ds-head { font-size: 12.5px; color: #8ba1c2; letter-spacing: .4px; margin-bottom: 8px; }
+  .ds-kind { color: #4f6b92; font-size: 11.5px; }
+  .ds-rows { display: flex; flex-direction: column; gap: 4px; }
+  .ds-row {
+    display: flex; align-items: center; gap: 4px; height: 27px; border-radius: 6px;
+    padding: 0 5px; border-left: 2px solid transparent;
+  }
+  .ds-row.on { background: rgba(56,189,248,.1); border-left-color: #38bdf8; }
+  .ds-v {
+    width: 23px; height: 23px; flex: 0 0 23px; border-radius: 5px; background: #1c2c47;
+    border: 1px solid #2f4a72; color: #dbe7fb; font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ds-row.on .ds-v { background: #17405f; border-color: #38bdf8; color: #eaf6ff; }
+  .ds-to { color: #3c527a; font-size: 10px; }
+  .ds-arc {
+    font-size: 11.5px; color: #a9bede; background: #16223a; border: 1px solid #26395a;
+    border-radius: 5px; padding: 2px 5px; white-space: nowrap;
+  }
+  .ds-arc.w { background: #3a2a08; border-color: #f59e0b; color: #fcd34d; }
+  .ds-null { color: #43597e; font-size: 11px; }
+  .ds-foot { margin-top: 8px; font-size: 11px; color: #7d92b2; line-height: 1.55; min-height: 15px; }
+  .ds-foot b { color: #cfe0ff; }
+  .ds-empty { color: #4b5f7d; font-size: 11px; }
+
+  .stackpanel {
+    display: none; flex-direction: column; align-items: center;
+    background: rgba(17,26,46,.5); border: 1px solid #1c2942; border-radius: 11px;
+    padding: 10px 6px 8px;
+    font-family: "Cascadia Code", Consolas, monospace;
+  }
+  .stackpanel.on { display: flex; }
+  .sp-head { display: flex; align-items: baseline; gap: 7px; margin-bottom: 7px; }
+  .sp-title { font-size: 12.5px; color: #8ba1c2; letter-spacing: .5px; }
+  .sp-tag {
+    font-size: 11px; padding: 1.5px 7px; border-radius: 9px; opacity: 0;
+    transition: opacity .18s; white-space: nowrap;
+  }
+  .sp-tag.push { color: #fcd34d; background: rgba(245,158,11,.14); border: 1px solid rgba(245,158,11,.45); }
+  .sp-tag.pop  { color: #7dd3fc; background: rgba(56,189,248,.12); border: 1px solid rgba(56,189,248,.4); }
+  .sp-tag.on { opacity: 1; }
+  .sp-bucket {
+    position: relative; width: 176px;
+    border-left: 2px solid #4b6187; border-right: 2px solid #4b6187; border-bottom: 2px solid #4b6187;
+    border-radius: 0 0 8px 8px; padding: 7px 7px 6px;
+    display: flex; flex-direction: column-reverse; justify-content: flex-start; gap: 4px;
+    background: linear-gradient(180deg, rgba(30,45,72,.35), rgba(15,23,42,.15));
+  }
+  .sp-b {
+    height: 29px; border-radius: 5px; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; letter-spacing: -.2px; white-space: nowrap; overflow: hidden;
+    background: #1b3252; border: 1px solid #2f4a72; color: #a9c0e0;
+  }
+  .sp-b.pushed { animation: spIn .22s ease-out; }
+  .sp-b.top { background: #17405f; border-color: #38bdf8; color: #eaf6ff; box-shadow: 0 0 0 1px rgba(56,189,248,.35) inset; }
+  .sp-b.leaving { animation: spOut .22s ease-in forwards; }
+  @keyframes spIn  { from { transform: translateY(-12px) scale(.96); opacity: .35; } to { transform: none; opacity: 1; } }
+  @keyframes spOut { from { transform: none; opacity: 1; } to { transform: translateY(-16px) scale(.9); opacity: 0; } }
+  .sp-lab { position: absolute; left: 183px; font-size: 11.5px; color: #7c8fb0; white-space: nowrap; }
+  .sp-lab.top { color: #38bdf8; }
+  .sp-empty { color: #4b5f7d; font-size: 11.5px; padding: 6px 0; text-align: center; }
+  .sp-depth { margin-top: 7px; font-size: 11px; color: #6b80a0; }
+  .sp-depth b { color: #cfe0ff; font-weight: 600; }
+
+  footer { display: flex; align-items: center; gap: 10px; padding: 10px 18px; border-top: 1px solid #1e293b; }
+  button {
+    background: #16213a; color: #cfe0ff; border: 1px solid #26405f; border-radius: 8px;
+    padding: 7px 14px; font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+  button:hover:not(:disabled) { border-color: #3b82f6; color: #fff; }
+  button:disabled { opacity: .38; cursor: default; }
+  #play { background: linear-gradient(180deg, #2563eb, #1d4ed8); border-color: #3b82f6; color: #fff; min-width: 74px; }
+  #range { flex: 1; accent-color: #38bdf8; }
+  #prog { font-size: 12px; color: #8ea6c6; min-width: 74px; text-align: center; font-variant-numeric: tabular-nums; }
+  .speed { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #8ea6c6; }
+  .speed input { width: 96px; accent-color: #38bdf8; }
+
+  /* SVG 元素 */
+  .nd rect, .nd circle { transition: stroke .12s, fill .12s; }
+  .lbl { font-family: "Cascadia Code", Consolas, monospace; font-size: 13px; fill: #dbe7fb; }
+  .lbl.sm { font-size: 11px; fill: #7f93b0; }
+  .rowlab { font-size: 12px; fill: #8ea6c6; }
+  .ptr { font-family: "Cascadia Code", Consolas, monospace; font-size: 11.5px; font-weight: 700; }
+  .badge { font-family: "Cascadia Code", Consolas, monospace; font-size: 10.5px; font-weight: 700; fill: #0b1020; }
+  .edge { stroke: #3b4d73; stroke-width: 1.6; fill: none; }
+  .edge.dash { stroke-dasharray: 5 4; stroke: #6f5bb5; }
+  .wt { font-family: "Cascadia Code", Consolas, monospace; font-size: 10.5px; fill: #b9a7ff; }
+  .pulse { animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
+  /* 入度表：每个顶点一个小方块，正在看的那个青框，归零的数值变绿 */
+  /* 结构体定义：只在图这一章露出来，跟着代码一起看 */
+  .typedefs { display: none; border-top: 1px solid #1c2942; background: #0b1220; }
+  .typedefs.on { display: flex; flex-direction: column; min-height: 0; flex: 0 0 auto; }
+  .td-head {
+    padding: 6px 12px 4px; font-size: 11.5px; color: #7dd3fc; letter-spacing: .3px;
+    border-bottom: 1px dashed #1c2942; flex: 0 0 auto;
+  }
+  .typedefs pre {
+    margin: 0; padding: 8px 12px 10px; overflow: auto; max-height: 232px;
+    font: 10px/1.5 "Cascadia Code", Consolas, monospace; color: #c6d4ea; white-space: pre;
+  }
+  .typedefs pre i { color: #64748b; font-style: normal; }
+  .typedefs pre b { color: #f0abfc; font-weight: 600; }
+  .indpanel { display: none; }
+  .indpanel.on { display: block; }
+  .indpanel .ds-kind { margin-left: auto; }
+  .ind-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 2px 8px 4px; }
+  .ind-cell {
+    border: 1px solid #2f4066; border-radius: 6px; background: #17223b;
+    text-align: center; padding: 2px 0 3px; font-size: 10px; color: #8fa6c8; line-height: 1.25;
+  }
+  .ind-cell b { display: block; font-size: 14px; color: #e6eefc; font-weight: 600; }
+  .ind-cell.on { border-color: #38bdf8; background: #0e3350; box-shadow: inset 0 0 0 1px #38bdf8; }
+  .ind-cell.zero b { color: #4ade80; }
+
+  /* ---- 窄屏（手机 / 小窗口）：左右分栏改成上下堆叠 ----
+     桌面版是给 1280px 以上屏幕准备的：左边固定 430px 代码栏，右边画图，
+     整页不滚动。窄屏上固定宽度会把画面挤没，所以这里换成上下布局，
+     并允许页面纵向滚动。 */
+
+  @media (max-width: 900px) {
+    body { overflow: auto; height: auto; min-height: 100%; }
+    header { flex-wrap: wrap; gap: 8px 12px; padding: 8px 12px; }
+    .brand { font-size: 14px; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .brand .sub { display: none; }
+    .hint { display: none; }
+    main { flex-direction: column; }
+    /* 手机上先看画面、再看代码：把右侧（说明 + 图）排到前面，
+       代码挪到下面，避免"代码占了半屏、图被挤没了" */
+    .right { order: 1; min-height: 0; }
+    .left {
+      order: 2; width: auto; min-width: 0;
+      border-right: 0; border-top: 1px solid #1e293b;
+    }
+    .codebox { max-height: 46vh; padding-bottom: 12px; }
+    .desc { padding: 8px 12px; font-size: 12.5px; min-height: 0; }
+    .stagewrap { flex-direction: column; align-items: stretch; padding: 6px 10px; overflow: auto; }
+    /* 图的 viewBox 可能很宽，窄屏上让它按容器等比缩小，
+       否则 svg 的固有宽度会把整个 body 撑出横向滚动条，代码区跟着被切 */
+    #stage { max-width: 100% !important; height: auto; }
+    html, body { overflow-x: hidden; }
+    .sidecol {
+      width: auto; flex: 0 0 auto; flex-direction: row; flex-wrap: wrap;
+      gap: 8px; justify-content: flex-start;
+    }
+    .card, .stackpanel { flex: 1 1 240px; }
+    .sp-lab { display: none; }
+    footer { flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
+    #range { flex: 1 1 100%; order: 5; }
+    button { padding: 8px 12px; }
+  }

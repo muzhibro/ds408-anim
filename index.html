@@ -1,0 +1,4141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>408 数据结构 · 可交互动画（第 2–6 章）</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: flex; flex-direction: column; overflow: hidden;
+    background: #0b1020; color: #e6edf7;
+    font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  }
+  header { display: flex; align-items: center; gap: 16px; padding: 10px 18px; border-bottom: 1px solid #1e293b; }
+  .brand { font-size: 15px; font-weight: 700; letter-spacing: .3px; white-space: nowrap; }
+  .brand .sub { font-weight: 400; font-size: 12px; color: #7d8ba3; margin-left: 8px; }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tab {
+    background: #131c30; color: #9fb0c9; border: 1px solid #22304d; border-radius: 999px;
+    padding: 5px 13px; font-size: 12.5px; cursor: pointer; font-family: inherit;
+  }
+  .tab:hover { border-color: #35507f; color: #d6e4fb; }
+  .tab.on { background: linear-gradient(180deg, #1d4ed8, #1e3a8a); border-color: #3b82f6; color: #fff; }
+  .hint { margin-left: auto; font-size: 11.5px; color: #64748b; white-space: nowrap; }
+
+  main { flex: 1; display: flex; min-height: 0; }
+  .left { width: 430px; min-width: 300px; display: flex; flex-direction: column; border-right: 1px solid #1e293b; }
+  .pick { padding: 10px 12px; border-bottom: 1px solid #16203a; }
+  select {
+    width: 100%; background: #111a2e; color: #dbe7fb; border: 1px solid #24314e;
+    border-radius: 7px; padding: 7px 9px; font-size: 13px; font-family: inherit;
+  }
+  #caseSel { margin-top: 6px; background: #0d1626; border-color: #2b3b5c; color: #b9cbe6; font-size: 12.5px; }
+  #caseSel::before { content: '案例'; }
+  .note { margin: 8px 2px 0; font-size: 12px; line-height: 1.6; color: #8fa3c0; }
+  .note b { color: #cfe0ff; font-weight: 600; }
+  .codebox { flex: 1; overflow: auto; padding: 6px 0 40px; }
+  .code { font-family: "Cascadia Code", Consolas, "Courier New", monospace; font-size: 12.5px; line-height: 1.62; }
+  .cline { display: block; position: relative; white-space: pre-wrap; word-break: break-word; padding: 0 14px 0 44px; color: #b7c6dd; }
+  .cline .no { position: absolute; left: 4px; top: 0; width: 28px; text-align: right; color: #41526e; user-select: none; }
+  .cline.hl { background: rgba(56,189,248,.13); box-shadow: inset 2px 0 0 #38bdf8; color: #eaf4ff; }
+  .cline.hl .no { color: #7ea9d8; }
+  /* 当前这一行的判定条件（if/while 括号里那一段）单独提亮，箭头指向的就是它 */
+  .cond {
+    background: rgba(167,139,250,.34); box-shadow: inset 0 -2px 0 #a78bfa;
+    border-radius: 3px; color: #fff; padding: 0 2px;
+  }
+  /* 上一层的判定条件（当前行是它的语句体时）用淡一点的样式带出来 */
+  .cond.soft { background: rgba(167,139,250,.10); box-shadow: inset 0 -1px 0 rgba(167,139,250,.45); color: #cbbff0; }
+
+  .right { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .desc { padding: 10px 18px; font-size: 13.5px; line-height: 1.55; color: #cfe0f7; min-height: 44px; }
+  .desc .badge { color: #38bdf8; font-weight: 700; margin-right: 6px; }
+  .stagewrap { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 18px; overflow: auto; }
+  .svgholder { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; justify-content: center; }
+  svg#stage { width: 100%; height: auto; display: block; }
+  .extra { padding: 6px 18px 4px; display: flex; flex-wrap: wrap; gap: 8px 18px; font-family: "Cascadia Code", Consolas, monospace; font-size: 12px; color: #8ea6c6; min-height: 30px; }
+  .extra b { color: #cfe0ff; font-weight: 600; }
+  .extra .cur { color: #38bdf8; }
+
+  /* 递归调用栈：竖着的"桶"，栈底在下、栈顶在上，进栈/出栈用箭头标出 */
+  /* 右侧信息栏：邻接表（图）+ 递归栈（放在画面左边，视线不用跑到最右） */
+  .sidecol {
+    width: 300px; flex: 0 0 300px; display: flex; flex-direction: column;
+    gap: 10px; justify-content: center; align-items: stretch;
+  }
+  .card {
+    background: rgba(17,26,46,.5); border: 1px solid #1c2942; border-radius: 11px;
+    padding: 10px 11px 9px; font-family: "Cascadia Code", Consolas, monospace;
+  }
+  .dspanel { display: none; }
+  .dspanel.on { display: block; }
+  .ds-head { font-size: 12.5px; color: #8ba1c2; letter-spacing: .4px; margin-bottom: 8px; }
+  .ds-kind { color: #4f6b92; font-size: 11.5px; }
+  .ds-rows { display: flex; flex-direction: column; gap: 4px; }
+  .ds-row {
+    display: flex; align-items: center; gap: 4px; height: 27px; border-radius: 6px;
+    padding: 0 5px; border-left: 2px solid transparent;
+  }
+  .ds-row.on { background: rgba(56,189,248,.1); border-left-color: #38bdf8; }
+  .ds-v {
+    width: 23px; height: 23px; flex: 0 0 23px; border-radius: 5px; background: #1c2c47;
+    border: 1px solid #2f4a72; color: #dbe7fb; font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ds-row.on .ds-v { background: #17405f; border-color: #38bdf8; color: #eaf6ff; }
+  .ds-to { color: #3c527a; font-size: 10px; }
+  .ds-arc {
+    font-size: 11.5px; color: #a9bede; background: #16223a; border: 1px solid #26395a;
+    border-radius: 5px; padding: 2px 5px; white-space: nowrap;
+  }
+  .ds-arc.w { background: #3a2a08; border-color: #f59e0b; color: #fcd34d; }
+  .ds-null { color: #43597e; font-size: 11px; }
+  .ds-foot { margin-top: 8px; font-size: 11px; color: #7d92b2; line-height: 1.55; min-height: 15px; }
+  .ds-foot b { color: #cfe0ff; }
+  .ds-empty { color: #4b5f7d; font-size: 11px; }
+
+  .stackpanel {
+    display: none; flex-direction: column; align-items: center;
+    background: rgba(17,26,46,.5); border: 1px solid #1c2942; border-radius: 11px;
+    padding: 10px 6px 8px;
+    font-family: "Cascadia Code", Consolas, monospace;
+  }
+  .stackpanel.on { display: flex; }
+  .sp-head { display: flex; align-items: baseline; gap: 7px; margin-bottom: 7px; }
+  .sp-title { font-size: 12.5px; color: #8ba1c2; letter-spacing: .5px; }
+  .sp-tag {
+    font-size: 11px; padding: 1.5px 7px; border-radius: 9px; opacity: 0;
+    transition: opacity .18s; white-space: nowrap;
+  }
+  .sp-tag.push { color: #fcd34d; background: rgba(245,158,11,.14); border: 1px solid rgba(245,158,11,.45); }
+  .sp-tag.pop  { color: #7dd3fc; background: rgba(56,189,248,.12); border: 1px solid rgba(56,189,248,.4); }
+  .sp-tag.on { opacity: 1; }
+  .sp-bucket {
+    position: relative; width: 176px;
+    border-left: 2px solid #4b6187; border-right: 2px solid #4b6187; border-bottom: 2px solid #4b6187;
+    border-radius: 0 0 8px 8px; padding: 7px 7px 6px;
+    display: flex; flex-direction: column-reverse; justify-content: flex-start; gap: 4px;
+    background: linear-gradient(180deg, rgba(30,45,72,.35), rgba(15,23,42,.15));
+  }
+  .sp-b {
+    height: 29px; border-radius: 5px; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; letter-spacing: -.2px; white-space: nowrap; overflow: hidden;
+    background: #1b3252; border: 1px solid #2f4a72; color: #a9c0e0;
+  }
+  .sp-b.pushed { animation: spIn .22s ease-out; }
+  .sp-b.top { background: #17405f; border-color: #38bdf8; color: #eaf6ff; box-shadow: 0 0 0 1px rgba(56,189,248,.35) inset; }
+  .sp-b.leaving { animation: spOut .22s ease-in forwards; }
+  @keyframes spIn  { from { transform: translateY(-12px) scale(.96); opacity: .35; } to { transform: none; opacity: 1; } }
+  @keyframes spOut { from { transform: none; opacity: 1; } to { transform: translateY(-16px) scale(.9); opacity: 0; } }
+  .sp-lab { position: absolute; left: 183px; font-size: 11.5px; color: #7c8fb0; white-space: nowrap; }
+  .sp-lab.top { color: #38bdf8; }
+  .sp-empty { color: #4b5f7d; font-size: 11.5px; padding: 6px 0; text-align: center; }
+  .sp-depth { margin-top: 7px; font-size: 11px; color: #6b80a0; }
+  .sp-depth b { color: #cfe0ff; font-weight: 600; }
+
+  footer { display: flex; align-items: center; gap: 10px; padding: 10px 18px; border-top: 1px solid #1e293b; }
+  button {
+    background: #16213a; color: #cfe0ff; border: 1px solid #26405f; border-radius: 8px;
+    padding: 7px 14px; font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+  button:hover:not(:disabled) { border-color: #3b82f6; color: #fff; }
+  button:disabled { opacity: .38; cursor: default; }
+  #play { background: linear-gradient(180deg, #2563eb, #1d4ed8); border-color: #3b82f6; color: #fff; min-width: 74px; }
+  #range { flex: 1; accent-color: #38bdf8; }
+  #prog { font-size: 12px; color: #8ea6c6; min-width: 74px; text-align: center; font-variant-numeric: tabular-nums; }
+  .speed { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #8ea6c6; }
+  .speed input { width: 96px; accent-color: #38bdf8; }
+
+  /* SVG 元素 */
+  .nd rect, .nd circle { transition: stroke .12s, fill .12s; }
+  .lbl { font-family: "Cascadia Code", Consolas, monospace; font-size: 13px; fill: #dbe7fb; }
+  .lbl.sm { font-size: 11px; fill: #7f93b0; }
+  .rowlab { font-size: 12px; fill: #8ea6c6; }
+  .ptr { font-family: "Cascadia Code", Consolas, monospace; font-size: 11.5px; font-weight: 700; }
+  .badge { font-family: "Cascadia Code", Consolas, monospace; font-size: 10.5px; font-weight: 700; fill: #0b1020; }
+  .edge { stroke: #3b4d73; stroke-width: 1.6; fill: none; }
+  .edge.dash { stroke-dasharray: 5 4; stroke: #6f5bb5; }
+  .wt { font-family: "Cascadia Code", Consolas, monospace; font-size: 10.5px; fill: #b9a7ff; }
+  .pulse { animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
+  /* 入度表：每个顶点一个小方块，正在看的那个青框，归零的数值变绿 */
+  /* 结构体定义：只在图这一章露出来，跟着代码一起看 */
+  .typedefs { display: none; border-top: 1px solid #1c2942; background: #0b1220; }
+  .typedefs.on { display: flex; flex-direction: column; min-height: 0; flex: 0 0 auto; }
+  .td-head {
+    padding: 6px 12px 4px; font-size: 11.5px; color: #7dd3fc; letter-spacing: .3px;
+    border-bottom: 1px dashed #1c2942; flex: 0 0 auto;
+  }
+  .typedefs pre {
+    margin: 0; padding: 8px 12px 10px; overflow: auto; max-height: 232px;
+    font: 10px/1.5 "Cascadia Code", Consolas, monospace; color: #c6d4ea; white-space: pre;
+  }
+  .typedefs pre i { color: #64748b; font-style: normal; }
+  .typedefs pre b { color: #f0abfc; font-weight: 600; }
+  .indpanel { display: none; }
+  .indpanel.on { display: block; }
+  .indpanel .ds-kind { margin-left: auto; }
+  .ind-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 2px 8px 4px; }
+  .ind-cell {
+    border: 1px solid #2f4066; border-radius: 6px; background: #17223b;
+    text-align: center; padding: 2px 0 3px; font-size: 10px; color: #8fa6c8; line-height: 1.25;
+  }
+  .ind-cell b { display: block; font-size: 14px; color: #e6eefc; font-weight: 600; }
+  .ind-cell.on { border-color: #38bdf8; background: #0e3350; box-shadow: inset 0 0 0 1px #38bdf8; }
+  .ind-cell.zero b { color: #4ade80; }
+
+  /* ---- 窄屏（手机 / 小窗口）：左右分栏改成上下堆叠 ----
+     桌面版是给 1280px 以上屏幕准备的：左边固定 430px 代码栏，右边画图，
+     整页不滚动。窄屏上固定宽度会把画面挤没，所以这里换成上下布局，
+     并允许页面纵向滚动。 */
+
+  @media (max-width: 900px) {
+    body { overflow: auto; height: auto; min-height: 100%; }
+    header { flex-wrap: wrap; gap: 8px 12px; padding: 8px 12px; }
+    .brand { font-size: 14px; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .brand .sub { display: none; }
+    .hint { display: none; }
+    main { flex-direction: column; }
+    /* 手机上先看画面、再看代码：把右侧（说明 + 图）排到前面，
+       代码挪到下面，避免"代码占了半屏、图被挤没了" */
+    .right { order: 1; min-height: 0; }
+    .left {
+      order: 2; width: auto; min-width: 0;
+      border-right: 0; border-top: 1px solid #1e293b;
+    }
+    .codebox { max-height: 46vh; padding-bottom: 12px; }
+    .desc { padding: 8px 12px; font-size: 12.5px; min-height: 0; }
+    .stagewrap { flex-direction: column; align-items: stretch; padding: 6px 10px; overflow: auto; }
+    /* 图的 viewBox 可能很宽，窄屏上让它按容器等比缩小，
+       否则 svg 的固有宽度会把整个 body 撑出横向滚动条，代码区跟着被切 */
+    #stage { max-width: 100% !important; height: auto; }
+    html, body { overflow-x: hidden; }
+    .sidecol {
+      width: auto; flex: 0 0 auto; flex-direction: row; flex-wrap: wrap;
+      gap: 8px; justify-content: flex-start;
+    }
+    .card, .stackpanel { flex: 1 1 240px; }
+    .sp-lab { display: none; }
+    footer { flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
+    #range { flex: 1 1 100%; order: 5; }
+    button { padding: 8px 12px; }
+  }
+
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">408 数据结构 · 可交互动画<span class="sub">代码与结构逐步同步</span></div>
+  <div class="tabs" id="tabs"></div>
+  <div class="hint">← → 单步　空格 播放</div>
+</header>
+
+<main>
+  <section class="left">
+    <div class="pick">
+      <select id="demoSel"></select>
+      <select id="caseSel" style="display:none"></select>
+      <p class="note" id="note"></p>
+    </div>
+    <div class="codebox"><div class="code" id="code"></div></div>
+    <div class="typedefs" id="typedefs">
+      <div class="td-head" id="tdhead">结构体定义</div>
+      <pre id="tdbody"></pre>
+    </div>
+  </section>
+  <section class="right">
+    <div class="desc" id="desc"></div>
+    <div class="extra" id="extra"></div>
+    <div class="stagewrap">
+      <div class="sidecol" id="sidecol">
+        <div class="card dspanel" id="dspanel">
+          <div class="ds-head">邻接表 <span class="ds-kind" id="dskind"></span></div>
+          <div class="ds-rows" id="dsrows"></div>
+          <div class="ds-foot" id="dsfoot"></div>
+        </div>
+        <div class="card indpanel" id="indpanel">
+          <div class="ds-head">入度 indegree[]<span class="ds-kind" id="indkind"></span></div>
+          <div class="ind-grid" id="indbody"></div>
+          <div class="ds-foot" id="indfoot"></div>
+        </div>
+        <div class="stackpanel" id="stackpanel">
+          <div class="sp-head">
+            <span class="sp-title" id="stacktitle">递归栈</span>
+            <span class="sp-tag" id="stacktag"></span>
+          </div>
+          <div class="sp-bucket" id="stackbody"></div>
+          <div class="sp-depth" id="stackdepth"></div>
+        </div>
+      </div>
+      <div class="svgholder">
+        <svg id="stage" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <button id="prev">‹ 上一步</button>
+  <button id="play">播放</button>
+  <button id="next">下一步 ›</button>
+  <input id="range" type="range" min="0" max="0" value="0">
+  <span id="prog">1 / 1</span>
+  <span class="speed">速度 <input id="speed" type="range" min="180" max="1600" step="20" value="760"></span>
+</footer>
+
+<script>
+/* ---- src/core/util.js ---- */
+/* core · 通用小工具 */
+(function (NS) {
+  'use strict';
+
+  /* 浅拷贝：帧里凡是"会被后续步骤继续修改"的普通对象/数组，都要拷一份 */
+  function cp(o) { var r = {}; for (var k in (o || {})) r[k] = o[k]; return r; }
+
+  NS.cp = cp;
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/core/registry.js ---- */
+/* core · 章节表与 id 生成器 */
+(function (NS) {
+  'use strict';
+
+  /* 全局唯一 id：链表结点、树结点都用它，跨帧比较时靠 id 认人 */
+  var uid = 0;
+  function nextId() { return ++uid; }
+
+  /* ---------------------------------------------------------------- 章节与 demo 容器 */
+  var CHAPTERS = [
+    { id: 'list', name: '链表', demos: [] },
+    { id: 'tree', name: '二叉树', demos: [] },
+    { id: 'graph', name: '图', demos: [] },
+    { id: 'search', name: '查找', demos: [] },
+    { id: 'sort', name: '排序', demos: [] }
+  ];
+
+  function CH(id) {
+    for (var i = 0; i < CHAPTERS.length; i++) if (CHAPTERS[i].id === id) return CHAPTERS[i];
+    throw new Error('no chapter ' + id);
+  }
+
+  NS.nextId = nextId;
+  NS.CHAPTERS = CHAPTERS;
+  NS.CH = CH;
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/core/stack.js ---- */
+/* core · 递归栈：演示过程把栈顶快照塞进每一帧 */
+(function (NS) {
+  'use strict';
+
+  /* 当前演示的递归栈：demo 里 push/pop 这一个数组，所有帧自动带上快照。
+     用模块级的活变量是因为 FT / FA / FG 三个帧工厂都要读，而 demo 直接调它们。 */
+  var live = null;
+
+  function setStack(s) { live = s || null; }
+
+  function stackOf(opt) {
+    if (opt && opt.stack) return opt.stack.slice();
+    return live ? live.slice() : null;
+  }
+
+  NS.setStack = setStack;
+  NS.stackOf = stackOf;
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/core/list.js ---- */
+/* core · 链表：结点构造 + 链表帧 */
+(function (NS) {
+  'use strict';
+
+  var nextId = NS.nextId;
+
+  /* ---------------------------------------------------------------- 通用：链表结点 */
+  function mk(val, extra) {
+    var n = { id: nextId(), val: String(val), isHead: false, next: null, prior: null };
+    if (extra) for (var k in extra) n[k] = extra[k];
+    return n;
+  }
+
+  function mkHead(label) { var n = mk(label, { isHead: true }); return n; }
+
+  function build(vals) {
+    var a = [], i;
+    for (i = 0; i < vals.length; i++) a.push(mk(vals[i]));
+    for (i = 0; i + 1 < a.length; i++) a[i].next = a[i + 1];
+    return a;
+  }
+
+  function linkPrev(head) {
+    var p = head, q = null;
+    while (p) { p.prior = q; q = p; p = p.next; }
+  }
+
+  function walk(head) {
+    var out = [], seen = {}, p = head, g = 0;
+    while (p && !seen[p.id] && g++ < 60) { seen[p.id] = 1; out.push(p.isHead ? (p.val || 'H') : p.val); p = p.next; }
+    return out;
+  }
+
+  /* ---------------------------------------------------------------- 帧：链表 */
+  function F(line, desc, rows, ptrs, mark, extra) {
+    rows = rows || []; ptrs = ptrs || [];
+    var map = {}, pairs = [];
+    function visit(n) {
+      if (!n || map[n.id]) return;
+      var c = { id: n.id, val: n.val, isHead: !!n.isHead, next: null, prior: null };
+      map[n.id] = c; pairs.push([n, c]);
+      visit(n.next); visit(n.prior);
+    }
+    rows.forEach(function (r) { if (r && r.head) visit(r.head); if (r && r.cut) visit(r.cut); });
+    ptrs.forEach(function (p) { if (p && p.node) visit(p.node); });
+    if (mark) visit(mark);
+    pairs.forEach(function (t) {
+      t[1].next = t[0].next ? map[t[0].next.id] : null;
+      t[1].prior = t[0].prior ? map[t[0].prior.id] : null;
+    });
+    var f = {
+      mode: 'list', line: line, desc: desc,
+      rows: rows.map(function (r) {
+        if (!(r && r.head)) return r;
+        var o = { label: r.label, head: map[r.head.id] };
+        if (r.cut) o.cut = map[r.cut.id] || null;
+        if (r.cutNote) o.cutNote = r.cutNote;
+        return o;
+      }),
+      ptrs: ptrs.map(function (p) { return (p && p.node) ? { name: p.name, node: map[p.node.id] } : p; }),
+      mark: mark ? (map[mark.id] || null) : null
+    };
+    if (extra) for (var k in extra) f[k] = extra[k];
+    if (f.link) {
+      f.link = {
+        from: f.link.from && map[f.link.from.id] ? map[f.link.from.id] : null,
+        to: f.link.to && map[f.link.to.id] ? map[f.link.to.id] : null,
+        text: f.link.text, color: f.link.color
+      };
+    }
+    return f;
+  }
+
+  NS.mk = mk;
+  NS.mkHead = mkHead;
+  NS.build = build;
+  NS.linkPrev = linkPrev;
+  NS.walk = walk;
+  NS.F = F;
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/core/tree.js ---- */
+/* core · 二叉树：结点构造 + 树帧 */
+(function (NS) {
+  'use strict';
+
+  var nextId = NS.nextId, cp = NS.cp, stackOf = NS.stackOf;
+
+  /* ---------------------------------------------------------------- 通用：二叉树 */
+  function T(val, l, r) { return { id: nextId(), val: String(val), l: l || null, r: r || null }; }
+
+  function cloneTree(n, map) {
+    if (!n) return null;
+    map = map || {};
+    if (map[n.id]) return map[n.id];
+    var c = { id: n.id, val: n.val, l: null, r: null, tag: null };
+    map[n.id] = c;
+    c.l = cloneTree(n.l, map); c.r = cloneTree(n.r, map);
+    return c;
+  }
+
+  function FT(line, desc, root, opt) {
+    opt = opt || {};
+    var f = { mode: 'tree', line: line, desc: desc, root: cloneTree(root) };
+    f.mark = opt.mark ? opt.mark.id : null;
+    f.ptrs = (opt.ptrs || []).map(function (p) { return { name: p.name, id: p.node ? p.node.id : null }; });
+    /* 必须拷贝：tags / stack 是 generator 里被反复修改的活对象，
+       如果直接存引用，所有历史帧都会显示"最终状态"（和链表帧同类 bug）。 */
+    f.tags = cp(opt.tags);
+    f.stack = stackOf(opt);
+    f.swapPair = opt.swapPair ? opt.swapPair.slice() : null;   /* 树里"交换两个孩子"：[idA,idB] */
+    f.cmpTag = opt.cmpTag ? { text: opt.cmpTag.text, ok: opt.cmpTag.ok == null ? null : opt.cmpTag.ok } : null; /* 结点与 key 的比较结论 */
+    f.side = opt.side ? opt.side.slice() : null;
+    return f;
+  }
+
+  NS.T = T;
+  NS.cloneTree = cloneTree;
+  NS.FT = FT;
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/core/array-frame.js ---- */
+/* core · 数组帧（排序 / 查找用） */
+(function (NS) {
+  'use strict';
+
+  var cp = NS.cp, stackOf = NS.stackOf;
+
+  /* ---------------------------------------------------------------- 帧：数组 */
+  function FA(line, desc, arr, opt) {
+    opt = opt || {};
+    return {
+      mode: 'array', line: line, desc: desc,
+      arr: arr.slice(),
+      marks: (opt.marks || []).map(function (m) { return { name: m.name, at: m.at, color: m.color }; }),
+      sorted: cp(opt.sorted),
+      spans: (opt.spans || []).map(function (s) { return { from: s.from, to: s.to, label: s.label, color: s.color }; }),
+      labels: cp(opt.labels),
+      swap: opt.swap ? opt.swap.slice() : null,     /* [i,j]：两个格子互换，画双向弧 */
+      jump: opt.jump ? { from: opt.jump.from, to: opt.jump.to, label: opt.jump.label } : null, /* 单向搬动 */
+      cmp: opt.cmp ? {
+        a: opt.cmp.a, b: opt.cmp.b == null ? -1 : opt.cmp.b,
+        left: opt.cmp.left, right: opt.cmp.right,
+        op: opt.cmp.op || '?', ok: opt.cmp.ok == null ? null : opt.cmp.ok,
+        res: opt.cmp.res || '',
+        side: opt.cmp.side || 'right',          /* 和变量比时，变量画在数组哪一侧 */
+        vtext: opt.cmp.vtext || ''              /* 变量的字样，如 pivot=49、t=97、key=43 */
+      } : null,                                 /* 比较：a、b 两个格子；b=-1 表示和"变量"比 */
+      stack: stackOf(opt),
+      side: opt.side ? opt.side.slice() : null
+    };
+  }
+
+  NS.FA = FA;
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/core/graph-frame.js ---- */
+/* core · 图帧（遍历 / 最小生成树 / 拓扑排序用） */
+(function (NS) {
+  'use strict';
+
+  var cp = NS.cp, stackOf = NS.stackOf;
+
+  /* ---------------------------------------------------------------- 帧：图 */
+  function FG(line, desc, g, st) {
+    return {
+      mode: 'graph', line: line, desc: desc,
+      g: g,
+      state: cp(st.state),
+      labels: cp(st.labels),
+      side: st.side ? st.side.slice() : null,
+      stack: stackOf(st),
+      cur: st.cur == null ? null : st.cur,
+      edgeOn: cp(st.edgeOn),
+      /* 正在扫谁的邻接表、看到哪个邻居 —— 右边的邻接表面板靠它高亮 */
+      scan: st.scan ? { v: st.scan.v, w: st.scan.w } : null,
+      /* 不用邻接表扫的算法（Kruskal 走边表）：直接指定高亮哪些行 + 底部说明 */
+      dsMark: st.dsMark ? st.dsMark.slice() : null,
+      dsFoot: st.dsFoot || null,
+      /* 拓扑排序的 indegree[]：逐帧快照 + 游标（正在看谁）+ 底部说明 */
+      ind: st.ind ? { vals: st.ind.vals.slice(), at: st.ind.at == null ? null : st.ind.at, note: st.ind.note || '' } : null
+    };
+  }
+
+  NS.FG = FG;
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/_cases.js ---- */
+/* 排序 / 查找共用的用例数据 */
+(function (NS) {
+  'use strict';
+
+  /* 同一段排序代码换不同输入，能看到最好/最坏/重复元素这些差别 */
+  var SORT_CASES = [
+    { label: '随机 8 个（默认）', arr: [49, 38, 65, 97, 76, 13, 27, 49] },
+    { label: '已经有序（最好情况）', arr: [13, 27, 38, 49, 49, 65, 76, 97] },
+    { label: '完全逆序（最坏情况）', arr: [97, 76, 65, 49, 49, 38, 27, 13] },
+    { label: '大量重复元素', arr: [49, 49, 13, 13, 76, 76, 49, 49] },
+    { label: '只有 4 个（看边界）', arr: [38, 13, 76, 49] }
+  ];
+
+  var BIN_CASES = [
+    { label: '命中 43（靠右半边）', arr: [7, 10, 13, 16, 19, 29, 32, 33, 37, 41, 43], key: 43 },
+    { label: '命中 7（第一个就是）', arr: [7, 10, 13, 16, 19, 29, 32, 33, 37, 41, 43], key: 7 },
+    { label: '未命中 35（夹在中间）', arr: [7, 10, 13, 16, 19, 29, 32, 33, 37, 41, 43], key: 35 },
+    { label: '未命中 100（比所有都大）', arr: [7, 10, 13, 16, 19, 29, 32, 33, 37, 41, 43], key: 100 },
+    { label: '只有 1 个元素', arr: [42], key: 42 }
+  ];
+
+  /* ================================================================ 第 6 章 排序 */
+  function sortedSet(n, from) {
+    var o = {}, i;
+    for (i = from || 0; i < n; i++) o[i] = 1;
+    return o;
+  }
+
+  NS.SORT_CASES = SORT_CASES;
+  NS.BIN_CASES = BIN_CASES;
+  NS.sortedSet = sortedSet;
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/list/01-head.js ---- */
+/* 链表 · 2.1 头插法建表（结果逆序） */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, mk = NS.mk, mkHead = NS.mkHead, F = NS.F;
+
+CH('list').demos.push({
+    id: 'head', name: '2.1 头插法建表（结果逆序）', doubly: false,
+    note: '<b>头插法</b>：每个新结点都插在头结点之后，所以结果与输入顺序相反。它是 2.2 逆置、2.11 逆置后半段的地基。',
+    expect: ['L', '5', '1', '4', '1', '3'],
+    code: [
+      'void CreateListHead(LinkList *L, ElemType a[], int n) {',
+      '    *L = (LNode *)malloc(sizeof(LNode));      /* 头结点 */',
+      '    (*L)->next = NULL;',
+      '    for (int i = 0; i < n; i++) {',
+      '        LNode *s = (LNode *)malloc(sizeof(LNode));',
+      '        s->data = a[i];',
+      '        s->next = (*L)->next;                 /* 先连后头 */',
+      '        (*L)->next = s;                       /* 再改头结点 */',
+      '    }',
+      '}'
+    ],
+    run: function* () {
+      var a = [3, 1, 4, 1, 5];
+      var L = mkHead('L');
+      var rows = function (extra) { return [{ label: 'L', head: L }].concat(extra || []); };
+      yield F(0, '准备：a = [3, 1, 4, 1, 5]，n = 5。带头结点 L（头结点不存数据，只负责"指路"）。', rows(), [{ name: 'L', node: L }], L);
+      yield F(1, '① 申请头结点 L。', rows(), [{ name: 'L', node: L }], L);
+      yield F(2, '② (*L)->next = NULL：此刻是空表。', rows(), [{ name: 'L', node: L }], L);
+      for (var i = 0; i < a.length; i++) {
+        var s = mk(a[i]);
+        var pending = [{ label: 's（新）', head: s }];
+        yield F(4, 'i = ' + i + '：③ 申请新结点 s。', rows(pending), [{ name: 'L', node: L }, { name: 's', node: s }], s);
+        yield F(5, '④ s->data = a[' + i + '] = ' + a[i] + '。', rows(pending), [{ name: 'L', node: L }, { name: 's', node: s }], s);
+        var old = L.next;
+        s.next = old;
+        yield F(6, '⑤ s->next = L->next：先让 s 接上原首元 ' + (old ? old.val : 'NULL') + '（先连后头，链不丢）。', rows(pending), [{ name: 'L', node: L }, { name: 's', node: s }], s);
+        L.next = s;
+        yield F(7, '⑥ L->next = s：头结点改指向 s，s 成为新的首元。', rows(), [{ name: 'L', node: L }], s);
+      }
+      yield F(9, '建表完成：5 → 1 → 4 → 1 → 3。最后插的 5 跑到了最前面 —— 这就是"头插逆序"。', rows(), [{ name: 'L', node: L }], null);
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/list/02-tail.js ---- */
+/* 链表 · 2.1 尾插法建表（保持顺序） */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, mk = NS.mk, mkHead = NS.mkHead, F = NS.F;
+
+CH('list').demos.push({
+    id: 'tail', name: '2.1 尾插法建表（保持顺序）', doubly: false,
+    note: '<b>尾插法</b>：多一个尾指针 r，每次都挂到表尾。结果与输入顺序一致。r 必须一路跟着走，最后 r->next = NULL 不能漏。',
+    expect: ['L', '3', '1', '4', '1', '5'],
+    code: [
+      'void CreateListTail(LinkList *L, ElemType a[], int n) {',
+      '    *L = (LNode *)malloc(sizeof(LNode));',
+      '    (*L)->next = NULL;',
+      '    LNode *r = *L;                    /* r 始终指向尾结点 */',
+      '    for (int i = 0; i < n; i++) {',
+      '        LNode *s = (LNode *)malloc(sizeof(LNode));',
+      '        s->data = a[i];',
+      '        r->next = s;',
+      '        r = s;',
+      '    }',
+      '    r->next = NULL;                   /* 收尾，绝不能漏 */',
+      '}'
+    ],
+    run: function* () {
+      var a = [3, 1, 4, 1, 5];
+      var L = mkHead('L'), r = L;
+      var rows = function (extra) { return [{ label: 'L', head: L }].concat(extra || []); };
+      yield F(0, '准备：a = [3, 1, 4, 1, 5]。尾插法需要一个尾指针 r。', rows(), [{ name: 'L', node: L }], L);
+      yield F(1, '① 申请头结点 L。', rows(), [{ name: 'L', node: L }], L);
+      yield F(2, '② (*L)->next = NULL。', rows(), [{ name: 'L', node: L }], L);
+      yield F(3, '③ r = L：一开始尾结点就是头结点（表是空的）。', rows(), [{ name: 'L', node: L }, { name: 'r', node: r }], r);
+      for (var i = 0; i < a.length; i++) {
+        var s = mk(a[i]);
+        var pending = [{ label: 's（新）', head: s }];
+        yield F(5, 'i = ' + i + '：④ 申请新结点 s。', rows(pending), [{ name: 'r', node: r }, { name: 's', node: s }], s);
+        yield F(6, '⑤ s->data = a[' + i + '] = ' + a[i] + '。', rows(pending), [{ name: 'r', node: r }, { name: 's', node: s }], s);
+        r.next = s;
+        yield F(7, '⑥ r->next = s：把 s 挂到当前表尾之后。', rows(), [{ name: 'r', node: r }, { name: 's', node: s }], s);
+        r = s;
+        yield F(8, '⑦ r = s：尾指针后移，r 永远指着最后一个结点。', rows(), [{ name: 'r', node: r }], s);
+      }
+      yield F(10, '⑧ r->next = NULL：收尾。（漏掉这行，链尾就是野指针）', rows(), [{ name: 'L', node: L }, { name: 'r', node: r }], r);
+      yield F(11, '建表完成：3 → 1 → 4 → 1 → 5，顺序与输入一致。', rows(), [{ name: 'L', node: L }], null);
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/list/03-reverse.js ---- */
+/* 链表 · 2.2 单链表就地逆置（断头＋头插） */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, mkHead = NS.mkHead, build = NS.build, F = NS.F;
+
+CH('list').demos.push({
+    id: 'reverse', name: '2.2 单链表就地逆置（断头＋头插）', doubly: false,
+    note: '<b>就地逆置</b>：把原表结点一个个摘下、头插到 L 后面。全程只用 p、q 两个指针，<b>空间 O(1)</b>。q 是用来"防断链"的。',
+    expect: ['L', '5', '4', '3', '2', '1'],
+    code: [
+      'void ReverseList(LinkList L) {',
+      '    LNode *p = L->next, *q;',
+      '    L->next = NULL;                   /* 断头：新表先清空 */',
+      '    while (p) {',
+      '        q = p->next;                  /* 保存后继，防断链 */',
+      '        p->next = L->next;            /* 头插 */',
+      '        L->next = p;',
+      '        p = q;',
+      '    }',
+      '}'
+    ],
+    run: function* () {
+      var ns = build([1, 2, 3, 4, 5]);
+      var L = mkHead('L'); L.next = ns[0];
+      var p = L.next, q = null;
+      var rows = function (withQ) {
+        var out = [{ label: 'L（新表）', head: L }];
+        if (p) out.push({ label: 'p（旧链剩余）', head: p });
+        /* q 被摘下来之后不再是 p 的后继，单独画一行，否则指针图例只能显示"未挂链" */
+        if (withQ && q && q !== p) out.push({ label: 'q（刚摘下的那段）', head: q });
+        return out;
+      };
+      yield F(0, '准备：L → 1 → 2 → 3 → 4 → 5。目标：原地逆置，不许开新结点。', [{ label: 'L', head: L }], [{ name: 'L', node: L }], L);
+      yield F(1, '① p 指向首元，准备"摘一个、插一个"。', [{ label: 'L', head: L }], [{ name: 'L', node: L }, { name: 'p', node: p }], p);
+      L.next = null;
+      yield F(2, '② L->next = NULL：先把头结点摘干净，新表为空。原链还挂在 p 上，一点没丢。', rows(), [{ name: 'L', node: L }, { name: 'p', node: p }], L);
+      while (p) {
+        q = p.next;
+        yield F(4, 'p = ' + p.val + '：③ q 保存后继 ' + (q ? q.val : 'NULL') + '（摘下来之前先记路，否则断链）。', rows(), [{ name: 'L', node: L }, { name: 'p', node: p }, { name: 'q', node: q }], q);
+        var oldHead = L.next;
+        yield F(5, '④ p->next = L->next：把 p 的 next 改指新表首元 ' + (oldHead ? oldHead.val : 'NULL') + '（这就是"头插"那一下）。',
+          rows(true), [{ name: 'L', node: L }, { name: 'p', node: p }, { name: 'q', node: q }], p,
+          oldHead ? { link: { from: p, to: oldHead, text: 'p->next = ' + oldHead.val } } : null);
+        p.next = L.next;
+        yield F(5, '改完：' + p.val + ' → ' + (p.next ? p.next.val : 'NULL') + '；新表的首元还没换成它，下一步才换。',
+          rows(true), [{ name: 'L', node: L }, { name: 'p', node: p }, { name: 'q', node: q }], p);
+        L.next = p;
+        yield F(6, '⑤ L->next = p：p 正式成为新表首元；q 这一段还挂在一旁，下一轮接着摘。', rows(true), [{ name: 'L', node: L }, { name: 'p', node: p }, { name: 'q', node: q }], p);
+        p = q;
+        yield F(7, '⑥ p = q：处理下一个，继续摘。', rows(), [{ name: 'L', node: L }, { name: 'p', node: p }], p);
+      }
+      yield F(9, '完成：5 → 4 → 3 → 2 → 1。整个过程只动了指针，没有申请任何结点。', [{ label: 'L', head: L }], [{ name: 'L', node: L }], null);
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/list/04-kth.js ---- */
+/* 链表 · 2.3 找倒数第 k 个结点（快慢指针） */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, mkHead = NS.mkHead, build = NS.build, F = NS.F;
+
+CH('list').demos.push({
+    id: 'kth', name: '2.3 找倒数第 k 个结点（快慢指针）', doubly: false,
+    note: '<b>一次遍历</b>：p 先走 k 步，然后 p、q 同步走；p 到 NULL 时 q 正好是倒数第 k 个。k &lt;= 0 必须先在入口挡掉。',
+    expect: ['L', '1', '2', '3', '4', '5', '6'],
+    code: [
+      'int FindKthFromEnd(LinkList L, int k) {',
+      '    if (k <= 0) return 0;',
+      '    LNode *p = L->next, *q = L->next;',
+      '    int i = 0;',
+      '    while (p && i < k) { p = p->next; i++; }',
+      '    if (i < k) return 0;',
+      '    while (p) { p = p->next; q = q->next; }',
+      '    printf("%d", q->data);',
+      '    return 1;',
+      '}'
+    ],
+    run: function* () {
+      var ns = build([1, 2, 3, 4, 5, 6]);
+      var L = mkHead('L'); L.next = ns[0];
+      var k = 3, p = ns[0], q = ns[0], i = 0;
+      var rows = [{ label: 'L', head: L }];
+      var ptr = function () { return [{ name: 'p', node: p }, { name: 'q', node: q }]; };
+      yield F(0, '准备：表长 6，k = 3，要输出倒数第 3 个（答案应为 4）。', rows, [{ name: 'L', node: L }], L);
+      yield F(1, '① k = 3 > 0，通过检查（k<=0 时 q 会走成 NULL，所以必须先挡）。', rows, [{ name: 'L', node: L }], L);
+      yield F(2, '② p、q 都先指向首元 1。', rows, ptr(), p);
+      yield F(3, '③ i = 0，准备让 p 先跑 k 步。', rows, ptr(), p);
+      while (p && i < k) {
+        p = p.next; i++;
+        yield F(4, '④ p 往前走一步，i = ' + i + (i < k ? '（还没走够 ' + k + ' 步）' : '（走够 k 步了，q 与 p 相距 k）'), rows, ptr(), p);
+      }
+      yield F(5, '⑤ i == k，说明表长 ≥ k，k 合法。', rows, ptr(), p);
+      while (p) {
+        p = p.next; q = q.next;
+        yield F(6, '⑥ p、q 同步走：p → ' + (p ? p.val : 'NULL') + '，q → ' + q.val + '。两者始终保持 k 步距离。', rows, ptr(), q);
+      }
+      yield F(7, 'p 走到 NULL，q 停在 ' + q.val + ' —— 它后面正好有 k-1 = 2 个结点，所以是倒数第 3 个。', rows, ptr(), q);
+      yield F(8, 'return 1，输出 ' + q.val + '。全程只遍历一次，O(n)。', rows, ptr(), q);
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/list/05-mid.js ---- */
+/* 链表 · 2.4 找中间结点（快慢指针） */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, mkHead = NS.mkHead, build = NS.build, F = NS.F;
+
+CH('list').demos.push({
+    id: 'mid', name: '2.4 找中间结点（快慢指针）', doubly: false,
+    note: 'slow 走 1 步、fast 走 2 步：fast 走完全程时 slow 正好在中点。偶数个结点时 slow 停在<b>中间偏右</b>。',
+    expect: ['L', '1', '2', '3', '4', '5', '6'],
+    code: [
+      'LNode *FindMid(LinkList L) {',
+      '    LNode *slow = L->next, *fast = L->next;',
+      '    while (fast && fast->next) {',
+      '        slow = slow->next;',
+      '        fast = fast->next->next;',
+      '    }',
+      '    return slow;',
+      '}'
+    ],
+    run: function* () {
+      var ns = build([1, 2, 3, 4, 5, 6]);
+      var L = mkHead('L'); L.next = ns[0];
+      var slow = ns[0], fast = ns[0];
+      var rows = [{ label: 'L', head: L }];
+      var ptr = function () { return [{ name: 'slow', node: slow }, { name: 'fast', node: fast }]; };
+      yield F(0, '准备：6 个结点。slow 每次走 1 步，fast 每次走 2 步。', rows, [{ name: 'L', node: L }], L);
+      yield F(1, '① slow = fast = 首元 1。', rows, ptr(), slow);
+      var round = 0;
+      while (fast && fast.next) {
+        round++;
+        yield F(2, '第 ' + round + ' 轮：fast = ' + fast.val + '，fast->next = ' + (fast.next ? fast.next.val : 'NULL') + '，条件成立，继续。', rows, ptr(), fast);
+        slow = slow.next;
+        yield F(3, '② slow 走一步 → ' + slow.val + '。', rows, ptr(), slow);
+        fast = fast.next.next;
+        yield F(4, '③ fast 走两步 → ' + (fast ? fast.val : 'NULL') + '。', rows, ptr(), fast);
+      }
+      yield F(2, '第 ' + (round + 1) + ' 轮：fast = ' + (fast ? fast.val : 'NULL') + '，条件不成立（fast 已到尾或尾的前一个），循环结束。', rows, ptr(), fast);
+      yield F(6, '返回 slow = ' + slow.val + '。偶数个结点时它是"中间偏右"那个（第 n/2+1 = 4 个）。', rows, ptr(), slow);
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/list/06-loop.js ---- */
+/* 链表 · 2.5 判断有环 + 找环入口 */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, mkHead = NS.mkHead, build = NS.build, F = NS.F;
+
+CH('list').demos.push({
+    id: 'loop', name: '2.5 判断有环 + 找环入口', doubly: false,
+    note: '<b>快慢相遇即有环</b>；相遇后让 p 回到起点，两指针同速走，再次相遇处就是<b>环入口</b>。数学依据：起点到入口 = 入口到相遇点（模环长）。',
+    expect: ['L', '1', '2', '3', '4', '5', '6'],
+    code: [
+      'LNode *FindLoopEntry(LinkList L) {',
+      '    LNode *slow = L->next, *fast = L->next;',
+      '    while (fast && fast->next) {',
+      '        slow = slow->next;',
+      '        fast = fast->next->next;',
+      '        if (slow == fast) break;',
+      '    }',
+      '    if (!fast || !fast->next) return NULL;',
+      '    LNode *p = L->next;',
+      '    while (p != slow) { p = p->next; slow = slow->next; }',
+      '    return p;',
+      '}'
+    ],
+    run: function* () {
+      var ns = build([1, 2, 3, 4, 5, 6]);
+      ns[5].next = ns[2];                 /* 6 -> 3，环：3→4→5→6 */
+      var L = mkHead('L'); L.next = ns[0];
+      var slow = ns[0], fast = ns[0], p = null;
+      var rows = [{ label: 'L（6→3 成环）', head: L }];
+      var ptr = function () { return [{ name: 'slow', node: slow }, { name: 'fast', node: fast }].concat(p ? [{ name: 'p', node: p }] : []); };
+      yield F(0, '准备：1→2→3→4→5→6，且 6 的 next 指回 3，形成环 3→4→5→6→3。', rows, [{ name: 'L', node: L }], L);
+      yield F(1, '① slow = fast = 1。', rows, ptr(), slow);
+      var meet = null, round = 0;
+      while (fast && fast.next) {
+        round++;
+        slow = slow.next;
+        yield F(3, '第 ' + round + ' 轮：slow → ' + slow.val + '（1 步）。', rows, ptr(), slow);
+        fast = fast.next.next;
+        yield F(4, 'fast → ' + (fast ? fast.val : 'NULL') + '（2 步）。', rows, ptr(), fast);
+        if (slow === fast) {
+          meet = slow;
+          yield F(5, '★ slow == fast == ' + slow.val + '，两者相遇 → 有环！', rows, ptr(), slow);
+          break;
+        }
+        yield F(2, 'slow(' + slow.val + ') != fast(' + fast.val + ')，继续。', rows, ptr(), slow);
+      }
+      yield F(7, 'fast 非空，说明不是"无环"退出，确认有环。', rows, ptr(), slow);
+      p = ns[0];
+      yield F(8, '② p 回到起点 1。slow 留在相遇点 ' + slow.val + '。', rows, ptr(), p);
+      var guard = 0;
+      while (p !== slow && guard++ < 20) {
+        p = p.next; slow = slow.next;
+        yield F(9, '③ 两者同速前进：p → ' + p.val + '，slow → ' + slow.val + '。', rows, ptr(), p);
+      }
+      yield F(10, 'p == slow == ' + p.val + '，返回 ' + p.val + ' —— 这就是环入口。', rows, ptr(), p);
+      yield F(10, '为什么对：起点到入口的距离 = 相遇点到入口的距离（模环长），所以同速走必在入口撞上。O(n)/O(1)。', rows, ptr(), p);
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/list/07-common.js ---- */
+/* 链表 · 2.6 两个链表的第一个公共结点（长度对齐） */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, mkHead = NS.mkHead, build = NS.build, F = NS.F;
+
+CH('list').demos.push({
+    id: 'common', name: '2.6 两个链表的第一个公共结点（长度对齐）', doubly: false,
+    note: 'Y 形结构：公共结点之后两表<b>完全重合</b>。先求长度，长表先走差值步，再同步走，第一个 p == q 即答案。<b>比的是结点地址，不是 data</b>。',
+    expect: ['A', '1', '2', '7', '8', '9'],
+    code: [
+      'int ListLen(LinkList L) {',
+      '    int n = 0;',
+      '    for (LNode *p = L->next; p; p = p->next) n++;',
+      '    return n;',
+      '}',
+      'LNode *CommonNode(LinkList A, LinkList B) {',
+      '    int la = ListLen(A), lb = ListLen(B);',
+      '    LNode *p = A->next, *q = B->next;',
+      '    while (la > lb) { p = p->next; la--; }',
+      '    while (lb > la) { q = q->next; lb--; }',
+      '    while (p && q && p != q) { p = p->next; q = q->next; }',
+      '    return p;',
+      '}'
+    ],
+    run: function* () {
+      var shared = build([7, 8, 9]);
+      var a1 = build([1, 2]), b1 = build([4, 5, 6]);
+      var A = mkHead('A'), B = mkHead('B');
+      A.next = a1[0]; a1[1].next = shared[0];
+      B.next = b1[0]; b1[2].next = shared[0];
+      var p = A.next, q = B.next, la = 5, lb = 6;
+      var rows = [{ label: 'A', head: A }, { label: 'B', head: B }];
+      var ptr = function () { return [{ name: 'p', node: p }, { name: 'q', node: q }]; };
+      yield F(0, '准备：A = 1→2→7→8→9（长 5），B = 4→5→6→7→8→9（长 6）。7、8、9 是两个表共用的同一批结点（Y 形）。', rows, [{ name: 'p', node: p }, { name: 'q', node: q }], null);
+      yield F(2, '① 求 A 的长度：沿 A 走一遍，la = 5。', rows, ptr(), null);
+      yield F(2, '① 求 B 的长度：沿 B 走一遍，lb = 6。', rows, ptr(), null);
+      yield F(6, '② la = 5，lb = 6。长表比短表长 1 步。', rows, ptr(), null);
+      yield F(7, '③ p = A->next（1），q = B->next（4）。', rows, ptr(), p);
+      while (lb > la) {
+        q = q.next; lb--;
+        yield F(9, '④ B 更长，q 先走一步 → ' + q.val + '（lb = ' + lb + '）。现在两指针到表尾的剩余长度相同。', rows, ptr(), q);
+      }
+      yield F(8, 'la == lb，不需要再对齐 A 了。', rows, ptr(), null);
+      while (p && q && p !== q) {
+        p = p.next; q = q.next;
+        yield F(11, '⑤ 同步走：p → ' + (p ? p.val : 'NULL') + '，q → ' + (q ? q.val : 'NULL') + '，地址不同，继续。', rows, ptr(), null);
+      }
+      yield F(11, '⑥ p == q == ' + (p ? p.val : 'NULL') + '：两个指针指向<b>同一个结点</b>，这就是第一个公共结点。', rows, ptr(), p);
+      yield F(12, '返回 ' + (p ? p.val : 'NULL') + '。时间 O(m+n)，空间 O(1)。', rows, ptr(), p);
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/list/08-absdup.js ---- */
+/* 链表 · 2.7 删除绝对值重复的结点 */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, mkHead = NS.mkHead, build = NS.build, F = NS.F;
+
+CH('list').demos.push({
+    id: 'absdup', name: '2.7 删除绝对值重复的结点', doubly: false,
+    note: '辅助数组 seen 标记"这个绝对值来过没有"，重复的直接删。<b>时间 O(n)，空间 O(n)</b>；若强制 O(1) 空间，只能用双重循环 O(n²)。',
+    expect: ['L', '21', '-15', '7'],
+    code: [
+      'void DelAbsDup(LinkList L, int n) {',
+      '    int *seen = (int *)calloc(n + 1, sizeof(int));',
+      '    LNode *p = L->next, *pre = L;',
+      '    while (p) {',
+      '        int v = (p->data > 0) ? p->data : -p->data;',
+      '        if (seen[v]) {',
+      '            pre->next = p->next;',
+      '            free(p);',
+      '            p = pre->next;',
+      '        } else {',
+      '            seen[v] = 1;',
+      '            pre = p;',
+      '            p = p->next;',
+      '        }',
+      '    }',
+      '    free(seen);',
+      '}'
+    ],
+    run: function* () {
+      var vals = [21, -15, -15, 7, 15, 7];
+      var ns = build(vals);
+      var L = mkHead('L'); L.next = ns[0];
+      var p = L.next, pre = L, seen = {};
+      var rows = [{ label: 'L', head: L }];
+      var ptr = function () { return [{ name: 'pre', node: pre }, { name: 'p', node: p }]; };
+      var seenTxt = function () { var a = Object.keys(seen); return a.length ? 'seen = {' + a.join(', ') + '}' : 'seen = {}'; };
+      yield F(0, '准备：21 → -15 → -15 → 7 → 15 → 7。绝对值重复的只保留第一次出现的。', rows, [{ name: 'L', node: L }], L);
+      yield F(1, '① 申请标记数组 seen（下标是绝对值，n = 21）。', rows, ptr(), L, { seen: seenTxt() });
+      yield F(2, '② p 指向首元，pre 指向头结点（pre 是 p 的前驱）。', rows, ptr(), p, { seen: seenTxt() });
+      while (p) {
+        var v = Math.abs(parseInt(p.val, 10));
+        yield F(4, '③ 取绝对值 v = |' + p.val + '| = ' + v + '。', rows, ptr(), p, { seen: seenTxt() });
+        if (seen[v]) {
+          pre.next = p.next;
+          yield F(6, '④ seen[' + v + '] 已经是 1 → 这个值出现过，让 pre 跨过 p：pre->next = p->next。', rows, ptr(), p, { seen: seenTxt() });
+          var freed = p;
+          yield F(7, '⑤ free(' + freed.val + ')。', rows, [{ name: 'pre', node: pre }, { name: 'p', node: p }], pre, { seen: seenTxt(), freed: freed.val });
+          p = pre.next;
+          yield F(8, '⑥ p = pre->next，pre 不动（因为它后面换了人）。', rows, ptr(), p, { seen: seenTxt() });
+        } else {
+          seen[v] = 1;
+          yield F(11, '④ 没见过 → seen[' + v + '] = 1。' + seenTxt(), rows, ptr(), p, { seen: seenTxt() });
+          pre = p;
+          yield F(12, '⑤ pre 前进到 ' + pre.val + '。', rows, ptr(), pre, { seen: seenTxt() });
+          p = p.next;
+          yield F(13, '⑥ p 前进到 ' + (p ? p.val : 'NULL') + '。', rows, ptr(), p, { seen: seenTxt() });
+        }
+      }
+      yield F(15, '完成：21 → -15 → 7。重复的 -15 和 7 被删掉了；15 也没了 —— 因为 |−15| = 15 早就登记过。', rows, [{ name: 'L', node: L }], null, { seen: seenTxt() });
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/list/09-delnode.js ---- */
+/* 链表 · 2.8 只给结点指针 *p 的删除（偷梁换柱） */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, mkHead = NS.mkHead, build = NS.build, F = NS.F;
+
+CH('list').demos.push({
+    id: 'delnode', name: '2.8 只给结点指针 *p 的删除（偷梁换柱）', doubly: false,
+    note: '没给前驱，删不掉 p？那就<b>把后继的数据抄给 p，然后删掉后继</b>。唯一限制：<b>p 不能是尾结点</b>（尾结点没有后继可抄）。',
+    expect: ['L', '1', '2', '4', '5'],
+    code: [
+      'int DelNode(LNode *p) {',
+      '    if (p == NULL || p->next == NULL) return 0;',
+      '    LNode *q = p->next;',
+      '    p->data = q->data;        /* 后继数据抄过来 */',
+      '    p->next = q->next;        /* 再把后继摘掉 */',
+      '    free(q);',
+      '    return 1;',
+      '}'
+    ],
+    run: function* () {
+      var ns = build([1, 2, 3, 4, 5]);
+      var L = mkHead('L'); L.next = ns[0];
+      var p = ns[2], q = null;
+      var rows = [{ label: 'L', head: L }];
+      var ptr = function () { return [{ name: 'p', node: p }].concat(q ? [{ name: 'q', node: q }] : []); };
+      yield F(0, '准备：1 → 2 → 3 → 4 → 5，现在只给你 p 指向结点 3，要求删掉它。', rows, [{ name: 'p', node: p }], p);
+      yield F(1, '① p != NULL 且 p->next != NULL，通过（若是尾结点就只能返回 0）。', rows, ptr(), p);
+      q = p.next;
+      yield F(2, '② q = p->next：q 指向 4。', rows, ptr(), q);
+      p.val = q.val;
+      yield F(3, '③ p->data = q->data：把 4 抄到 p 的位置上。现在"3 号结点"里装的是 4 —— 数据搬了家。', rows, ptr(), p);
+      p.next = q.next;
+      yield F(4, '④ p->next = q->next：把 q 从链上摘掉。链变成 1→2→4→5（其中第一个 4 是原来的 3 号结点）。', rows, ptr(), p);
+      yield F(5, '⑤ free(q)：真正被释放的是原来装着 4 的那个结点。', [{ label: 'L', head: L }], [{ name: 'p', node: p }], p);
+      yield F(6, '返回 1。从"值"的角度看，3 被删掉了；从"结点"的角度看，被 free 的是 4 那个结点。O(1)。', rows, [{ name: 'p', node: p }], null);
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/list/10-merge.js ---- */
+/* 链表 · 2.9 就地合并两个有序链表 */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, mkHead = NS.mkHead, build = NS.build, F = NS.F;
+
+CH('list').demos.push({
+    id: 'merge', name: '2.9 就地合并两个有序链表', doubly: false,
+    note: '<b>就地</b>：不 new 结点，把 A、B 的结点重新串起来，复用 A 的头结点。最后 <code>r->next = p ? p : q</code> 一次接完整段剩余。',
+    expect: ['C', '1', '2', '3', '4', '5', '6', '7'],
+    code: [
+      'LinkList MergeList(LinkList A, LinkList B) {',
+      '    LNode *p = A->next, *q = B->next, *r;',
+      '    LinkList C = A;                   /* 复用 A 的头结点 */',
+      '    r = C;',
+      '    while (p && q) {',
+      '        if (p->data <= q->data) { r->next = p; r = p; p = p->next; }',
+      '        else                    { r->next = q; r = q; q = q->next; }',
+      '    }',
+      '    r->next = p ? p : q;              /* 接上剩余整段 */',
+      '    free(B);',
+      '    return C;',
+      '}'
+    ],
+    run: function* () {
+      var an = build([1, 3, 5, 7]), bn = build([2, 4, 6]);
+      var A = mkHead('C'), B = mkHead('B');
+      A.next = an[0]; B.next = bn[0];
+      var p = A.next, q = B.next, r = A;
+      /* 三条行同屏：C 只画到 r 为止（r 之后还没接上）；A、B 各从 p / q 往后画 */
+      var rows = function (done) {
+        return [
+          { label: 'C（结果，r=尾）', head: A, cut: done ? null : r,
+            cutNote: r === A ? 'r 还在头结点上' : 'r 之后还没接上' },
+          { label: 'A（源表，从 p）', head: p },
+          { label: 'B（源表，从 q）', head: q }
+        ];
+      };
+      var ptr = function () {
+        return [{ name: 'p', node: p }, { name: 'q', node: q }, { name: 'r', node: r }];
+      };
+      var two = [
+        { label: 'A（源表）', head: A.next },
+        { label: 'B（源表）', head: B.next }
+      ];
+      var pq = function () { return [{ name: 'p', node: p }, { name: 'q', node: q }]; };
+      yield F(0, '准备：A = 1→3→5→7，B = 2→4→6，目标 1→2→3→4→5→6→7。p、q 各走一条源表，r 是结果表的尾巴。',
+        two, pq(), null);
+      yield F(1, '① p = A->next、q = B->next：两个"取指"指针分别停在两条表的第一颗上，接下来只动指针、不动数据。',
+        two, pq(), null);
+      yield F(2, '② C = A：结果表直接借用 A 的头结点（不 new 结点，所以最后 free 的是 B 的头）。',
+        [{ label: 'C（用 A 的头结点）', head: A }, { label: 'B（源表）', head: B }], pq(), null);
+      yield F(3, '③ r = C：尾指针先指着头结点 —— 此刻 C 还是空表，r->next 什么都还没接。',
+        rows(), ptr(), r);
+      var round = 0;
+      while (p && q) {
+        round++;
+        yield F(4, '第 ' + round + ' 轮：比较 p(' + p.val + ') 与 q(' + q.val + ')。谁小谁先进 C；相等取 p（保证稳定）。',
+          rows(), ptr(), null);
+        var pickP = parseInt(p.val, 10) <= parseInt(q.val, 10);
+        var src = pickP ? p : q, nm = pickP ? 'p' : 'q', ln = pickP ? 5 : 6;
+        yield F(ln, '选 ' + nm + '（' + src.val + '）：把它挂到 r 的后面（源表里它原本的前驱就此和它断开）。',
+          rows(), ptr(), src, { link: { from: r, to: src, text: 'r->next = ' + nm } });
+        if (pickP) r.next = p; else r.next = q;
+        yield F(ln, '接上了：' + src.val + ' 进入 C、成了 C 的新尾巴；' + nm + ' 仍然指着它。',
+          rows(), ptr(), src);
+        r = src;
+        yield F(ln, 'r = ' + nm + '：尾指针前移一格，下一颗新结点就接在它的 next 上。',
+          rows(), ptr(), r);
+        if (pickP) p = p.next; else q = q.next;
+        var nx = pickP ? p : q;
+        yield F(ln, nm + ' = ' + nm + '->next：' + nm + ' 前进到 ' + (nx ? nx.val : 'NULL') + '，源表这一段就交出来了。',
+          rows(), ptr(), r);
+      }
+      yield F(8, '④ 一方先空（p = ' + (p ? p.val : 'NULL') + '，q = ' + (q ? q.val : 'NULL') + '）：另一方剩下的是整段有序的，不用再比。',
+        rows(), ptr(), null);
+      r.next = p ? p : q;
+      yield F(8, 'r->next = ' + (p ? 'p' : 'q') + '：一个赋值接完整段剩余（千万别写成 while 一颗颗接）。', rows(true), ptr(), r);
+      yield F(9, 'free(B)：B 的头结点已经没用了；B 里的结点此刻全在 C 里，一个都不能 free。',
+        [{ label: 'C（合并结果）', head: A }], [{ name: 'r', node: r }], null);
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/list/11-split.js ---- */
+/* 链表 · 2.10 按位序奇偶拆分链表 */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, mkHead = NS.mkHead, build = NS.build, F = NS.F;
+
+CH('list').demos.push({
+    id: 'split', name: '2.10 按位序奇偶拆分链表', doubly: false,
+    note: '两个新头结点 A、B + 两个尾指针 ra、rb，边扫边尾插。<b>O(n) 时间，O(1) 额外空间</b>（只多了两个头结点）。',
+    expect: ['A', '1', '3', '5'],
+    code: [
+      'void SplitOddEven(LinkList L, LinkList *A, LinkList *B) {',
+      '    *A = (LNode *)malloc(sizeof(LNode)); (*A)->next = NULL;',
+      '    *B = (LNode *)malloc(sizeof(LNode)); (*B)->next = NULL;',
+      '    LNode *ra = *A, *rb = *B, *p = L->next;',
+      '    int i = 1;',
+      '    while (p) {',
+      '        LNode *q = p->next;',
+      '        if (i % 2 == 1) { ra->next = p; ra = p; }',
+      '        else            { rb->next = p; rb = p; }',
+      '        p = q;',
+      '        i++;',
+      '    }',
+      '    ra->next = NULL;',
+      '    rb->next = NULL;',
+      '}'
+    ],
+    run: function* () {
+      var ns = build([1, 2, 3, 4, 5, 6]);
+      var L = mkHead('L'), A = null, B = null;
+      L.next = ns[0];
+      var ra = null, rb = null, p = L.next, i = 1;
+      var rows = function () {
+        var out = [{ label: 'L（还没搬的，从 p）', head: p }];
+        if (A) out.push({ label: 'A（奇，画到 ra）', head: A, cut: ra, cutNote: ra === A ? 'A 还是空的' : 'ra 之后还没接' });
+        if (B) out.push({ label: 'B（偶，画到 rb）', head: B, cut: rb, cutNote: rb === B ? 'B 还是空的' : 'rb 之后还没接' });
+        return out;
+      };
+      var ptr = function () {
+        var a = [{ name: 'p', node: p }];
+        if (ra) a.push({ name: 'ra', node: ra });
+        if (rb) a.push({ name: 'rb', node: rb });
+        return a;
+      };
+      yield F(0, '准备：L = 1→2→3→4→5→6。要求拆成 A（第 1,3,5 个）和 B（第 2,4,6 个）。', rows(), [{ name: 'p', node: p }], null);
+      A = mkHead('A'); B = mkHead('B');
+      yield F(1, '① 为 A 申请头结点。', rows(), [{ name: 'p', node: p }], A);
+      yield F(2, '② 为 B 申请头结点。', rows(), [{ name: 'p', node: p }], B);
+      ra = A; rb = B;
+      yield F(3, '③ ra = A，rb = B（两个尾指针都先指向自己的头结点），p = L->next。', rows(), ptr(), null);
+      yield F(4, '④ i = 1，从第 1 个结点开始数。', rows(), ptr(), null);
+      while (p) {
+        var q = p.next;
+        yield F(6, '⑤ q = p->next 先记路：p 马上要被挂到别的表上。', rows(), ptr(), q);
+        if (i % 2 === 1) {
+          yield F(7, 'i = ' + i + ' 是奇数：把 ' + p.val + ' 挂到 A 的尾部 —— 先改 ra->next，这是"从源表摘、往 A 接"的那一笔。',
+            rows(), ptr(), p, { link: { from: ra, to: p, text: 'ra->next = p' } });
+          ra.next = p;
+          ra = p;
+          yield F(7, '接好了：A 尾部变成 ' + p.val + '，ra 前移指向它；p 还要等下一步才前进。', rows(), ptr(), ra);
+        } else {
+          yield F(8, 'i = ' + i + ' 是偶数：把 ' + p.val + ' 挂到 B 的尾部 —— 先改 rb->next。',
+            rows(), ptr(), p, { link: { from: rb, to: p, text: 'rb->next = p' } });
+          rb.next = p;
+          rb = p;
+          yield F(8, '接好了：B 尾部变成 ' + p.val + '，rb 前移指向它。', rows(), ptr(), rb);
+        }
+        p = q;
+        i++;
+        yield F(9, 'p = q，i++ → 下一个是第 ' + i + ' 个。', rows(), ptr(), p);
+      }
+      ra.next = null; rb.next = null;
+      yield F(13, '⑥ 两个新表都要收尾：ra->next = rb->next = NULL。漏一个就是野指针。',
+        [{ label: 'A（奇）', head: A }, { label: 'B（偶）', head: B }], [{ name: 'ra', node: ra }, { name: 'rb', node: rb }], null);
+      yield F(14, '完成：A = 1→3→5，B = 2→4→6。源表 L 的结点已被全部"搬"走，两个新表各自收尾。', [{ label: 'A（奇）', head: A }, { label: 'B（偶）', head: B }], [{ name: 'ra', node: ra }, { name: 'rb', node: rb }], null);
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/list/12-reorder.js ---- */
+/* 链表 · 2.11 链表重排 a1,an,a2,an-1…（三步法） */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, mkHead = NS.mkHead, build = NS.build, F = NS.F;
+
+CH('list').demos.push({
+    id: 'reorder', name: '2.11 链表重排 a1,an,a2,an-1…（三步法）', doubly: false,
+    note: '<b>三步串联</b>：① 找前半段最后一个结点 → ② 逆置后半段 → ③ 两段交替合并。①②③ 各是一个得分点，注释必须写清。',
+    expect: ['L', 'a1', 'a6', 'a2', 'a5', 'a3', 'a4'],
+    code: [
+      'void Reorder(LinkList L) {',
+      '    if (!L->next || !L->next->next) return;',
+      '    LNode *slow = L->next, *fast = L->next;',
+      '    while (fast->next && fast->next->next) {',
+      '        slow = slow->next;',
+      '        fast = fast->next->next;',
+      '    }',
+      '    LNode *p = slow->next, *q;',
+      '    slow->next = NULL;',
+      '    while (p) {',
+      '        q = p->next;',
+      '        p->next = slow->next;',
+      '        slow->next = p;',
+      '        p = q;',
+      '    }',
+      '    LNode *h = L->next;',
+      '    LNode *b = slow->next;',
+      '    slow->next = NULL;',
+      '    while (b) {',
+      '        q = h->next;',
+      '        h->next = b;',
+      '        b = b->next;',
+      '        h->next->next = q;',
+      '        h = q;',
+      '    }',
+      '}'
+    ],
+    run: function* () {
+      var vals = ['a1', 'a2', 'a3', 'a4', 'a5', 'a6'];
+      var ns = build(vals);
+      var L = mkHead('L'); L.next = ns[0];
+      var slow = ns[0], fast = ns[0], p = null, q = null, h = null, b = null;
+      var ptr = function (extra) {
+        var a = [];
+        if (slow) a.push({ name: 'slow', node: slow });
+        if (fast) a.push({ name: 'fast', node: fast });
+        if (p) a.push({ name: 'p', node: p });
+        if (b) a.push({ name: 'b', node: b });
+        if (h) a.push({ name: 'h', node: h });
+        if (q) a.push({ name: 'q', node: q });
+        return a;
+      };
+      /* 第一阶段：整条表 + slow/fast */
+      var rowAll = function () { return [{ label: 'L（整条）', head: L }]; };
+      /* 第二阶段：前半段（含已逆置的部分） + 还没逆置的剩余（从 q） */
+      var rowRev = function () {
+        var out = [{ label: 'L（前半段 + 已逆置）', head: L }];
+        if (q) out.push({ label: '还没逆置的（从 q）', head: q });
+        if (p) out.push({ label: 'p（正在摘的）', head: p, cut: p, cutNote: '' });
+        return out;
+      };
+      /* 第三阶段：已接好的前缀（画到 h）+ 前半段剩余（从 q）+ 后半段剩余（从 b） */
+      var rowZip = function () {
+        return [
+          { label: '已接好（画到 h）', head: L, cut: h, cutNote: h ? 'h 之后还没接' : '还没开始' },
+          { label: '前半段剩余（从 q）', head: q },
+          { label: '后半段剩余（从 b）', head: b }
+        ];
+      };
+      yield F(0, '准备：a1→a2→a3→a4→a5→a6。目标 a1→a6→a2→a5→a3→a4。先看清楚：后半段要<b>倒着</b>插。</b>', rowAll(), [{ name: 'L', node: L }], L);
+      yield F(1, '① 边界：结点数 < 2 直接返回（不用重排）。', rowAll(), [{ name: 'L', node: L }], L);
+      yield F(2, '② slow = fast = L->next：两人同时出发，slow 一步、fast 两步。', rowAll(), ptr(), slow);
+      var round = 0;
+      while (fast.next && fast.next.next) {
+        round++;
+        yield F(3, '第 ' + round + ' 轮判定：fast 在 ' + fast.val + '，fast->next->next = ' + fast.next.next.val + ' 还有结点 → 继续走。', rowAll(), ptr(), fast);
+        slow = slow.next;
+        yield F(4, 'slow 走一步 → ' + slow.val + '。', rowAll(), ptr(), slow);
+        fast = fast.next.next;
+        yield F(5, 'fast 走两步 → ' + fast.val + '。', rowAll(), ptr(), fast);
+      }
+      yield F(3, '第 ' + (round + 1) + ' 轮判定：fast 在 ' + fast.val + '，前面不足两个结点了 → 循环结束。slow 停在 ' + slow.val + '，它就是<b>前半段的最后一个</b>。', rowAll(), ptr(), slow);
+      p = slow.next;
+      yield F(7, '③ p = slow->next：p 指向后半段第一个结点 ' + p.val + '。拆分位置：' + slow.val + ' | ' + p.val + '。', rowAll(), ptr(), p);
+      q = p;
+      slow.next = null;
+      yield F(8, '④ slow->next = NULL：先把两段<b>断开</b>，之后的头插才不会把前半段带乱。此刻 L 只剩 ' + slow.val + ' 及以前。', rowAll(), ptr(), slow);
+      /* ---- ⑤ 头插逆置后半段 ---- */
+      while (p) {
+        var nxt = p.next;
+        yield F(10, '⑤ 逆置：q = p->next，先把 ' + p.val + ' 的后继 ' + (nxt ? nxt.val : 'NULL') + ' 存下来，不然改完 p->next 就找不回来了。', rowRev(), ptr(), p);
+        q = nxt;
+        yield F(11, p.val + '->next = slow->next：把 ' + p.val + ' 的 next 改指到当前逆置段的最前面（' + (slow.next ? slow.next.val : 'NULL') + '）。',
+          rowRev(), ptr(), p, { link: { from: p, to: slow.next, text: p.val + '->next = ' + (slow.next ? slow.next.val : 'NULL') } });
+        p.next = slow.next;
+        yield F(12, 'slow->next = ' + p.val + '：' + p.val + ' 成为逆置段的第一个 —— 这就是"头插"那一下。', rowRev(), ptr(), p);
+        slow.next = p;
+        p = nxt;
+        q = p;
+        yield F(13, 'p = q：p 前进到 ' + (p ? p.val : 'NULL') + '，接着摘下一个。', rowRev(), ptr(), p);
+      }
+      yield F(13, '后半段逆置完成：' + slow.val + ' 之后是 ' + slow.next.val + ' → …，原来是 a4→a5→a6，现在成 a6→a5→a4。', rowAll(), [{ name: 'slow', node: slow }], slow);
+      /* ---- ⑥ 交替合并 ---- */
+      h = L.next; b = slow.next;
+      yield F(15, '⑥ h = L->next（前半段游标 a1），b = slow->next（后半段游标 a6）。两个游标各走一段，交替往里插。', rowAll(), ptr(), h);
+      yield F(17, 'slow->next = NULL：再断一次，让前半段末尾变成干净的结尾。', rowAll(), ptr(), h);
+      slow.next = null;
+      q = h.next;
+      var k = 0;
+      while (b && k++ < 12) {
+        yield F(18, '第 ' + k + ' 轮：把 b（' + b.val + '）插到 h（' + h.val + '）后面。', rowZip(), ptr(), b,
+          { link: { from: h, to: b, text: 'h->next = b' } });
+        yield F(19, 'q = h->next：先保住 h 原来的后继 ' + (q ? q.val : 'NULL') + '（不保就丢了）。', rowZip(), ptr(), q);
+        h.next = b;
+        yield F(20, 'h->next = b：' + h.val + ' 后面接上 ' + b.val + '。', rowZip(), ptr(), b);
+        b = b.next;
+        yield F(21, 'b = b->next：后半段前进到 ' + (b ? b.val : 'NULL') + '。', rowZip(), ptr(), b);
+        h.next.next = q;
+        yield F(22, 'h->next->next = q：让刚插上的 ' + h.next.val + ' 再接回 ' + (q ? q.val : 'NULL') + ' —— 这才是"交替"。', rowZip(), ptr(), q);
+        h = q;
+        q = h ? h.next : null;
+        yield F(23, 'h = q：前半段前进到 ' + (h ? h.val : 'NULL') + '，准备下一轮。', rowZip(), ptr(), h);
+      }
+      yield F(24, '完成：a1 → a6 → a2 → a5 → a3 → a4。三步各 O(n)，总共 O(n)；只用了 slow、fast、p、q、h、b 六个指针，空间 O(1)。',
+        [{ label: 'L（重排后）', head: L }], [{ name: 'L', node: L }], null);
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/list/13-doubly.js ---- */
+/* 链表 · 2.12 双链表插入与删除（指针顺序是考点） */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, mk = NS.mk, mkHead = NS.mkHead, build = NS.build, linkPrev = NS.linkPrev, F = NS.F;
+
+CH('list').demos.push({
+    id: 'doubly', name: '2.12 双链表插入与删除（指针顺序是考点）', doubly: true,
+    note: '双链表每个结点有 next 和 prior 两条链。<b>插入：先接后，再接前</b>；<b>删除：先改后继的 prior，最后才 free</b>。顺序颠倒必崩。',
+    expect: ['D', '1', '2', '4'],
+    code: [
+      'void DInsertAfter(DNode *p, DNode *s) {',
+      '    s->next = p->next;',
+      '    if (p->next) p->next->prior = s;   /* 后继存在才改 prior */',
+      '    s->prior = p;',
+      '    p->next = s;',
+      '}',
+      'void DDeleteAfter(DNode *p) {',
+      '    DNode *q = p->next;',
+      '    if (!q) return;',
+      '    p->next = q->next;',
+      '    if (q->next) q->next->prior = p;   /* 必须先改 q->next 的 prior */',
+      '    free(q);                           /* free 放最后 */',
+      '}'
+    ],
+    run: function* () {
+      var ns = build([1, 2, 4]);
+      var D = mkHead('D');
+      ns[0].prior = D; D.next = ns[0];
+      linkPrev(ns);
+      var p = ns[1], s = mk(3), q = null;
+      var rows = [{ label: 'D（双链表）', head: D }];
+      var ptr = function () { return [{ name: 'p', node: p }].concat(s ? [{ name: 's', node: s }] : []); };
+      yield F(0, '准备：双链表 D ⇄ 1 ⇄ 2 ⇄ 4。现在要在 2 号结点之后插入 3。', rows, [{ name: 'p', node: p }], p);
+      yield F(0, 'p 指向结点 2（插入位置的前驱）。', rows, ptr(), p);
+      s.next = p.next;
+      yield F(1, '① s->next = p->next：先让 s 的 next 接上 4。', [{ label: 'D', head: D }, { label: 's（待插）', head: s }], ptr(), s);
+      if (p.next) p.next.prior = s;
+      yield F(2, '② p->next->prior = s：让 4 的 prior 指回 s。（if 判空：p 是尾结点时没有后继）', [{ label: 'D', head: D }, { label: 's（待插）', head: s }], ptr(), s);
+      s.prior = p;
+      yield F(3, '③ s->prior = p：s 的 prior 指向 2。', [{ label: 'D', head: D }, { label: 's（待插）', head: s }], ptr(), s);
+      p.next = s;
+      yield F(4, '④ p->next = s：2 的 next 指向 s。四条链全部接好，插入完成。', rows, ptr(), s);
+      yield F(4, '现在表是 1 ⇄ 2 ⇄ 3 ⇄ 4。下面演示删除 2 的后继（即 3）。', rows, [{ name: 'p', node: p }], p);
+      q = p.next;
+      yield F(7, '⑤ q = p->next，q 指向待删结点 3。', rows, [{ name: 'p', node: p }, { name: 'q', node: q }], q);
+      yield F(8, '⑥ q 非空，可以删。', rows, [{ name: 'p', node: p }, { name: 'q', node: q }], q);
+      p.next = q.next;
+      yield F(9, '⑦ p->next = q->next：2 的 next 越过 3，指向 4。', rows, [{ name: 'p', node: p }, { name: 'q', node: q }], p);
+      if (q.next) q.next.prior = p;
+      yield F(10, '⑧ q->next->prior = p：4 的 prior 指回 2。<b>必须在这步之后再 free</b>，否则 q->next 已经是野指针。', rows, [{ name: 'p', node: p }, { name: 'q', node: q }], p);
+      s = null;
+      var qq = q; q = null;
+      yield F(11, '⑨ free(' + qq.val + ')：最后才释放。', [{ label: 'D', head: D }], [{ name: 'p', node: p }], p);
+      yield F(12, '完成：1 ⇄ 2 ⇄ 4，next 与 prior 两条链都完整。', [{ label: 'D', head: D }], [{ name: 'p', node: p }], null);
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/list/14-sorted.js ---- */
+/* 链表 · 2.13 判断链表是否递增有序 */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, mkHead = NS.mkHead, build = NS.build, F = NS.F;
+
+CH('list').demos.push({
+    id: 'sorted', name: '2.13 判断链表是否递增有序', doubly: false,
+    note: '只比<b>相邻</b>两个结点：出现一次逆序就不是递增有序。空表和单结点表都算有序。',
+    expect: ['L', '2', '5', '7', '6', '9'],
+    code: [
+      'int IsSorted(LinkList L) {',
+      '    for (LNode *p = L->next; p && p->next; p = p->next)',
+      '        if (p->data > p->next->data) return 0;',
+      '    return 1;',
+      '}'
+    ],
+    run: function* () {
+      var ns = build([2, 5, 7, 6, 9]);
+      var L = mkHead('L'); L.next = ns[0];
+      var p = L.next;
+      var rows = [{ label: 'L', head: L }];
+      yield F(0, '准备：2 → 5 → 7 → 6 → 9。问它是不是递增有序。', rows, [{ name: 'L', node: L }], L);
+      var round = 0;
+      while (p && p.next) {
+        round++;
+        var ok = parseInt(p.val, 10) <= parseInt(p.next.val, 10);
+        yield F(1, '第 ' + round + ' 次比较：p = ' + p.val + '，p->next = ' + p.next.val + '。', rows, [{ name: 'p', node: p }], p);
+        if (!ok) {
+          yield F(2, '★ ' + p.val + ' > ' + p.next.val + '：出现逆序 → 立即 return 0，后面的不用看了。', rows, [{ name: 'p', node: p }], p.next);
+          yield F(2, '结论：不是递增有序。注意 2,5,7 都是有序的，但 7 > 6 就足够了。', rows, [{ name: 'p', node: p }], null);
+          return;
+        }
+        yield F(2, p.val + ' ≤ ' + p.next.val + '，这一对没问题，继续。', rows, [{ name: 'p', node: p }], null);
+        p = p.next;
+        yield F(1, 'p 前进到 ' + p.val + '。', rows, [{ name: 'p', node: p }], p);
+      }
+      yield F(3, '走完全程没发现逆序 → return 1，递增有序。', rows, [{ name: 'p', node: p }], null);
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/tree/_fixtures.js ---- */
+/* 二叉树这一章的固定树例 */
+(function (NS) {
+  'use strict';
+
+  var T = NS.T;
+
+  /* ================================================================ 第 3 章 二叉树 */
+  function mkTree1() {
+    /* A(B(D, E(G)), C(∅, F)) */
+    var D = T('D'), G = T('G'), E = T('E', G), B = T('B', D, E), F = T('F'), C = T('C', null, F);
+    return T('A', B, C);
+  }
+
+  function mkTree2() {
+    /* 完全二叉树：A(B(D,E), C(F,G)) */
+    return T('A', T('B', T('D'), T('E')), T('C', T('F'), T('G')));
+  }
+
+  NS.mkTree1 = mkTree1;
+  NS.mkTree2 = mkTree2;
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/tree/01-tree-pre.js ---- */
+/* 二叉树 · 3.1 前序遍历（递归） */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, F = NS.F, T = NS.T, FT = NS.FT, mkTree1 = NS.mkTree1;
+
+CH('tree').demos.push({
+    id: 'tree-pre', name: '3.1 前序遍历（递归）',
+    note: '<b>根 → 左 → 右</b>。三行代码的顺序就是访问顺序；递归调用栈的深度 = 树高 h。时间 O(n)，空间 O(h)。',
+    code: [
+      'void PreOrder(BiTree T) {',
+      '    if (T == NULL) return;   /* 递归出口：空子树什么也不做 */',
+      '    visit(T);                /* ① 根：进来的第一件事就是访问 */',
+      '    PreOrder(T->lchild);     /* ② 左：一路往下 */',
+      '    PreOrder(T->rchild);     /* ③ 右：左子树全部回来之后 */',
+      '}'
+    ],
+    run: function* () {
+      var root = mkTree1(), stack = [], tags = {}, order = [];
+      yield FT(0, '准备：A(B(D, E(G)), C(∅, F))。前序 = 根 → 左 → 右。', root, {});
+      function* pre(n) {
+        if (!n) { yield FT(1, '碰到空指针，直接 return —— 这是递归出口。', root, { stack: stack.slice(), tags: tags }); return; }
+        stack.push('PreOrder(' + n.val + ')');
+        yield FT(1, '进入 ' + n.val + '：判空通过，往下走。', root, { mark: n, stack: stack.slice(), tags: tags });
+        order.push(n.val); tags[n.id] = order.length;
+        yield FT(2, '① 访问 ' + n.val + '（第 ' + order.length + ' 个）。', root, { mark: n, stack: stack.slice(), tags: tags });
+        yield FT(3, '② 钻进左子树' + (n.l ? '：' + n.l.val : '（空）') + '。', root, { mark: n, stack: stack.slice(), tags: tags });
+        yield* pre(n.l);
+        yield FT(4, '左子树回来了，③ 钻进右子树' + (n.r ? '：' + n.r.val : '（空）') + '。', root, { mark: n, stack: stack.slice(), tags: tags });
+        yield* pre(n.r);
+        stack.pop();
+        yield FT(5, n.val + ' 的左右都处理完，返回上层。', root, { stack: stack.slice(), tags: tags });
+      }
+      yield* pre(root);
+      yield FT(5, '前序序列：<b>' + order.join(' ') + '</b>。栈深度最多 = 树高 4。', root, { tags: tags, side: ['前序 <b>' + order.join(' ') + '</b>'] });
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/tree/02-tree-in-nr.js ---- */
+/* 二叉树 · 3.3 中序遍历（非递归·显式栈） */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, T = NS.T, FT = NS.FT, mkTree1 = NS.mkTree1;
+
+CH('tree').demos.push({
+    id: 'tree-in-nr', name: '3.3 中序遍历（非递归·显式栈）',
+    note: '<b>一路向左压栈，弹出即访问，然后转右</b>。循环条件是 <code>p || !栈空</code> —— 两者都空才是真的走完了。时间 O(n)，空间 O(h)。',
+    code: [
+      'void InOrderNR(BiTree T) {',
+      '    BiTree stack[MAXSIZE], p = T;',
+      '    int top = -1;',
+      '    while (p || top >= 0) {          /* 两个条件缺一不可 */',
+      '        while (p) { stack[++top] = p; p = p->lchild; }   /* 一路向左 */',
+      '        p = stack[top--];            /* 弹栈 */',
+      '        visit(p);                    /* 左娃空 → 访问它 */',
+      '        p = p->rchild;               /* 转向右子树 */',
+      '    }',
+      '}'
+    ],
+    run: function* () {
+      var root = mkTree1(), st = [], p = root, tags = {}, order = [];
+      var sv = function () { return st.map(function (x) { return x.val; }); };
+      yield FT(0, '准备：同一棵树。中序 = 左 → 根 → 右。递归换成"自己拿栈模拟"。', root, {});
+      while (p || st.length) {
+        while (p) {
+          st.push(p);
+          yield FT(4, 'p = ' + p.val + '：一路向左，压栈。', root, { mark: p, ptrs: [{ name: 'p', node: p }], stack: sv(), tags: tags });
+          p = p.l;
+        }
+        p = st.pop();
+        yield FT(5, '左娃为空 → 弹出栈顶 ' + p.val + '。', root, { mark: p, ptrs: [{ name: 'p', node: p }], stack: sv(), tags: tags });
+        order.push(p.val); tags[p.id] = order.length;
+        yield FT(6, '访问 ' + p.val + '（第 ' + order.length + ' 个）。', root, { mark: p, stack: sv(), tags: tags });
+        p = p.r;
+        yield FT(7, '转向右子树' + (p ? '：' + p.val : '（空，准备弹下一个）') + '。', root, { mark: p || root, stack: sv(), tags: tags });
+      }
+      yield FT(7, '中序序列：<b>' + order.join(' ') + '</b>。每个结点进栈一次、出栈一次 → O(n)。', root, { tags: tags, side: ['中序 <b>' + order.join(' ') + '</b>'] });
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/tree/03-tree-level.js ---- */
+/* 二叉树 · 3.2 层序遍历（队列） */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, T = NS.T, FT = NS.FT, mkTree1 = NS.mkTree1;
+
+CH('tree').demos.push({
+    id: 'tree-level', name: '3.2 层序遍历（队列）',
+    note: '用<b>队列</b>：出队一个就访问，并把它的左右孩子依次入队。天然按层输出；求高度、求最大宽度都是它的变形（靠 levelSize）。',
+    code: [
+      'void LevelOrder(BiTree T) {',
+      '    if (!T) return;',
+      '    BiTree Q[MAXSIZE];',
+      '    int front = 0, rear = 0;',
+      '    Q[rear++] = T;                       /* 根入队 */',
+      '    while (front < rear) {',
+      '        BiTree p = Q[front++];           /* 出队 */',
+      '        visit(p);',
+      '        if (p->lchild) Q[rear++] = p->lchild;   /* 左娃入队 */',
+      '        if (p->rchild) Q[rear++] = p->rchild;   /* 右娃入队 */',
+      '    }',
+      '}'
+    ],
+    run: function* () {
+      var root = mkTree1(), Q = [root], tags = {}, order = [];
+      var qv = function () { return Q.map(function (x) { return x.val; }); };
+      yield FT(0, '准备：层序 = 一层一层、从左到右。', root, {});
+      yield FT(4, '根 ' + root.val + ' 入队。', root, { mark: root, side: ['队列 <b>' + qv().join(' ') + '</b>'] });
+      while (Q.length) {
+        var p = Q.shift();
+        order.push(p.val); tags[p.id] = order.length;
+        yield FT(6, '出队 ' + p.val + '，访问（第 ' + order.length + ' 个）。', root, { mark: p, tags: tags, side: ['队列 <b>' + (qv().join(' ') || '空') + '</b>'] });
+        if (p.l) { Q.push(p.l); yield FT(8, '左孩子 ' + p.l.val + ' 入队。', root, { mark: p, tags: tags, side: ['队列 <b>' + qv().join(' ') + '</b>'] }); }
+        if (p.r) { Q.push(p.r); yield FT(9, '右孩子 ' + p.r.val + ' 入队。', root, { mark: p, tags: tags, side: ['队列 <b>' + qv().join(' ') + '</b>'] }); }
+      }
+      yield FT(9, '队列空 → 结束。层序：<b>' + order.join(' ') + '</b>。', root, { tags: tags, side: ['层序 <b>' + order.join(' ') + '</b>'] });
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/tree/04-tree-height.js ---- */
+/* 二叉树 · 3.4 求树高（后序） */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, T = NS.T, FT = NS.FT, mkTree1 = NS.mkTree1;
+
+CH('tree').demos.push({
+    id: 'tree-height', name: '3.4 求树高（后序）',
+    note: '<b>必须后序</b>：要知道左右子树的高度才能算自己的。<code>h = max(hL, hR) + 1</code>；空子树返回 0（按"结点层数"定义）。时间 O(n)，空间 O(h)。',
+    code: [
+      'int TreeHeight(BiTree T) {',
+      '    if (T == NULL) return 0;                       /* 空树高度 0 */',
+      '    int hL = TreeHeight(T->lchild);                /* 先问左 */',
+      '    int hR = TreeHeight(T->rchild);                /* 再问右 */',
+      '    return (hL > hR ? hL : hR) + 1;                /* 取大的 + 自己这一层 */',
+      '}'
+    ],
+    run: function* () {
+      var root = mkTree1(), tags = {}, stack = [];
+      yield FT(0, '准备：对每个结点 h = max(左高, 右高) + 1，所以孩子必须先算完。', root, {});
+      function* h(n) {
+        if (!n) { yield FT(1, '空树 → 返回 0。', root, { stack: stack.slice(), tags: tags }); return 0; }
+        stack.push('TreeHeight(' + n.val + ')');
+        yield FT(2, '进入 ' + n.val + '，先去问左子树。', root, { mark: n, stack: stack.slice(), tags: tags });
+        var hl = yield* h(n.l);
+        yield FT(3, n.val + ' 的左子树高度 = ' + hl + '，再去问右子树。', root, { mark: n, stack: stack.slice(), tags: tags });
+        var hr = yield* h(n.r);
+        var m = Math.max(hl, hr) + 1;
+        tags[n.id] = m;
+        stack.pop();
+        yield FT(4, n.val + '：左 ' + hl + '，右 ' + hr + ' → 高度 ' + m + '。', root, { mark: n, stack: stack.slice(), tags: tags });
+        return m;
+      }
+      var ans = yield* h(root);
+      yield FT(5, '整棵树高 = <b>' + ans + '</b>。空指针访问了 n+1 次，时间 O(n)。', root, { tags: tags, side: ['树高 <b>' + ans + '</b>'] });
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/tree/05-tree-complete.js ---- */
+/* 二叉树 · 3.6 判断完全二叉树 */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, F = NS.F, T = NS.T, FT = NS.FT, mkTree2 = NS.mkTree2;
+
+CH('tree').demos.push({
+    id: 'tree-complete', name: '3.6 判断完全二叉树',
+    note: '层序遍历<b>把所有孩子（含空）都入队</b>：一旦在队列里遇到了 NULL，后面就不能再出现非空结点。遇到第一个空即"开关打开"。',
+    code: [
+      'int IsComplete(BiTree T) {',
+      '    if (!T) return 1;',
+      '    BiTree Q[MAXSIZE];',
+      '    int front = 0, rear = 0, seenNull = 0;',
+      '    Q[rear++] = T;',
+      '    while (front < rear) {',
+      '        BiTree p = Q[front++];',
+      '        if (!p) { seenNull = 1; continue; }   /* 见到空 → 开关打开 */',
+      '        if (seenNull) return 0;               /* 空之后又有实体 → 不是完全树 */',
+      '        Q[rear++] = p->lchild;                /* 空也要入队！ */',
+      '        Q[rear++] = p->rchild;',
+      '    }',
+      '    return 1;',
+      '}'
+    ],
+    run: function* () {
+      var good = mkTree2(), bad = T('A', T('B', T('D'), T('E')), T('C', null, T('G')));
+      function* walkOne(root, label) {
+        var Q = [root], seenNull = 0, cnt = 0, tags = {};
+        yield FT(0, label + '：队列里放结点指针（空也要放）。', root, { side: ['队列 <b>' + root.val + '</b>'] });
+        while (Q.length) {
+          var p = Q.shift();
+          if (!p) {
+            if (!seenNull) yield FT(7, '第一次遇到空孩子 → 打开"见过空"开关。', root, { side: ['seenNull = <b>1</b>'] });
+            seenNull = 1;
+            continue;
+          }
+          if (seenNull) {
+            yield FT(8, '空之后又出现了实体结点 ' + p.val + ' → <b>不是完全二叉树</b>。', root, { mark: p, side: ['结果 <b>0</b>'] });
+            return false;
+          }
+          cnt++; tags[p.id] = cnt;
+          yield FT(6, '出队 ' + p.val + '（编号 ' + cnt + '），把两个孩子都入队（空也入）。', root, { mark: p, tags: tags, side: ['编号 <b>' + cnt + '</b>'] });
+          Q.push(p.l); Q.push(p.r);
+        }
+        yield FT(12, '队列清空且没触发返回 0 → <b>是完全二叉树</b>。', root, { tags: tags, side: ['结果 <b>1</b>'] });
+        return true;
+      }
+      yield* walkOne(good, '例 1：完全二叉树 A(B(D,E), C(F,G))');
+      yield* walkOne(bad, '例 2：C 只有右孩子 —— 中间出现了"空"，后面又冒出一个 G');
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/tree/06-tree-balanced.js ---- */
+/* 二叉树 · 3.7 判断平衡二叉树 */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, F = NS.F, T = NS.T, FT = NS.FT, setStack = NS.setStack;
+
+CH('tree').demos.push({
+    id: 'tree-balanced', name: '3.7 判断平衡二叉树',
+    note: '要求<b>每个结点</b> |左高 − 右高| ≤ 1。用"一个 int 携带两种信息"：≥0 是高度，<b>−1 是失衡信号</b>，一路往上短路。时间 O(n)，不是 O(n²)。',
+    code: [
+      'int CheckBalanced(BiTree T) {          /* 返回高度；失衡返回 -1 */',
+      '    if (!T) return 0;',
+      '    int hL = CheckBalanced(T->lchild);',
+      '    if (hL == -1) return -1;           /* 左子树已经失衡，直接上报 */',
+      '    int hR = CheckBalanced(T->rchild);',
+      '    if (hR == -1) return -1;',
+      '    if (hL - hR > 1 || hR - hL > 1) return -1;   /* 两个方向都要判 */',
+      '    return (hL > hR ? hL : hR) + 1;',
+      '}'
+    ],
+    run: function* () {
+      var root = T('A', T('B', T('D', T('F'), null), T('E')), T('C'));
+      var tags = {}, cs = [];
+      setStack(cs);
+      yield FT(0, '准备：注意 D 的左孩子 F 让 D 左高 1、右高 0 —— 平衡；但 B 的左高 2、右高 1 也还行。', root, {});
+      function* chk(n) {
+        if (!n) { yield FT(1, '空子树高度 0（平衡）。', root, { tags: tags }); return 0; }
+        cs.push('CheckBalanced(' + n.val + ')');
+        yield FT(2, '进入 ' + n.val + '：先算左子树。', root, { mark: n, tags: tags });
+        var hl = yield* chk(n.l);
+        if (hl === -1) { yield FT(3, '左子树已失衡 → 直接 return −1，右子树<b>不再计算</b>。', root, { mark: n, tags: tags }); cs.pop(); return -1; }
+        var hr = yield* chk(n.r);
+        if (hr === -1) { yield FT(5, '右子树已失衡 → 直接 return −1。', root, { mark: n, tags: tags }); cs.pop(); return -1; }
+        if (Math.abs(hl - hr) > 1) {
+          yield FT(6, n.val + '：左 ' + hl + '、右 ' + hr + '，差 ' + Math.abs(hl - hr) + ' > 1 → <b>失衡</b>，上报 −1。', root, { mark: n, tags: tags });
+          cs.pop();
+          return -1;
+        }
+        var h = Math.max(hl, hr) + 1;
+        tags[n.id] = h;
+        yield FT(7, n.val + '：左 ' + hl + '、右 ' + hr + ' → 平衡，高度 ' + h + '。', root, { mark: n, tags: tags });
+        cs.pop();
+        return h;
+      }
+      var r = yield* chk(root);
+      setStack(null);
+      yield FT(7, r === -1 ? '最终返回 −1 → <b>不平衡</b>。注意：每个结点只被访问一次，所以是 O(n)。' : '最终返回 ' + r + ' → 平衡（每个结点只算一次，O(n)）。', root, { tags: tags, side: ['结果 <b>' + (r === -1 ? 0 : 1) + '</b>'] });
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/tree/07-tree-bst.js ---- */
+/* 二叉树 · 3.8 判断二叉排序树 */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, T = NS.T, FT = NS.FT, setStack = NS.setStack;
+
+CH('tree').demos.push({
+    id: 'tree-bst', cases: [
+      { label: '反例：10(5,15(6,20))', tip: '看着每处都对，但它不是 BST',
+        tree: function () { return T(10, T(5), T(15, T(6), T(20))); } },
+      { label: '合法 BST：50(30(20,40),70(60,80))', tip: '标准的一棵 BST，中序单调递增',
+        tree: function () { return T(50, T(30, T(20), T(40)), T(70, T(60), T(80))); } },
+      { label: '退化：一条左链', tip: '全是左孩子，中序仍然递增，所以是合法的',
+        tree: function () { return T(50, T(30, T(20))); } },
+      { label: '有重复值：10(5,10)', tip: 'BST 不能有重复值（相等也判错）',
+        tree: function () { return T(10, T(5), T(10)); } }
+    ], name: '3.8 判断二叉排序树',
+    note: '只比"直接孩子"是错的：反例 10(5, 15(6, 20)) 处处局部合法，但 6 在 10 的右子树里却小于 10。<b>中序必须严格递增</b>，用一个 pre 游标记住"上一个访问的值"。',
+    code: [
+      'int IsBST(BiTree T, int *pre) {      /* pre 是"中序上一个值" */',
+      '    if (!T) return 1;',
+      '    if (!IsBST(T->lchild, pre)) return 0;',
+      '    if (T->data <= *pre) return 0;   /* 必须严格递增 */',
+      '    *pre = T->data;                  /* 记下当前值，供后继比较 */',
+      '    return IsBST(T->rchild, pre);',
+      '}'
+    ],
+    run: function* (c) {
+      var root = (c && c.tree) ? c.tree() : T(10, T(5), T(15, T(6), T(20)));
+      var pre = -Infinity, tags = {}, seq = [], cs = [];
+      setStack(cs);
+      yield FT(0, '准备：' + ((c && c.tip) ? c.tip : '反例树 10(5, 15(6, 20))，看着每处都对，但它不是 BST') + ' —— 下面用中序 + pre 游标来验。', root, {});
+      function* isbst(n) {
+        if (!n) { yield FT(1, '空树 → 返回 1。', root, { tags: tags, side: ['pre = <b>' + (pre === -Infinity ? '−∞' : pre) + '</b>'] }); return true; }
+        cs.push('IsBST(' + n.val + ')');
+        yield FT(2, '进入 ' + n.val + '，先查左子树。', root, { mark: n, tags: tags });
+        if (!(yield* isbst(n.l))) { cs.pop(); return false; }
+        if (+n.val <= pre) {
+          yield FT(3, '中序访问 ' + n.val + '：可是上一个值是 ' + pre + '，' + n.val + ' ≤ ' + pre + ' → <b>不是 BST</b>，返回 0。',
+            root, { mark: n, tags: tags, side: ['pre = <b>' + pre + '</b>', '中序已扫 <b>' + seq.join(' ') + '</b>'] });
+          cs.pop();
+          return false;
+        }
+        pre = +n.val; seq.push(pre); tags[n.id] = seq.length;
+        yield FT(4, '中序访问 ' + n.val + '，比 ' + (seq.length > 1 ? '上一个值' : '−∞') + ' 大 → 合法，pre 更新为 ' + pre + '。',
+          root, { mark: n, tags: tags, side: ['pre = <b>' + pre + '</b>', '中序已扫 <b>' + seq.join(' ') + '</b>'] });
+        var r = yield* isbst(n.r);
+        cs.pop();
+        return r;
+      }
+      var ok = yield* isbst(root);
+      setStack(null);
+      yield FT(6, ok ? '全部中序递增 → 是 BST。' : '中序出现逆序 → <b>不是 BST</b>。这就是"只比父子"抓不到的错。', root, {
+        tags: tags, side: ['中序 <b>' + seq.join(' ') + '</b>', '结果 <b>' + (ok ? 1 : 0) + '</b>']
+      });
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/tree/08-tree-lca.js ---- */
+/* 二叉树 · 3.11 最近公共祖先（LCA） */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, T = NS.T, FT = NS.FT, setStack = NS.setStack;
+
+CH('tree').demos.push({
+    id: 'tree-lca', name: '3.11 最近公共祖先（LCA）',
+    note: '后序递归，返回值只有三种含义：<b>NULL = 没找到</b>，<b>p/q = 找到了一个</b>，<b>祖先 = 已确定的答案</b>。左右都非空的那个结点就是 LCA。',
+    code: [
+      'BiTree LCA(BiTree T, BiTree p, BiTree q) {',
+      '    if (!T || T == p || T == q) return T;   /* 三种出口合成一句 */',
+      '    BiTree L = LCA(T->lchild, p, q);',
+      '    BiTree R = LCA(T->rchild, p, q);',
+      '    if (L && R) return T;                   /* 两边都有货 → 本结点是答案 */',
+      '    return L ? L : R;                       /* 只有一边有货 → 原样上报 */',
+      '}'
+    ],
+    run: function* () {
+      var n4 = T(4), n5 = T(5), n2 = T(2, n4, n5);
+      var n6 = T(6), n7 = T(7), n3 = T(3, n6, n7);
+      var root = T(1, n2, n3);
+      var p = n4, q = n7;
+      var res = {}, cs = [];
+      setStack(cs);
+      yield FT(0, '准备：求结点 4 与 7 的最近公共祖先。', root, { ptrs: [{ name: 'p', node: p }, { name: 'q', node: q }] });
+      function* lca(n, depth) {
+        if (!n) { yield FT(1, '空结点 → 返回 NULL（这条分支没货）。', root, { ptrs: [{ name: 'p', node: p }, { name: 'q', node: q }] }); return null; }
+        if (n === p || n === q) {
+          yield FT(1, '命中 ' + n.val + '（就是 p 或 q）→ 立刻返回它，不再往下搜它的子树。', root, { mark: n, ptrs: [{ name: 'p', node: p }, { name: 'q', node: q }] });
+          return n;
+        }
+        yield FT(2, '在 ' + n.val + '：先问左子树有没有。', root, { mark: n, ptrs: [{ name: 'p', node: p }, { name: 'q', node: q }] });
+        cs.push('LCA(' + n.val + ')');
+        var L = yield* lca(n.l, depth + 1);
+        var R = yield* lca(n.r, depth + 1);
+        if (L && R) {
+          res.v = n;
+          yield FT(4, n.val + '：左回来 ' + (L ? L.val : 'NULL') + '，右回来 ' + (R ? R.val : 'NULL') + ' → <b>两边都有货</b>，' + n.val + ' 就是 LCA。',
+            root, { mark: n, ptrs: [{ name: 'p', node: p }, { name: 'q', node: q }], side: ['L = <b>' + (L ? L.val : 'NULL') + '</b>', 'R = <b>' + (R ? R.val : 'NULL') + '</b>'] });
+          cs.pop();
+          return n;
+        }
+        var one = L || R;
+        yield FT(5, n.val + '：只有一边有货（' + (one ? one.val : 'NULL') + '）→ 原样上报。', root,
+          { mark: n, ptrs: [{ name: 'p', node: p }, { name: 'q', node: q }], side: ['上报 <b>' + (one ? one.val : 'NULL') + '</b>'] });
+        cs.pop();
+        return one;
+      }
+      var ans = yield* lca(root, 0);
+      setStack(null);
+      yield FT(5, '结果：LCA(4, 7) = <b>' + (ans ? ans.val : 'NULL') + '</b>。时间 O(n)，空间 O(h)。', root,
+        { mark: ans, ptrs: [{ name: 'p', node: p }, { name: 'q', node: q }], side: ['答案 <b>' + (ans ? ans.val : 'NULL') + '</b>'] });
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/tree/09-tree-swap.js ---- */
+/* 二叉树 · 3.10 交换左右子树（镜像） */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, T = NS.T, FT = NS.FT, mkTree2 = NS.mkTree2;
+
+CH('tree').demos.push({
+    id: 'tree-swap', name: '3.10 交换左右子树（镜像）',
+    note: '后序：<b>先递归交换左右孩子，再交换自己的两个指针</b>。只动指针，不动数据。时间 O(n)，空间 O(h)。',
+    code: [
+      'void SwapLR(BiTree T) {',
+      '    if (!T) return;',
+      '    SwapLR(T->lchild);        /* 先把左边整棵处理干净 */',
+      '    SwapLR(T->rchild);',
+      '    BiTree t = T->lchild;     /* 再交换自己的两个孩子 */',
+      '    T->lchild = T->rchild;',
+      '    T->rchild = t;',
+      '}'
+    ],
+    run: function* () {
+      var root = mkTree2(), stack = [];
+      yield FT(0, '准备：把这棵树变成它的镜像（左右完全对调）。', root, {});
+      function* sw(n) {
+        if (!n) return;
+        stack.push('SwapLR(' + n.val + ')');
+        yield FT(1, '进入 ' + n.val + '，先处理左子树。', root, { mark: n, stack: stack.slice() });
+        yield* sw(n.l);
+        yield* sw(n.r);
+        var a = n.l, b = n.r;                        /* 交换前先记住两个孩子 */
+        var t = n.l; n.l = n.r; n.r = t;
+        stack.pop();
+        if (!a && !b) {
+          yield FT(5, n.val + ' 是叶子：两个指针都是空，交换等于没变（代码照样做了两次赋值）。', root, { mark: n, stack: stack.slice() });
+        } else {
+          yield FT(5, n.val + ' 的左右指针已对调：' + (a ? a.val : 'NULL') + ' 换到右边，' + (b ? b.val : 'NULL') + ' 换到左边。', root,
+            { mark: n, stack: stack.slice(), swapPair: [a ? a.id : null, b ? b.id : null] });
+        }
+      }
+      yield* sw(root);
+      yield FT(7, '镜像完成：原来最左边的 D 现在跑到了最右边。', root, {});
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/graph/_fixtures.js ---- */
+/* 图这一章的固定图例：顶点坐标 + 邻接表 */
+(function (NS) {
+  'use strict';
+
+  /* ================================================================ 第 4 章 图 */
+  var G_DFS = {
+    directed: false,
+    verts: [{ id: 0, x: 110, y: 130 }, { id: 1, x: 250, y: 70 }, { id: 2, x: 250, y: 190 },
+            { id: 3, x: 390, y: 70 }, { id: 4, x: 390, y: 190 }, { id: 5, x: 540, y: 130 }],
+    edges: [[0, 1], [0, 2], [1, 3], [2, 4], [3, 5], [4, 5]]
+  };
+
+  var ADJ = [[1, 2], [0, 3], [0, 4], [1, 5], [2, 5], [3, 4]];
+
+  NS.G_DFS = G_DFS;
+  NS.ADJ = ADJ;
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/graph/01-graph-dfs.js ---- */
+/* 图 · 4.1 深度优先遍历 DFS */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, FG = NS.FG, G_DFS = NS.G_DFS, ADJ = NS.ADJ, setStack = NS.setStack;
+
+CH('graph').demos.push({
+    id: 'graph-dfs', name: '4.1 深度优先遍历 DFS',
+    note: '<b>一条路走到黑</b>：访问 v → 标记 → 依次看它的邻居，没访问过就立刻钻进去。递归栈里存的是一条从起点到当前的路径，所以空间是 O(h)。',
+    code: [
+      'void DFS(ALGraph G, int v) {',
+      '    visited[v] = 1;                    /* ① 进来先标记 */',
+      '    Visit(v);                          /* ② 访问 */',
+      '    for (ArcNode *p = G.vertices[v].firstarc; p; p = p->nextarc) {',
+      '        int w = p->adjvex;             /* ③ 念邻居名单 */',
+      '        if (!visited[w]) DFS(G, w);    /* ④ 没去过就立刻钻进去 */',
+      '    }',
+      '}'
+    ],
+    run: function* () {
+      var visited = {}, order = [], st = [], cs = [];
+      setStack(cs);                       /* 递归调用栈：DFS(0) → DFS(1) → … */
+      function* dfs(v) {
+        visited[v] = 1;
+        order.push(v);
+        st.push(v);
+        cs.push('DFS(' + v + ')');
+        var state = {}; st.forEach(function (x) { state[x] = 'cur'; }); order.forEach(function (x) { state[x] = 'done'; }); state[v] = 'cur';
+        yield FG(1, '① 标记 visited[' + v + '] = 1，② 访问它（第 ' + order.length + ' 个）。', G_DFS,
+          { state: state, cur: v, scan: { v: v, w: null }, side: ['DFS 序 <b>' + order.join(' ') + '</b>'] });
+        var nb = ADJ[v];
+        for (var i = 0; i < nb.length; i++) {
+          var w = nb[i];
+          yield FG(4, '看邻居 ' + w + '：' + (visited[w] ? '已访问过，跳过。' : '没访问过 → 立刻递归进去。'), G_DFS,
+            { state: state, cur: v, scan: { v: v, w: w }, edgeOn: (function (o) { o[v + '-' + w] = 1; return o; })({}), side: ['邻居 ' + w + ' <b>' + (visited[w] ? '去过' : '没去过') + '</b>'] });
+          if (!visited[w]) yield* dfs(w);
+        }
+        st.pop();
+        cs.pop();
+      }
+      yield FG(0, '准备：无向图（右边就是它的邻接表）。从 0 号顶点出发。', G_DFS, {});
+      yield* dfs(0);
+      setStack(null);
+      var state = {}; order.forEach(function (x) { state[x] = 'done'; });
+      yield FG(5, 'DFS 序列：<b>' + order.join(' ') + '</b>。时间 O(V+E)，空间 O(V)（visited）+ O(h)（递归栈）。', G_DFS,
+        { state: state, side: ['DFS 序 <b>' + order.join(' ') + '</b>'] });
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/graph/02-graph-bfs.js ---- */
+/* 图 · 4.1 广度优先遍历 BFS */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, FG = NS.FG, G_DFS = NS.G_DFS, ADJ = NS.ADJ;
+
+CH('graph').demos.push({
+    id: 'graph-bfs', name: '4.1 广度优先遍历 BFS',
+    note: '用<b>队列</b>。关键：<b>入队时就标记</b> visited —— 否则同一个点会被多个邻居重复入队。BFS 天然按"距离起点几条边"分层，可以求无权最短路径。',
+    code: [
+      'void BFS(ALGraph G, int v) {',
+      '    int Q[MAXSIZE], front = 0, rear = 0;',
+      '    visited[v] = 1; Visit(v); Q[rear++] = v;',
+      '    while (front < rear) {',
+      '        int u = Q[front++];                        /* 出队 */',
+      '        for (ArcNode *p = G.vertices[u].firstarc; p; p = p->nextarc) {',
+      '            int w = p->adjvex;',
+      '            if (!visited[w]) {',
+      '                visited[w] = 1;                    /* 入队即标记！ */',
+      '                Visit(w); Q[rear++] = w;',
+      '            }',
+      '        }',
+      '    }',
+      '}'
+    ],
+    run: function* () {
+      var visited = { 0: 1 }, order = [0], Q = [0], dist = { 0: 0 };
+      var qv = function () { return Q.join(' '); };
+      var state = function (cur) {
+        var s = {}; order.forEach(function (x) { s[x] = 'done'; });
+        Q.forEach(function (x) { s[x] = 'front'; });
+        if (cur != null) s[cur] = 'cur';
+        return s;
+      };
+      yield FG(0, '准备：从 0 出发。visited、队列都在下面实时显示。', G_DFS, { state: state(0), side: ['队列 <b>0</b>'] });
+      yield FG(3, '起点 0：标记、访问、入队。', G_DFS, { state: state(0), cur: 0, side: ['队列 <b>' + qv() + '</b>'] });
+      while (Q.length) {
+        var u = Q.shift();
+        yield FG(5, '出队 ' + u + '，开始扫描它的所有邻居。', G_DFS, { state: state(u), cur: u, scan: { v: u, w: null }, side: ['队列 <b>' + (qv() || '空') + '</b>', '距起点 <b>' + dist[u] + '</b> 条边'] });
+        var nb = ADJ[u];
+        for (var i = 0; i < nb.length; i++) {
+          var w = nb[i];
+          if (!visited[w]) {
+            visited[w] = 1; order.push(w); Q.push(w); dist[w] = dist[u] + 1;
+            yield FG(10, '邻居 ' + w + ' 没去过 → 标记 + 访问 + <b>入队</b>（三者一起做）。', G_DFS,
+              { state: state(u), cur: u, scan: { v: u, w: w }, edgeOn: (function (o) { o[u + '-' + w] = 1; return o; })({}), side: ['队列 <b>' + qv() + '</b>', 'dist[' + w + '] = <b>' + dist[w] + '</b>'] });
+          } else {
+            yield FG(8, '邻居 ' + w + ' 已访问 → 跳过（这就是"入队即标记"省下的重复劳动）。', G_DFS,
+              { state: state(u), cur: u, scan: { v: u, w: w }, side: ['队列 <b>' + (qv() || '空') + '</b>'] });
+          }
+        }
+      }
+      var s2 = {}; order.forEach(function (x) { s2[x] = 'done'; });
+      yield FG(13, 'BFS 序：<b>' + order.join(' ') + '</b>。按层：0 | 1 2 | 3 4 | 5。时间 O(V+E)。', G_DFS,
+        { state: s2, side: ['BFS 序 <b>' + order.join(' ') + '</b>'] });
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/graph/03-graph-topo.js ---- */
+/* 图 · 4.4 拓扑排序（AOV 网） */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, FG = NS.FG, setStack = NS.setStack;
+
+CH('graph').demos.push({
+    id: 'graph-topo', name: '4.4 拓扑排序（AOV 网）',
+    stackTitle: '栈（入度为 0 的顶点）',
+    note: '<b>每次挑一个入度为 0 的点输出</b>，然后把它删掉（邻居入度减 1）。输出个数 &lt; 顶点数 ⟹ 有环。容器用栈、队列、还是"每次重扫"，结果都合法但不唯一。',
+    code: [
+      'int TopologicalSort(ALGraph G, int topo[]) {',
+      '    int indegree[MAXV] = {0}, stack[MAXV], top = -1, count = 0;',
+      '    for (int i = 0; i < G.vexnum; i++)',
+      '        for (ArcNode *p = G.vertices[i].firstarc; p; p = p->nextarc)',
+      '            indegree[p->adjvex]++;',
+      '    for (int i = 0; i < G.vexnum; i++)',
+      '        if (indegree[i] == 0) stack[++top] = i;',
+      '    while (top >= 0) {',
+      '        int v = stack[top--];',
+      '        topo[count++] = v;                       /* 落盘 */',
+      '        for (ArcNode *p = G.vertices[v].firstarc; p; p = p->nextarc)',
+      '            if (--indegree[p->adjvex] == 0) stack[++top] = p->adjvex;',
+      '    }',
+      '    return count == G.vexnum;                    /* 有环 → 0 */',
+      '}'
+    ],
+    run: function* () {
+      var N = 6;
+      var G = {
+        directed: true,
+        verts: [{ id: 0, x: 110, y: 60 }, { id: 1, x: 260, y: 50 }, { id: 2, x: 260, y: 175 },
+                { id: 3, x: 410, y: 115 }, { id: 4, x: 545, y: 115 }, { id: 5, x: 660, y: 115 }],
+        edges: [[0, 1], [0, 2], [1, 3], [2, 3], [3, 4], [4, 5]]
+      };
+      var indeg = [0, 0, 0, 0, 0, 0], st = [], topo = [], cs = [];
+      setStack(cs);                       /* 屏幕右下角那个桶就是这个 stack[] */
+      var syncSt = function () {             /* 每次 push/pop 后把桶同步成 "V0 V2 …" */
+        cs.length = 0;
+        st.forEach(function (v) { cs.push('V' + v); });
+      };
+      var state = function (cur) {
+        var s = {}; topo.forEach(function (v) { s[v] = 'done'; });
+        st.forEach(function (v) { s[v] = 'front'; });
+        if (cur != null) s[cur] = 'cur';
+        return s;
+      };
+      var lab = function () { var o = {}; indeg.forEach(function (d, i) { o[i] = '入' + d; }); return o; };
+      var ind = function (at, note) { return { vals: indeg.slice(), at: at, note: note }; };
+      var outs = {};
+      G.edges.forEach(function (e) { (outs[e[0]] = outs[e[0]] || []).push(e[1]); });
+
+      yield FG(1, '准备：indegree[0..5] 全部清零。它记录的是"每个顶点还有几个前驱没被删除"。', G,
+        { state: state(null), labels: lab(), ind: ind(null, '6 个计数器，现在都是 0') });
+
+      /* ① 数入度：扫每个顶点的出边表，把终点的入度 +1 */
+      for (var u = 0; u < N; u++) {
+        var list = outs[u] || [];
+        yield FG(3, '① 开始扫顶点 ' + u + ' 的邻接表，数它的出边（当前 indegree = [' + indeg.join(' ') + ']）。', G,
+          { state: state(null), scan: { v: u, w: null }, labels: lab(), ind: ind(u, '正在扫 V' + u + ' 的出边') });
+        for (var t = 0; t < list.length; t++) {
+          var w = list[t];
+          indeg[w]++;
+          yield FG(4, '看到边 ' + u + ' → ' + w + '：indegree[' + w + '] 加 1，变成 ' + indeg[w] + '。', G,
+            { state: state(null), scan: { v: u, w: w }, labels: lab(),
+              ind: ind(w, 'V' + w + ' 的入度 = ' + indeg[w]),
+              edgeOn: (function (e) { var o = {}; o[u + '-' + w] = 1; return o; })() });
+        }
+      }
+      yield FG(4, '统计完毕：indegree = [' + indeg.join(' ') + ']。每条边只被扫一次，所以这一步是 O(V+E)。', G,
+        { state: state(null), labels: lab(), ind: ind(null, '最终入度：' + indeg.join(' ')) });
+
+      /* ② 从头扫一遍，把入度为 0 的压栈 */
+      for (var i = 0; i < N; i++) {
+        var zero = (indeg[i] === 0);
+        if (zero) { st.push(i); syncSt(); }
+        yield FG(6, '② i = ' + i + '：indegree[' + i + '] = ' + indeg[i] +
+          (zero ? ' → 等于 0，<b>入栈</b>' : ' ≠ 0 → 跳过（它还有 ' + indeg[i] + ' 个前驱）'), G,
+          { state: state(null), labels: lab(),
+            ind: ind(i, zero ? 'V' + i + ' 入度为 0 → 入栈' : 'V' + i + ' 入度 ' + indeg[i] + ' → 跳过'),
+            side: ['栈 <b>' + (st.join(' ') || '空') + '</b>'] });
+      }
+      yield FG(7, '初始入度为 0 的点都已入栈：<b>' + st.join(' ') + '</b>。下面开始出栈输出。', G,
+        { state: state(null), labels: lab(), ind: ind(null, '栈里：' + st.join(' ')),
+          side: ['栈 <b>' + st.join(' ') + '</b>'] });
+
+      while (st.length) {
+        var v = st.pop();
+        topo.push(v);
+        syncSt();
+        yield FG(8, '出栈 ' + v + ' → 输出到 topo[' + (topo.length - 1) + ']。接下来把它"删掉"：每条出边都让终点入度减 1。', G,
+          { state: state(v), cur: v, scan: { v: v, w: null }, labels: lab(),
+            ind: ind(v, 'V' + v + ' 已输出，开始删它的出边'),
+            side: ['拓扑序 <b>' + topo.join(' ') + '</b>', '栈 <b>' + (st.join(' ') || '空') + '</b>'] });
+        var es = outs[v] || [];
+        for (var k = 0; k < es.length; k++) {
+          var to = es[k];
+          indeg[to]--;
+          var z2 = (indeg[to] === 0);
+          if (z2) { st.push(to); }        /* 先真的入栈再出帧，画面和文字才对得上 */
+          syncSt();
+          yield FG(11, '删掉边 ' + v + ' → ' + to + '：indegree[' + to + '] 减 1 = ' + indeg[to] +
+            (z2 ? ' → <b>归零，入栈！</b>' : '（还有前驱，先不进栈）'), G,
+            { state: state(v), cur: v, scan: { v: v, w: to }, labels: lab(),
+              ind: ind(to, z2 ? 'V' + to + ' 入度归零 → 入栈' : 'V' + to + ' 还差 ' + indeg[to] + ' 个前驱'),
+              edgeOn: (function () { var o = {}; o[v + '-' + to] = 1; return o; })(),
+              side: ['拓扑序 <b>' + topo.join(' ') + '</b>', '栈 <b>' + (st.join(' ') || '空') + '</b>'] });
+        }
+      }
+      syncSt();
+      yield FG(13, '输出 ' + topo.length + ' 个 = ' + N + ' 个顶点 → <b>是 DAG</b>。拓扑序：<b>' + topo.join(' ') + '</b>（栈是 LIFO，换队列得到的序列也合法，所以拓扑序不唯一）。', G,
+        { state: (function () { var s = {}; topo.forEach(function (v2) { s[v2] = 'done'; }); return s; })(),
+          labels: lab(), ind: ind(null, '全部顶点都输出完'), side: ['拓扑序 <b>' + topo.join(' ') + '</b>'] });
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/graph/04-graph-dijkstra.js ---- */
+/* 图 · 4.6 Dijkstra 单源最短路 */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, FG = NS.FG;
+
+CH('graph').demos.push({
+    id: 'graph-dijkstra', name: '4.6 Dijkstra 单源最短路',
+    note: '贪心：<b>每次取出 dist 最小且未确定的点</b>，把它"定死"，再用它去松弛邻居。边上不能有负权。O(V²)（邻接矩阵）或 O((V+E)logV)（堆优化）。',
+    code: [
+      'void Dijkstra(MGraph G, int s, int dist[], int path[]) {',
+      '    int done[MAXV] = {0};',
+      '    for (int i = 0; i < G.vexnum; i++) { dist[i] = G.edge[s][i]; path[i] = s; }',
+      '    done[s] = 1; dist[s] = 0;',
+      '    for (int k = 1; k < G.vexnum; k++) {',
+      '        int u = -1, best = INF;',
+      '        for (int i = 0; i < G.vexnum; i++)          /* ① 找最小 */',
+      '            if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }',
+      '        if (u == -1) break;',
+      '        done[u] = 1;                                /* ② 定死 u */',
+      '        for (int v = 0; v < G.vexnum; v++)          /* ③ 松弛 */',
+      '            if (!done[v] && dist[u] + G.edge[u][v] < dist[v]) {',
+      '                dist[v] = dist[u] + G.edge[u][v];',
+      '                path[v] = u;',
+      '            }',
+      '    }',
+      '}'
+    ],
+    run: function* () {
+      var INF = Infinity, N = 6, s = 0;
+      var E = { '0-1': 7, '0-2': 9, '0-5': 14, '1-2': 10, '1-3': 15, '2-3': 11, '2-5': 2, '3-4': 6, '4-5': 9 };
+      var G = {
+        directed: false,
+        verts: [{ id: 0, x: 110, y: 120 }, { id: 1, x: 270, y: 55 }, { id: 2, x: 270, y: 195 },
+                { id: 3, x: 430, y: 55 }, { id: 4, x: 430, y: 195 }, { id: 5, x: 585, y: 120 }],
+        edges: Object.keys(E).map(function (k) { var a = k.split('-').map(Number); return [a[0], a[1], E[k]]; })
+      };
+      var w = function (a, b) { return E[a + '-' + b] != null ? E[a + '-' + b] : (E[b + '-' + a] != null ? E[b + '-' + a] : INF); };
+      var dist = [], done = {}, path = [];
+      for (var i = 0; i < N; i++) { dist[i] = w(s, i); path[i] = dist[i] < INF ? s : -1; }
+      dist[s] = 0; done[s] = 1;
+      var lab = function () { var o = {}; for (var i = 0; i < N; i++) o[i] = dist[i] === INF ? '∞' : dist[i]; return o; };
+      var state = function (cur) { var o = {}; Object.keys(done).forEach(function (k) { o[k] = 'done'; }); if (cur != null) o[cur] = 'cur'; return o; };
+      yield FG(0, '准备：源点 0。dist 初始就是 0 到各点的直接边权（无边则 ∞）。边上数字是权重。', G,
+        { state: state(0), labels: lab(), side: ['dist <b>[' + [0, 1, 2, 3, 4, 5].map(function (i2) { return dist[i2] === INF ? '∞' : dist[i2]; }).join(', ') + ']</b>'] });
+      yield FG(3, '起点 0 定死：done[0]=1，dist[0]=0。', G, { state: state(0), labels: lab(), side: ['已确定 <b>0</b>'] });
+      for (var k = 1; k < N; k++) {
+        var u = -1, best = INF;
+        for (var j = 0; j < N; j++) if (!done[j] && dist[j] < best) { best = dist[j]; u = j; }
+        if (u === -1) break;
+        yield FG(6, '第 ' + k + ' 轮：未确定的点里 dist 最小的是 ' + u + '（' + best + '）→ 把它定死。', G,
+          { state: state(u), scan: { v: u, w: null }, labels: lab(), side: ['dist[' + u + '] = <b>' + best + '</b>'] });
+        done[u] = 1;
+        yield FG(8, 'done[' + u + '] = 1。现在用它去松弛所有邻居。', G, { state: state(u), scan: { v: u, w: null }, labels: lab() });
+        for (var v = 0; v < N; v++) {
+          var ww = w(u, v);
+          if (done[v] || ww === INF) continue;
+          if (dist[u] + ww < dist[v]) {
+            dist[v] = dist[u] + ww; path[v] = u;
+            yield FG(11, '松弛成功：dist[' + v + '] ← ' + dist[u] + ' + ' + ww + ' = ' + dist[v] + '（经过 ' + u + '）。', G,
+              { state: state(u), scan: { v: u, w: v }, labels: lab(), edgeOn: (function (o) { o[u + '-' + v] = 1; return o; })({}), side: ['dist[' + v + '] = <b>' + dist[v] + '</b>', 'path[' + v + '] = ' + u] });
+          } else {
+            yield FG(11, '不算更短：' + dist[u] + '+' + ww + ' ≥ dist[' + v + ']=' + dist[v] + '，不改。', G,
+              { state: state(u), scan: { v: u, w: v }, labels: lab(), side: ['dist[' + v + '] 保持 <b>' + dist[v] + '</b>'] });
+          }
+        }
+      }
+      yield FG(15, '全部定死。dist = [' + [0, 1, 2, 3, 4, 5].map(function (i2) { return dist[i2]; }).join(', ') + ']。',
+        G, { state: (function () { var o = {}; for (var i2 = 0; i2 < N; i2++) o[i2] = 'done'; return o; })(), labels: lab(), side: ['答案 <b>' + dist.join(', ') + '</b>'] });
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/graph/05-graph-prim.js ---- */
+/* 图 · 4.7 Prim 最小生成树 */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, FG = NS.FG;
+
+CH('graph').demos.push({
+    id: 'graph-prim', name: '4.7 Prim 最小生成树',
+    note: '<b>从一个点开始"滚雪球"</b>：每次在"树内 ↔ 树外"的边里挑权最小的，把对面那个点拉进来。适合稠密图，O(V²)。注意"是否在树内"要用独立数组标记，别拿 0 权当哨兵。',
+    code: [
+      'void Prim(MGraph G, int v0) {',
+      '    int lowcost[MAXV], inTree[MAXV] = {0};',
+      '    for (int i = 0; i < G.vexnum; i++) { lowcost[i] = G.edge[v0][i]; }',
+      '    inTree[v0] = 1;',
+      '    for (int k = 1; k < G.vexnum; k++) {',
+      '        int u = -1, best = INF;',
+      '        for (int i = 0; i < G.vexnum; i++)          /* 树外最小 */',
+      '            if (!inTree[i] && lowcost[i] < best) { best = lowcost[i]; u = i; }',
+      '        if (u == -1) break;                         /* 不连通 */',
+      '        inTree[u] = 1;                              /* 拉进树 */',
+      '        for (int j = 0; j < G.vexnum; j++)',
+      '            if (!inTree[j] && G.edge[u][j] < lowcost[j]) lowcost[j] = G.edge[u][j];',
+      '    }',
+      '}'
+    ],
+    run: function* () {
+      var INF = Infinity, N = 6;
+      var E = { '0-1': 6, '0-2': 1, '0-3': 5, '1-2': 5, '1-4': 3, '2-3': 5, '2-4': 6, '2-5': 4, '3-5': 2, '4-5': 6 };
+      var G = {
+        directed: false,
+        verts: [{ id: 0, x: 120, y: 120 }, { id: 1, x: 260, y: 50 }, { id: 2, x: 360, y: 120 },
+                { id: 3, x: 260, y: 200 }, { id: 4, x: 500, y: 70 }, { id: 5, x: 500, y: 175 }],
+        edges: Object.keys(E).map(function (k) { var a = k.split('-').map(Number); return [a[0], a[1], E[k]]; })
+      };
+      var w = function (a, b) { return E[a + '-' + b] != null ? E[a + '-' + b] : (E[b + '-' + a] != null ? E[b + '-' + a] : INF); };
+      var inTree = { 0: 1 }, low = [], chosen = {};
+      for (var i = 0; i < N; i++) low[i] = w(0, i);
+      low[0] = 0;
+      var lab = function () { var o = {}; for (var i = 0; i < N; i++) o[i] = inTree[i] ? '✔' : (low[i] === INF ? '∞' : low[i]); return o; };
+      var state = function (cur) { var o = {}; Object.keys(inTree).forEach(function (k) { o[k] = 'done'; }); if (cur != null) o[cur] = 'cur'; return o; };
+      yield FG(0, '准备：从 0 号点开始。lowcost[i] = i 到"当前树"的最小距离，∞ 表示还没边相连。', G,
+        { state: state(0), labels: lab(), side: ['已在树内 <b>0</b>'] });
+      var total = 0;
+      for (var k = 1; k < N; k++) {
+        var u = -1, best = INF;
+        for (var j = 0; j < N; j++) if (!inTree[j] && low[j] < best) { best = low[j]; u = j; }
+        if (u === -1) break;
+        var from = -1;
+        for (var j2 = 0; j2 < N; j2++) if (inTree[j2] && w(j2, u) === best) { from = j2; break; }
+        inTree[u] = 1; total += best;
+        var ek = from + '-' + u;
+        yield FG(9, '树外 lowcost 最小的是 ' + u + '（' + best + '，来自树内结点 ' + from + '）→ 拉进树。', G,
+          { state: state(u), labels: lab(), edgeOn: (function (o) { o[ek] = 1; o[u + '-' + from] = 1; return o; })({}),
+            side: ['选中边 <b>' + from + ' — ' + u + '（' + best + '）</b>', '累计权值 <b>' + total + '</b>'] });
+        for (var v = 0; v < N; v++) {
+          if (!inTree[v] && w(u, v) < low[v]) { low[v] = w(u, v); }
+        }
+        yield FG(11, '用 ' + u + ' 更新树外各点的 lowcost。', G, { state: state(u), labels: lab(), side: ['累计权值 <b>' + total + '</b>'] });
+      }
+      yield FG(11, 'MST 边权之和 = <b>' + total + '</b>。Prim 每轮都是"跨切边里最小的那条"→ 一定是最小生成树。', G,
+        { state: (function () { var o = {}; for (var i2 = 0; i2 < N; i2++) o[i2] = 'done'; return o; })(), labels: lab(), side: ['MST 总权 <b>' + total + '</b>'] });
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/graph/06-graph-kruskal.js ---- */
+/* 图 · 4.8 Kruskal 最小生成树 */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, FG = NS.FG;
+
+CH('graph').demos.push({
+    id: 'graph-kruskal', name: '4.8 Kruskal 最小生成树',
+    note: '<b>把边从小到大排序，能加就加，成环就跳过</b>，直到选够 V−1 条。判环靠并查集；路径压缩 + 按秩合并都能把单次操作降到 O(α)。适合稀疏图。',
+    code: [
+      'int Find(int x) {                       /* 并查集：找根 + 路径压缩 */',
+      '    int r = x;',
+      '    while (parent[r] >= 0) r = parent[r];',
+      '    while (x != r) { int t = parent[x]; parent[x] = r; x = t; }',
+      '    return r;',
+      '}',
+      'void Union(int a, int b) {              /* 按规模合并 */',
+      '    if (parent[a] > parent[b]) { int t = a; a = b; b = t; }',
+      '    parent[a] += parent[b]; parent[b] = a;',
+      '}',
+      'void Kruskal(Edge E[], int m, int V) {',
+      '    sort(E, m);                          /* 按权升序 */',
+      '    int cnt = 0;',
+      '    for (int i = 0; i < m && cnt < V - 1; i++) {',
+      '        int a = Find(E[i].u), b = Find(E[i].v);',
+      '        if (a == b) continue;            /* 同一个集合 → 加进去就成环 */',
+      '        Union(a, b); cnt++;              /* 收下这条边 */',
+      '    }',
+      '}'
+    ],
+    run: function* () {
+      var N = 6;
+      var edges = [[0, 2, 1], [3, 5, 2], [1, 4, 3], [2, 5, 4], [0, 3, 5], [1, 2, 5], [2, 3, 5], [0, 1, 6], [2, 4, 6], [4, 5, 6]];
+      var G = {
+        directed: false,
+        verts: [{ id: 0, x: 120, y: 120 }, { id: 1, x: 260, y: 50 }, { id: 2, x: 360, y: 120 },
+                { id: 3, x: 260, y: 200 }, { id: 4, x: 500, y: 70 }, { id: 5, x: 500, y: 175 }],
+        edges: edges
+      };
+      var parent = {}, cnt = 0, total = 0;
+      for (var i = 0; i < N; i++) parent[i] = -1;
+      function find(x) { while (parent[x] >= 0) x = parent[x]; return x; }
+      var lab = function () { var o = {}; for (var i = 0; i < N; i++) o[i] = String(find(i)); return o; };
+      var state = function () { var o = {}; for (var i = 0; i < N; i++) if (find(i) === i && parent[i] < -1) { } return o; };
+      yield FG(0, '准备：10 条边，先按权值升序排好：' + edges.map(function (e) { return e[0] + '-' + e[1] + '(' + e[2] + ')'; }).join('  '), G,
+        { side: ['已排序 <b>' + edges.map(function (e) { return e[2]; }).join(' ') + '</b>'] });
+      for (var k = 0; k < edges.length && cnt < N - 1; k++) {
+        var e = edges[k], a = find(e[0]), b = find(e[1]);
+        yield FG(12, '看边 ' + e[0] + '—' + e[1] + '（权 ' + e[2] + '）：find(' + e[0] + ')=' + a + '，find(' + e[1] + ')=' + b + '。', G,
+          { labels: lab(), dsMark: [e[0], e[1]], dsFoot: 'Kruskal 不扫邻接表，走的是<b>边表</b>：正在检查边 (' + e[0] + ',' + e[1] + ')，权 ' + e[2],
+            edgeOn: (function (o) { o[e[0] + '-' + e[1]] = 1; return o; })({}),
+            side: ['已选 <b>' + cnt + '</b> 条，累计 <b>' + total + '</b>', '并查集根 <b>' + lab() + '</b>'] });
+        if (a === b) {
+          yield FG(14, 'a == b → 这两个点已经连通，加这条边就成环 → <b>丢弃</b>。', G,
+            { labels: lab(), dsMark: [e[0], e[1]], dsFoot: '边 (' + e[0] + ',' + e[1] + ') 两端已在同一集合 → 丢掉', side: ['跳过（成环）'] });
+          continue;
+        }
+        if (parent[a] > parent[b]) { var t = a; a = b; b = t; }
+        parent[a] += parent[b]; parent[b] = a;
+        cnt++; total += e[2];
+        yield FG(15, '合并两个集合 → 收下这条边。已选 ' + cnt + ' 条，累计 ' + total + '。', G,
+          { labels: lab(), dsMark: [e[0], e[1]], dsFoot: '收下边 (' + e[0] + ',' + e[1] + ')：两端集合合并',
+            edgeOn: (function (o) { o[e[0] + '-' + e[1]] = 1; return o; })({}),
+            side: ['已选 <b>' + cnt + '</b> 条', '累计 <b>' + total + '</b>'] });
+      }
+      yield FG(15, '选够 ' + (N - 1) + ' 条边 → MST，总权 <b>' + total + '</b>。', G, { labels: lab(), side: ['MST 总权 <b>' + total + '</b>'] });
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/search/01-srch-binary.js ---- */
+/* 查找 · 5.1 折半查找（二分） */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, FA = NS.FA, BIN_CASES = NS.BIN_CASES;
+
+CH('search').demos.push({
+    id: 'srch-binary', cases: BIN_CASES, name: '5.1 折半查找（二分）',
+    note: '前提：<b>表必须有序</b>。每次砍掉一半，比较次数 ≤ ⌊log₂n⌋+1。用 <b>low ≤ high</b> 作循环条件，区间为空时低点会越过高点。',
+    code: [
+      'int BinarySearch(int A[], int n, int key) {',
+      '    int low = 0, high = n - 1, mid;',
+      '    while (low <= high) {              /* 注意是 <=，不是 < */',
+      '        mid = (low + high) / 2;        /* 向下取整 */',
+      '        if (A[mid] == key) return mid;',
+      '        else if (A[mid] < key) low = mid + 1;   /* 去右半边 */',
+      '        else high = mid - 1;                    /* 去左半边 */',
+      '    }',
+      '    return -1;                          /* 没找到 */',
+      '}'
+    ],
+    run: function* (c) {
+      var A = (c && c.arr ? c.arr.slice() : [7, 10, 13, 16, 19, 29, 32, 33, 37, 41, 43]), n = A.length, key = (c && c.key != null ? c.key : 43);
+      var low = 0, high = n - 1, mid, cnt = 0;
+      yield FA(0, '准备：有序表 ' + A.join(' ') + '，查找 key = ' + key + '。折半查找靠"下标"跳，不靠链。', A, { spans: [{ from: 0, to: n - 1 }] });
+      yield FA(1, '① low = 0，high = ' + (n - 1) + '（闭区间）。', A, { marks: [{ name: 'low', at: low }, { name: 'high', at: high }] });
+      while (low <= high) {
+        mid = (low + high) >> 1;
+        cnt++;
+        yield FA(3, '第 ' + cnt + ' 次比较：mid = (' + low + '+' + high + ')/2 = ' + mid + '（向下取整）。',
+          A, { marks: [{ name: 'low', at: low }, { name: 'mid', at: mid, color: '#f59e0b' }, { name: 'high', at: high }], spans: [{ from: low, to: high }], side: ['比较次数 <b>' + cnt + '</b>'] });
+        if (A[mid] === key) {
+          yield FA(4, 'A[' + mid + '] = ' + A[mid] + ' == key → 找到，返回下标 ' + mid + '。', A,
+            { marks: [{ name: 'mid', at: mid, color: '#22c55e' }], spans: [{ from: low, to: high }], side: ['比较次数 <b>' + cnt + '</b>', '结果 <b>下标 ' + mid + '</b>'],
+              cmp: { a: mid, b: -1, side: 'right', vtext: 'key=' + key, left: 'A[' + mid + ']=' + A[mid], right: 'key', op: '==', ok: true, res: '命中' } });
+          return;
+        } else if (A[mid] < key) {
+          yield FA(5, 'A[' + mid + '] = ' + A[mid] + ' < ' + key + ' → 答案在右半边，low = mid+1 = ' + (mid + 1) + '。', A,
+            { marks: [{ name: 'low', at: mid + 1 }, { name: 'high', at: high }], spans: [{ from: mid + 1, to: high }], side: ['比较次数 <b>' + cnt + '</b>'],
+              cmp: { a: mid, b: -1, side: 'right', vtext: 'key=' + key, left: 'A[' + mid + ']=' + A[mid], right: 'key', op: '<', ok: true, res: '去右半' } });
+          low = mid + 1;
+        } else {
+          yield FA(6, 'A[' + mid + '] = ' + A[mid] + ' > ' + key + ' → 答案在左半边，high = mid−1 = ' + (mid - 1) + '。', A,
+            { marks: [{ name: 'low', at: low }, { name: 'high', at: mid - 1 }], spans: [{ from: low, to: mid - 1 }], side: ['比较次数 <b>' + cnt + '</b>'],
+              cmp: { a: mid, b: -1, side: 'right', vtext: 'key=' + key, left: 'A[' + mid + ']=' + A[mid], right: 'key', op: '>', ok: true, res: '去左半' } });
+          high = mid - 1;
+        }
+      }
+      yield FA(8, 'low > high，区间为空 → 查找失败，返回 −1。', A, { side: ['比较次数 <b>' + cnt + '</b>'] });
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/search/02-srch-bst.js ---- */
+/* 查找 · 5.2 二叉排序树的查找 */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, T = NS.T, FT = NS.FT;
+
+CH('search').demos.push({
+    id: 'srch-bst', name: '5.2 二叉排序树的查找',
+    note: '从根开始：<b>比当前结点小往左，大往右</b>，一路只走一条路径，深度最大 O(h)。等值不重复插入。',
+    code: [
+      'BSTNode *BSTSearch(BSTNode *T, int key) {',
+      '    while (T && T->data != key) {',
+      '        if (key < T->data) T = T->lchild;   /* 小 → 左边 */',
+      '        else               T = T->rchild;   /* 大 → 右边 */',
+      '    }',
+      '    return T;                               /* 找到返回结点，否则 NULL */',
+      '}'
+    ],
+    run: function* () {
+      var l20 = T(20), l40 = T(40), l30 = T(30, l20, l40);
+      var r60 = T(60), r80 = T(80), r70 = T(70, r60, r80);
+      var root = T(50, l30, r70);
+      var key = 60, cur = root, depth = 0, path = [], pathNodes = [];
+      yield FT(0, '准备：一棵 BST。性质：左子树全 &lt; 根 &lt; 右子树（对每个结点都成立）。查找 key = ' + key + '。', root, { mark: root });
+      while (cur && +cur.val !== key) {
+        depth++;
+        var goLeft = key < +cur.val;
+        path.push(cur.val); pathNodes.push(cur);
+        yield FT(2, '当前结点 ' + cur.val + '：' + key + (goLeft ? ' &lt; ' : ' &gt; ') + cur.val + ' → 往' + (goLeft ? '左' : '右') + '走。',
+          root, { mark: cur, ptrs: [{ name: 'p', node: cur }], side: ['比较次数 <b>' + depth + '</b>', '路径 <b>' + path.join(' → ') + '</b>'],
+            cmpTag: { text: 'key=' + key + ' ' + (goLeft ? '<' : '>') + ' ' + cur.val + ' → 往' + (goLeft ? '左' : '右'), ok: goLeft } });
+        cur = goLeft ? cur.l : cur.r;
+      }
+      if (cur) {
+        var tags = {};
+        pathNodes.forEach(function (nd, i) { tags[nd.id] = i + 1; });
+        tags[cur.id] = depth + 1;
+        yield FT(3, '命中：结点 ' + cur.val + '，查找成功。共比较 ' + (depth + 1) + ' 次。', root,
+          { mark: cur, tags: tags, side: ['比较次数 <b>' + (depth + 1) + '</b>', '路径 <b>' + path.concat([cur.val]).join(' → ') + '</b>'],
+            cmpTag: { text: 'key=' + key + ' == ' + cur.val + ' → 命中', ok: true } });
+      } else {
+        yield FT(3, '走到空指针 → 查找失败（说明该 key 不在树里）。', root,
+          { side: ['比较次数 <b>' + depth + '</b>'], cmpTag: { text: 'key=' + key + ' 不在树里', ok: false } });
+      }
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/search/03-srch-hash.js ---- */
+/* 查找 · 5.4 哈希表 · 线性探测 */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, FA = NS.FA;
+
+CH('search').demos.push({
+    id: 'srch-hash', name: '5.4 哈希表 · 线性探测',
+    note: '除留余数法 <b>H(key) = key % 13</b>；冲突了就往后找第一个空位（到表尾回头）。查找成功 ASL = 比较次数之和 / 元素个数。',
+    code: [
+      'int Insert(int H[], int key) {',
+      '    int i = key % 13;                  /* 哈希函数 */',
+      '    while (H[i] != EMPTY) i = (i + 1) % 13;   /* 线性探测 */',
+      '    H[i] = key;',
+      '    return i;',
+      '}',
+      'int Search(int H[], int key) {',
+      '    int i = key % 13, cnt = 1;',
+      '    while (H[i] != EMPTY) {',
+      '        if (H[i] == key) return i;',
+      '        i = (i + 1) % 13; cnt++;',
+      '    }',
+      '    return -1;                         /* 碰到空位即失败 */',
+      '}'
+    ],
+    run: function* () {
+      var M = 13, H = new Array(M).fill(null), keys = [22, 41, 53, 46, 30, 13, 1];
+      var view = function () { return H.map(function (v) { return v == null ? '' : v; }); };
+      var idxLabel = function () { var a = []; for (var i = 0; i < M; i++) a.push(String(i)); return a; };
+      yield FA(0, '准备：表长 13，H(key) = key % 13。依次插入 ' + keys.join(', ') + '。', view(), { labels: idxLabel() });
+      var total = 0;
+      for (var t = 0; t < keys.length; t++) {
+        var k = keys[t], h = k % M, i = h, probes = 1;
+        yield FA(1, '插入 ' + k + '：h = ' + k + ' % 13 = ' + h + '。', view(), { labels: idxLabel(), marks: [{ name: 'h', at: h }] });
+        while (H[i] != null) {
+          yield FA(2, '位置 ' + i + ' 已被 ' + H[i] + ' 占据 → 冲突，探测下一格。', view(), { labels: idxLabel(), marks: [{ name: 'i', at: i, color: '#f472b6' }], side: ['本次探测 <b>' + (probes + 1) + '</b> 次'] });
+          i = (i + 1) % M; probes++;
+        }
+        H[i] = k;
+        total += probes;
+        yield FA(3, '位置 ' + i + ' 空着 → 放进去。' + (i !== h ? '（相对 h=' + h + ' 偏移了 ' + ((i - h + M) % M) + ' 格）' : '（一次就命中，无冲突）'),
+          view(), { labels: idxLabel(), marks: [{ name: 'i', at: i, color: '#22c55e' }], side: ['探测次数 <b>' + probes + '</b>', '累计 <b>' + total + '</b>'] });
+      }
+      yield FA(4, '插入完毕：' + view().join(' ') + '。查找成功 ASL = (' + total + ')/' + keys.length + ' ≈ ' + (total / keys.length).toFixed(2) + '。',
+        view(), { labels: idxLabel(), side: ['ASL<sub>成功</sub> <b>' + (total / keys.length).toFixed(2) + '</b>'] });
+      /* 查找 46 */
+      var q = 46, j = q % M, c = 1;
+      yield FA(6, '查找 46：h = 46 % 13 = ' + j + '。', view(), { labels: idxLabel(), marks: [{ name: 'j', at: j }] });
+      while (H[j] != null) {
+        if (H[j] === q) {
+          yield FA(8, 'A[' + j + '] = 46 → 找到，比较 ' + c + ' 次。', view(), { labels: idxLabel(), marks: [{ name: 'j', at: j, color: '#22c55e' }], side: ['比较 <b>' + c + '</b> 次'],
+            cmp: { a: j, b: -1, side: 'right', vtext: 'key=' + q, left: 'H[' + j + ']=' + H[j], right: 'key', op: '==', ok: true, res: '命中' } });
+          break;
+        }
+        j = (j + 1) % M; c++;
+      }
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/sort/01-sort-insert.js ---- */
+/* 排序 · 6.1 直接插入排序 */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, FA = NS.FA, SORT_CASES = NS.SORT_CASES, sortedSet = NS.sortedSet;
+
+CH('sort').demos.push({
+    id: 'sort-insert', cases: SORT_CASES, name: '6.1 直接插入排序',
+    note: '<b>把 A[i] 插进左边已排好的有序区</b>：先存 key，比 key 大的整体后移，空出的位置放 key。最好 O(n)（原本有序），最坏/平均 O(n²)，空间 O(1)，<b>稳定</b>。',
+    code: [
+      'void InsertSort(int A[], int n) {',
+      '    for (int i = 1; i < n; i++) {',
+      '        int key = A[i], j = i - 1;      /* key 先存起来，否则会被后移覆盖 */',
+      '        while (j >= 0 && A[j] > key) {  /* 严格大于才后移 → 相等停住 → 稳定 */',
+      '            A[j + 1] = A[j];',
+      '            j--;',
+      '        }',
+      '        A[j + 1] = key;                 /* 空位落 key */',
+      '    }',
+      '}'
+    ],
+    run: function* (c) {
+      var A = (c && c.arr ? c.arr.slice() : [49, 38, 65, 97, 76, 13, 27, 49]), n = A.length, i, j, key, s;
+      yield FA(0, '准备：' + A.join(' ') + '。前面一段是"有序区"，后面一段是"待插区"。', A, {});
+      for (i = 1; i < n; i++) {
+        key = A[i]; j = i - 1;
+        s = sortedSet(i);
+        yield FA(2, '第 ' + i + ' 轮：key = A[' + i + '] = ' + key + '，左边 0..' + (i - 1) + ' 已有序。',
+          A, { marks: [{ name: 'i', at: i }], sorted: s, spans: [{ from: 0, to: i - 1 }] });
+        while (j >= 0 && A[j] > key) {
+          yield FA(3, 'A[' + j + '] = ' + A[j] + ' > key(' + key + ') → 把它往后挪一格，腾出前面的位置。',
+            A, { marks: [{ name: 'j', at: j }, { name: 'i', at: i }], sorted: s, spans: [{ from: 0, to: i - 1 }], jump: { from: j, to: j + 1, label: A[j] + ' 后移一格' },
+                 cmp: { a: j, b: -1, side: 'left', vtext: 'key=' + key, left: 'A[' + j + ']=' + A[j], right: 'key', op: '>', ok: true, res: '后移' } });
+          A[j + 1] = A[j];
+          yield FA(4, 'A[' + (j + 1) + '] ← ' + A[j] + '（key=' + key + ' 先寄存在变量里，不占数组位置）。',
+            A, { marks: [{ name: 'j', at: j }, { name: 'i', at: i }], sorted: s, spans: [{ from: 0, to: i - 1 }] });
+          j--;
+        }
+        if (j >= 0) {
+          yield FA(3, 'A[' + j + '] = ' + A[j] + ' ≤ key(' + key + ') → 停在这里，前面已是有序区。',
+            A, { marks: [{ name: 'j', at: j }, { name: 'i', at: i }], sorted: s, spans: [{ from: 0, to: i - 1 }],
+                 cmp: { a: j, b: -1, side: 'left', vtext: 'key=' + key, left: 'A[' + j + ']=' + A[j], right: 'key', op: '≤', ok: false, res: '停' } });
+        }
+        A[j + 1] = key;
+        yield FA(7, 'key(' + key + ') 落在 ' + (j + 1) + ' 号位 —— 前 ' + (i + 1) + ' 个元素已有序。',
+          A, { marks: [{ name: 'i', at: j + 1 }], sorted: sortedSet(i + 1), spans: [{ from: 0, to: i }], jump: { from: i, to: j + 1, label: key + ' 落位' } });
+      }
+      yield FA(8, '完成：' + A.join(' ') + '。比较次数最坏 n(n−1)/2，时间 O(n²)，空间 O(1)。', A, { sorted: sortedSet(n) });
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/sort/02-sort-bubble.js ---- */
+/* 排序 · 6.3 冒泡排序 */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, FA = NS.FA, SORT_CASES = NS.SORT_CASES, sortedSet = NS.sortedSet;
+
+CH('sort').demos.push({
+    id: 'sort-bubble', cases: SORT_CASES, name: '6.3 冒泡排序',
+    note: '每趟把<b>最大值冒到末尾</b>；若某趟一次交换都没有 → 已经有序，提前结束。最好 O(n)（有序 + flag），最坏 O(n²)，<b>稳定</b>。',
+    code: [
+      'void BubbleSort(int A[], int n) {',
+      '    for (int i = 0; i < n - 1; i++) {',
+      '        int swapped = 0;',
+      '        for (int j = 0; j < n - 1 - i; j++) {',
+      '            if (A[j] > A[j + 1]) {',
+      '                swap(A[j], A[j + 1]);',
+      '                swapped = 1;',
+      '            }',
+      '        }',
+      '        if (!swapped) return;    /* 提前结束 */',
+      '    }',
+      '}'
+    ],
+    run: function* (c) {
+      var A = (c && c.arr ? c.arr.slice() : [49, 38, 65, 97, 76, 13, 27, 49]), n = A.length, i, j, sw;
+      yield FA(0, '准备：' + A.join(' ') + '。每一趟结束，末尾就多一个"定死的最大值"。',
+        A, { spans: [{ from: 0, to: n - 1 }] });
+      for (i = 0; i < n - 1; i++) {
+        sw = 0;
+        yield FA(2, '第 ' + (i + 1) + ' 趟开始，只需比到第 ' + (n - 1 - i) + ' 个位置。',
+          A, { marks: [{ name: '趟', at: i, color: '#f59e0b' }], sorted: sortedSet(n, n - i) });
+        for (j = 0; j < n - 1 - i; j++) {
+          if (A[j] > A[j + 1]) {
+            yield FA(4, 'A[' + j + ']=' + A[j] + ' > A[' + (j + 1) + ']=' + A[j + 1] + ' → 交换。',
+              A, { marks: [{ name: 'j', at: j }, { name: 'j+1', at: j + 1, color: '#f472b6' }], sorted: sortedSet(n, n - i), swap: [j, j + 1],
+                cmp: { a: j, b: j + 1, left: 'A[' + j + ']=' + A[j], right: 'A[' + (j + 1) + ']=' + A[j + 1], op: '>', ok: true, res: '交换' } });
+            var t = A[j]; A[j] = A[j + 1]; A[j + 1] = t; sw = 1;
+            yield FA(5, '交换后 A[' + j + ']=' + A[j] + '、A[' + (j + 1) + ']=' + A[j + 1] + '。',
+              A, { marks: [{ name: 'j', at: j }, { name: 'j+1', at: j + 1, color: '#f472b6' }], sorted: sortedSet(n, n - i), swap: [j, j + 1] });
+          } else {
+            yield FA(4, 'A[' + j + ']=' + A[j] + ' ≤ ' + A[j + 1] + ' → 不动（相等也不换 → 稳定）。',
+              A, { marks: [{ name: 'j', at: j }, { name: 'j+1', at: j + 1, color: '#f472b6' }], sorted: sortedSet(n, n - i),
+                cmp: { a: j, b: j + 1, left: 'A[' + j + ']=' + A[j], right: 'A[' + (j + 1) + ']=' + A[j + 1], op: '≤', ok: false, res: '不动' } });
+          }
+        }
+        yield FA(9, '第 ' + (i + 1) + ' 趟结束，A[' + (n - 1 - i) + ']=' + A[n - 1 - i] + ' 已定死。',
+          A, { sorted: sortedSet(n, n - 1 - i) });
+        if (!sw) {
+          yield FA(9, '本趟一次交换都没有 → 整表已有序，直接 return。', A, { sorted: sortedSet(n) });
+          break;
+        }
+      }
+      yield FA(10, '完成：' + A.join(' ') + '。', A, { sorted: sortedSet(n) });
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/sort/03-sort-select.js ---- */
+/* 排序 · 6.4 简单选择排序 */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, FA = NS.FA, SORT_CASES = NS.SORT_CASES, sortedSet = NS.sortedSet;
+
+CH('sort').demos.push({
+    id: 'sort-select', cases: SORT_CASES, name: '6.4 简单选择排序',
+    note: '每趟在<b>无序区里找最小</b>，和无序区第一个交换。比较次数恒为 n(n−1)/2（与初始状态无关），交换最多 n−1 次，<b>不稳定</b>。',
+    code: [
+      'void SelectSort(int A[], int n) {',
+      '    for (int i = 0; i < n - 1; i++) {',
+      '        int min = i;',
+      '        for (int j = i + 1; j < n; j++)',
+      '            if (A[j] < A[min]) min = j;',
+      '        if (min != i) swap(A[i], A[min]);',
+      '    }',
+      '}'
+    ],
+    run: function* (c) {
+      var A = (c && c.arr ? c.arr.slice() : [49, 38, 65, 97, 76, 13, 27, 49]), n = A.length, i, j, mn;
+      yield FA(0, '准备：' + A.join(' ') + '。', A, {});
+      for (i = 0; i < n - 1; i++) {
+        mn = i;
+        yield FA(2, '第 ' + (i + 1) + ' 趟：从 ' + i + ' 开始找最小值，先假设 min = ' + i + '（' + A[i] + '）。',
+          A, { marks: [{ name: 'i/min', at: i }], sorted: sortedSet(i) });
+        for (j = i + 1; j < n; j++) {
+          if (A[j] < A[mn]) {
+            var oldMin = mn;                       /* 先记住旧 min，不然标签会写成 A[min] 跟 A[j] 比 */
+            mn = j;
+            yield FA(4, 'A[' + j + ']=' + A[j] + ' < A[min]=' + A[oldMin] + ' → min 改指 ' + j + '。',
+              A, { marks: [{ name: 'i', at: i }, { name: 'min', at: mn, color: '#f472b6' }, { name: 'j', at: j, color: '#f59e0b' }], sorted: sortedSet(i),
+                   cmp: { a: j, b: oldMin, left: 'A[' + j + ']=' + A[j], right: 'A[min]=' + A[oldMin], op: '<', ok: true, res: 'min ← ' + j } });
+          } else {
+            yield FA(4, 'A[' + j + ']=' + A[j] + ' ≥ ' + A[mn] + ' → min 不动。',
+              A, { marks: [{ name: 'i', at: i }, { name: 'min', at: mn, color: '#f472b6' }, { name: 'j', at: j, color: '#f59e0b' }], sorted: sortedSet(i),
+                   cmp: { a: j, b: mn, left: 'A[' + j + ']=' + A[j], right: 'A[min]=' + A[mn], op: '≥', ok: false, res: 'min 不动' } });
+          }
+        }
+        if (mn !== i) {
+          yield FA(5, '最小值 A[' + mn + ']=' + A[mn] + ' 与 A[' + i + ']=' + A[i] + ' 交换 → ' + A[mn] + ' 归位。',
+            A, { marks: [{ name: 'i', at: i }, { name: 'min', at: mn, color: '#f472b6' }], sorted: sortedSet(i), swap: [i, mn] });
+          var t = A[i]; A[i] = A[mn]; A[mn] = t;
+          yield FA(5, '交换完成：A[' + i + ']=' + A[i] + '、A[' + mn + ']=' + A[mn] + '。',
+            A, { marks: [{ name: 'i', at: i }], sorted: sortedSet(i + 1), swap: [i, mn] });
+        } else {
+          yield FA(5, 'min 就是 i，不用交换。', A, { marks: [{ name: 'i', at: i }], sorted: sortedSet(i + 1) });
+        }
+      }
+      yield FA(6, '完成：' + A.join(' ') + '。比较 n(n−1)/2 次，时间 O(n²)，空间 O(1)，不稳定。', A, { sorted: sortedSet(n) });
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/sort/04-sort-quick.js ---- */
+/* 排序 · 6.5 快速排序（挖坑法 Partition） */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, FA = NS.FA, SORT_CASES = NS.SORT_CASES, sortedSet = NS.sortedSet, setStack = NS.setStack;
+
+CH('sort').demos.push({
+    id: 'sort-quick', cases: SORT_CASES, name: '6.5 快速排序（挖坑法 Partition）',
+    note: '<b>Partition 一过，枢轴就落在最终位置</b>，左边全 ≤ 它、右边全 ≥ 它，再递归两边。平均 O(n log n)，最坏 O(n²)（已有序且取端点为枢轴），空间 O(log n)（递归栈），<b>不稳定</b>。',
+    code: [
+      'int Partition(int A[], int low, int high) {',
+      '    int pivot = A[low];                  /* 挖坑：A[low] 空了 */',
+      '    while (low < high) {',
+      '        while (low < high && A[high] >= pivot) high--;',
+      '        A[low] = A[high];                /* 右边的坑填到左边 */',
+      '        while (low < high && A[low] <= pivot) low++;',
+      '        A[high] = A[low];                /* 左边的坑填到右边 */',
+      '    }',
+      '    A[low] = pivot;                      /* 枢轴落位 */',
+      '    return low;',
+      '}',
+      'void QuickSort(int A[], int low, int high) {',
+      '    if (low < high) {',
+      '        int p = Partition(A, low, high);',
+      '        QuickSort(A, low, p - 1);',
+      '        QuickSort(A, p + 1, high);',
+      '    }',
+      '}'
+    ],
+    run: function* (c) {
+      var A = (c && c.arr ? c.arr.slice() : [49, 38, 65, 97, 76, 13, 27, 49]), n = A.length;
+      var st = []; setStack(st);          /* 递归调用栈 */
+      yield FA(0, '准备：' + A.join(' ') + '。快排 = "划分 + 递归"，划分是灵魂。', A, {});
+      function* qs(low, high, depth) {
+        if (low >= high) {
+          if (low === high) yield FA(12, '区间 [' + low + ',' + high + '] 只剩一个元素，天然有序。', A, { marks: [{ name: 'low=high', at: low }] });
+          return;
+        }
+        st.push('QuickSort(' + low + ',' + high + ')');
+        var pivot = A[low], lo = low, hi = high;
+        yield FA(1, '划分 [' + low + ',' + high + ']：pivot = A[' + low + '] = ' + pivot + '，low 位成了"坑"。',
+          A, { marks: [{ name: 'low', at: lo }, { name: 'high', at: hi }], side: ['递归深度 <b>' + depth + '</b>'] });
+        while (lo < hi) {
+          while (lo < hi && A[hi] >= pivot) {
+            yield FA(3, 'A[' + hi + ']=' + A[hi] + ' ≥ pivot(' + pivot + ') → high 左移。', A, { marks: [{ name: 'low', at: lo }, { name: 'high', at: hi }],
+              cmp: { a: hi, b: -1, side: 'left', vtext: 'pivot=' + pivot, left: 'A[' + hi + ']=' + A[hi], right: 'pivot', op: '≥', ok: true, res: 'high 左移' } });
+            hi--;
+          }
+          if (lo < hi) {
+            yield FA(4, 'A[' + hi + ']=' + A[hi] + ' < pivot → 填进左边的坑 A[' + lo + ']。', A, { marks: [{ name: 'low', at: lo }, { name: 'high', at: hi }], jump: { from: hi, to: lo, label: A[hi] + ' 填到左边坑' },
+              cmp: { a: hi, b: -1, side: 'left', vtext: 'pivot=' + pivot, left: 'A[' + hi + ']=' + A[hi], right: 'pivot', op: '<', ok: true, res: '填坑' } });
+            A[lo] = A[hi];
+            yield FA(4, '坑位转移：现在 A[' + hi + '] 成了新坑（值还是旧的 ' + A[hi] + '）。', A, { marks: [{ name: 'low', at: lo }, { name: 'high', at: hi }] });
+          }
+          while (lo < hi && A[lo] <= pivot) {
+            yield FA(5, 'A[' + lo + ']=' + A[lo] + ' ≤ pivot(' + pivot + ') → low 右移。', A, { marks: [{ name: 'low', at: lo }, { name: 'high', at: hi }],
+              cmp: { a: lo, b: -1, side: 'left', vtext: 'pivot=' + pivot, left: 'A[' + lo + ']=' + A[lo], right: 'pivot', op: '≤', ok: true, res: 'low 右移' } });
+            lo++;
+          }
+          if (lo < hi) {
+            yield FA(6, 'A[' + lo + ']=' + A[lo] + ' > pivot → 填进右边的坑 A[' + hi + ']。', A, { marks: [{ name: 'low', at: lo }, { name: 'high', at: hi }], jump: { from: lo, to: hi, label: A[lo] + ' 填到右边坑' },
+              cmp: { a: lo, b: -1, side: 'left', vtext: 'pivot=' + pivot, left: 'A[' + lo + ']=' + A[lo], right: 'pivot', op: '>', ok: true, res: '填坑' } });
+            A[hi] = A[lo];
+            yield FA(6, '坑位转移：现在 A[' + lo + '] 成了新坑。', A, { marks: [{ name: 'low', at: lo }, { name: 'high', at: hi }] });
+          }
+        }
+        A[lo] = pivot;
+        yield FA(8, '两指针相遇于 ' + lo + '，pivot(' + pivot + ') 落位。左边 ≤ 它，右边 ≥ 它。', A, { marks: [{ name: 'pivot', at: lo, color: '#22c55e' }] });
+        yield* qs(low, lo - 1, depth + 1);
+        yield* qs(lo + 1, high, depth + 1);
+        st.pop();
+      }
+      yield* qs(0, n - 1, 1);
+      setStack(null);
+      yield FA(17, '完成：' + A.join(' ') + '。每层划分 O(n)，共 O(log n) 层 → 平均 O(n log n)。', A, { sorted: sortedSet(n) });
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/sort/05-sort-heap.js ---- */
+/* 排序 · 6.6 堆排序（大根堆） */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, FA = NS.FA, SORT_CASES = NS.SORT_CASES;
+
+CH('sort').demos.push({
+    id: 'sort-heap', cases: SORT_CASES, name: '6.6 堆排序（大根堆）',
+    note: '两步：<b>建堆</b>（从 n/2 号往前逐个 sift-down，O(n)）+ <b>排序</b>（堆顶与末尾交换后下滤，O(n log n)）。空间 O(1)，<b>不稳定</b>。下标从 1 开始：孩子是 2i、2i+1。',
+    code: [
+      'void SiftDown(int A[], int k, int n) {   /* A[1..n] 大根堆 */',
+      '    int t = A[k];',
+      '    for (int i = 2 * k; i <= n; i = 2 * k) {',
+      '        if (i < n && A[i + 1] > A[i]) i++;   /* 选较大的孩子 */',
+      '        if (t >= A[i]) break;                /* 已经比孩子大，停 */',
+      '        A[k] = A[i]; k = i;',
+      '    }',
+      '    A[k] = t;',
+      '}',
+      'void HeapSort(int A[], int n) {',
+      '    for (int k = n / 2; k >= 1; k--) SiftDown(A, k, n);   /* 建堆 O(n) */',
+      '    for (int i = n; i > 1; i--) {',
+      '        swap(A[1], A[i]);                                  /* 堆顶最大值归位 */',
+      '        SiftDown(A, 1, i - 1);                             /* 堆变小，重新下滤 */',
+      '    }',
+      '}'
+    ],
+    run: function* (c) {
+      var H = (c && c.arr ? [0].concat(c.arr) : [0, 49, 38, 65, 97, 76, 13, 27, 49]);
+      var n = H.length - 1, i, k, t, kk, tv, c;
+      var view = function () { return H.slice(); };   /* 连 A[0] 哨兵一起显示，下标与代码一致 */
+      var mkK = function (k, size) { return { marks: [{ name: 'k', at: k, color: '#38bdf8' }], spans: [{ from: 1, to: size, label: '堆 1..' + size }] }; };
+      yield FA(0, '准备：' + view().join(' ') + '（下标 1..' + n + '）。注意 A[0] 是哨兵位，不参与排序。', view(), {});
+      yield FA(9, '建堆：从最后一个非叶结点 k = n/2 = ' + Math.floor(n / 2) + ' 开始，往前逐个下滤。', view(),
+        { marks: [{ name: 'k', at: Math.floor(n / 2) }], side: ['n/2 = <b>' + Math.floor(n / 2) + '</b>（最后一个非叶结点）'] });
+
+      for (k = Math.floor(n / 2); k >= 1; k--) {
+        yield FA(10, '处理结点 ' + k + '（值 ' + H[k] + '）：让它往下沉到合适位置。', view(), mkK(k, n));
+        kk = k; tv = H[k];
+        for (i = 2 * kk; i <= n; i = 2 * kk) {
+          if (i < n && H[i + 1] > H[i]) {
+            i++;
+            yield FA(3, '左孩子 A[' + (i - 1) + ']=' + H[i - 1] + '，右孩子 A[' + i + ']=' + H[i] + ' → 选大的右孩子。', view(),
+              Object.assign(mkK(kk, n), { cmp: { a: i - 1, b: i, left: 'A[' + (i - 1) + ']=' + H[i - 1], right: 'A[' + i + ']=' + H[i], op: '<', ok: true, res: '选右孩子' } }));
+          } else {
+            yield FA(3, '孩子里最大的是 A[' + i + ']=' + H[i] + '。', view(),
+              Object.assign(mkK(kk, n), (i < n)
+                ? { cmp: { a: i, b: i + 1, left: 'A[' + i + ']=' + H[i], right: 'A[' + (i + 1) + ']=' + H[i + 1], op: '≥', ok: true, res: '选左孩子' } }
+                : { cmp: null }));
+          }
+          if (tv >= H[i]) {
+            yield FA(4, '待下沉值 ' + tv + ' ≥ ' + H[i] + ' → 停止，位置合适。', view(),
+              Object.assign(mkK(kk, n), { cmp: { a: i, b: -1, side: 'left', vtext: 't=' + tv, left: 't=' + tv, right: 'A[' + i + ']=' + H[i], op: '≥', ok: false, res: '停' } }));
+            break;
+          }
+          yield FA(4, '待下沉值 ' + tv + ' < ' + H[i] + ' → 孩子更大，继续往下沉。', view(),
+            Object.assign(mkK(kk, n), { cmp: { a: i, b: -1, side: 'left', vtext: 't=' + tv, left: 't=' + tv, right: 'A[' + i + ']=' + H[i], op: '<', ok: true, res: '下沉' } }));
+          H[kk] = H[i];
+          yield FA(5, 'A[' + kk + '] ← ' + H[i] + '，' + tv + ' 继续往下沉。', view(), mkK(kk, n));
+          kk = i;
+        }
+        H[kk] = tv;
+        yield FA(7, '落位：A[' + kk + '] = ' + tv + '。', view(), mkK(kk, n));
+      }
+      yield FA(10, '建堆完成：' + view().join(' ') + '，堆顶 A[1]=' + H[1] + ' 是全局最大值。', view(),
+        { marks: [{ name: '堆顶', at: 1, color: '#22c55e' }], spans: [{ from: 1, to: n }] });
+
+      var sorted = {};
+      for (i = n; i > 1; i--) {
+        yield FA(12, '堆顶 A[1]=' + H[1] + ' 与末尾 A[' + i + ']=' + H[i] + ' 交换 → 最大值归位。', view(),
+          { marks: [{ name: 'i', at: i }, { name: '堆顶', at: 1, color: '#22c55e' }], sorted: sorted, spans: [{ from: 1, to: i - 1, label: '堆' }], swap: [1, i] });
+        t = H[1]; H[1] = H[i]; H[i] = t;
+        sorted[i] = 1;
+        yield FA(12, '交换完成：A[' + i + ']=' + H[i] + ' 定死，堆缩到 1..' + (i - 1) + '。', view(),
+          { marks: [{ name: 'i', at: i }], sorted: sorted, spans: [{ from: 1, to: i - 1, label: '堆' }], swap: [1, i] });
+        kk = 1; tv = H[1];
+        for (c = 2; c <= i - 1; c = 2 * kk) {
+          if (c < i - 1 && H[c + 1] > H[c]) c++;
+          if (tv >= H[c]) break;
+          H[kk] = H[c]; kk = c;
+        }
+        H[kk] = tv;
+        yield FA(13, '堆缩到 1..' + (i - 1) + '，新堆顶下滤一遍恢复大根堆。', view(),
+          { marks: [{ name: '堆顶', at: 1 }], sorted: sorted, spans: [{ from: 1, to: i - 1, label: '堆' }] });
+      }
+      sorted[1] = 1;
+      yield FA(15, '完成：' + view().join(' ') + '（排序结果在 A[1..' + n + ']，A[0] 仍是哨兵）。时间复杂度 O(n log n)，空间 O(1)，不稳定。', view(), { sorted: sorted });
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/demos/sort/06-sort-merge.js ---- */
+/* 排序 · 6.7 归并排序（二路） */
+(function (NS) {
+  'use strict';
+
+  var CH = NS.CH, T = NS.T, FA = NS.FA, SORT_CASES = NS.SORT_CASES, sortedSet = NS.sortedSet, setStack = NS.setStack;
+
+CH('sort').demos.push({
+    id: 'sort-merge', cases: SORT_CASES, name: '6.7 归并排序（二路）',
+    note: '<b>先分到单个元素，再两两合并</b>。合并时用双指针比大小，谁小先搬。时间恒 O(n log n)，<b>空间 O(n)</b>（要辅助数组），<b>稳定</b>。',
+    code: [
+      'void Merge(int A[], int lo, int mid, int hi, int *T) {',
+      '    int i = lo, j = mid + 1, k = lo;',
+      '    while (i <= mid && j <= hi) {              /* 两段都有货 */',
+      '        if (A[i] <= A[j]) T[k++] = A[i++];     /* 相等取左 → 稳定 */',
+      '        else              T[k++] = A[j++];',
+      '    }',
+      '    while (i <= mid) T[k++] = A[i++];          /* 左段剩余整段搬 */',
+      '    while (j <= hi)  T[k++] = A[j++];',
+      '    for (k = lo; k <= hi; k++) A[k] = T[k];    /* 拷回 */',
+      '}',
+      'void MergeSort(int A[], int lo, int hi, int *T) {',
+      '    if (lo >= hi) return;',
+      '    int mid = (lo + hi) / 2;',
+      '    MergeSort(A, lo, mid, T);',
+      '    MergeSort(A, mid + 1, hi, T);',
+      '    Merge(A, lo, mid, hi, T);',
+      '}'
+    ],
+    run: function* (c) {
+      var A = (c && c.arr ? c.arr.slice() : [49, 38, 65, 97, 76, 13, 27, 49]), n = A.length;
+      var T = A.slice();
+      var st = []; setStack(st);          /* 递归调用栈 */
+      yield FA(0, '准备：' + A.join(' ') + '。归并排序是"分治"：递归对半分，回来时合并两个有序段。', A, {});
+      function* ms(lo, hi, depth) {
+        if (lo >= hi) {
+          yield FA(11, '区间 [' + lo + ',' + hi + '] 只有一个元素，天然有序，直接返回。', A, { marks: [{ name: 'lo=hi', at: lo }], side: ['递归深度 <b>' + depth + '</b>'] });
+          return;
+        }
+        st.push('MergeSort(' + lo + ',' + hi + ')');
+        var mid = (lo + hi) >> 1;
+        yield FA(12, '对半劈：[' + lo + ',' + mid + '] 和 [' + (mid + 1) + ',' + hi + ']。',
+          A, { spans: [{ from: lo, to: mid, label: '左' }, { from: mid + 1, to: hi, label: '右', color: 'rgba(56,189,248,.12)' }], side: ['递归深度 <b>' + depth + '</b>'] });
+        yield* ms(lo, mid, depth + 1);
+        yield* ms(mid + 1, hi, depth + 1);
+        var i = lo, j = mid + 1, k = lo;
+        yield FA(2, '合并 [' + lo + ',' + mid + '] 与 [' + (mid + 1) + ',' + hi + ']：i=' + i + '，j=' + j + '，先比 A[i] 与 A[j]。',
+          A, { marks: [{ name: 'i', at: i, color: '#38bdf8' }, { name: 'j', at: j, color: '#f472b6' }], spans: [{ from: lo, to: mid }, { from: mid + 1, to: hi, color: 'rgba(56,189,248,.12)' }] });
+        while (i <= mid && j <= hi) {
+          if (A[i] <= A[j]) {
+            T[k] = A[i];
+            yield FA(3, 'A[' + i + ']=' + A[i] + ' ≤ A[' + j + ']=' + A[j] + ' → 搬左边那个。', A, { marks: [{ name: 'i', at: i }, { name: 'j', at: j, color: '#f472b6' }, { name: 'k', at: k, color: '#22c55e' }], spans: [{ from: lo, to: mid }, { from: mid + 1, to: hi, color: 'rgba(56,189,248,.12)' }],
+              cmp: { a: i, b: j, left: 'A[' + i + ']=' + A[i], right: 'A[' + j + ']=' + A[j], op: '≤', ok: true, res: '搬左' } });
+            i++; k++;
+          } else {
+            T[k] = A[j];
+            yield FA(4, 'A[' + i + ']=' + A[i] + ' > A[' + j + ']=' + A[j] + ' → 搬右边那个。', A, { marks: [{ name: 'i', at: i }, { name: 'j', at: j, color: '#f472b6' }, { name: 'k', at: k, color: '#22c55e' }], spans: [{ from: lo, to: mid }, { from: mid + 1, to: hi, color: 'rgba(56,189,248,.12)' }],
+              cmp: { a: i, b: j, left: 'A[' + i + ']=' + A[i], right: 'A[' + j + ']=' + A[j], op: '>', ok: true, res: '搬右' } });
+            j++; k++;
+          }
+        }
+        while (i <= mid) { T[k++] = A[i++]; }
+        while (j <= hi) { T[k++] = A[j++]; }
+        for (k = lo; k <= hi; k++) A[k] = T[k];
+        yield FA(8, '两段并完，拷回原数组：[' + lo + '..' + hi + '] = ' + A.slice(lo, hi + 1).join(' ') + '。',
+          A, { spans: [{ from: lo, to: hi, label: '已有序' }] });
+        st.pop();
+      }
+      yield* ms(0, n - 1, 1);
+      setStack(null);
+      yield FA(16, '完成：' + A.join(' ') + '。合并 O(n)、层数 O(log n) → O(n log n)；辅助数组 O(n)。', A, { sorted: sortedSet(n) });
+    }
+  });
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/ui/svg.js ---- */
+/* ui · SVG 基础图元：所有绘制都只通过这几个函数产出节点 */
+(function (NS) {
+  'use strict';
+
+  var SVG = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs) {
+    var n = document.createElementNS(SVG, tag);
+    for (var k in attrs) if (attrs[k] != null) n.setAttribute(k, attrs[k]);
+    return n;
+  }
+  function txt(x, y, s, cls, anchor) {
+    var t = el('text', { x: x, y: y, class: cls || 'lbl', 'text-anchor': anchor || 'middle' });
+    t.textContent = s;
+    return t;
+  }
+  function rrect(x, y, w, h, r) {
+    return el('rect', { x: x - w / 2, y: y - h / 2, width: w, height: h, rx: r == null ? 8 : r });
+  }
+  function arrowHead(x, y, ang, color) {
+    var s = 7, p = el('path', {
+      d: 'M0,0 L' + (-s) + ',' + (-s / 1.7) + ' L' + (-s) + ',' + (s / 1.7) + ' Z',
+      transform: 'translate(' + x + ',' + y + ') rotate(' + (ang * 180 / Math.PI) + ')',
+      fill: color || '#3b4d73'
+    });
+    return p;
+  }
+  function line(x1, y1, x2, y2, cls, color) {
+    return el('line', { x1: x1, y1: y1, x2: x2, y2: y2, class: cls || 'edge', stroke: color || null });
+  }
+  function quad(x1, y1, x2, y2, bend, cls, color) {
+    var mx = (x1 + x2) / 2, my = (y1 + y2) / 2 + bend;
+    return el('path', {
+      d: 'M' + x1 + ',' + y1 + ' Q' + mx + ',' + my + ' ' + x2 + ',' + y2,
+      class: cls || 'edge dash', stroke: color || null
+    });
+  }
+
+
+  function textW(str) {
+    var w = 0, i, c;
+    for (i = 0; i < str.length; i++) {
+      c = str.charCodeAt(i);
+      w += (c > 0x2e80) ? 11.6 : 6.8;      /* 中文/全角按 11.6，ASCII 按 6.8 */
+    }
+    return w;
+  }
+
+  NS.el = el;
+  NS.txt = txt;
+  NS.rrect = rrect;
+  NS.arrowHead = arrowHead;
+  NS.line = line;
+  NS.quad = quad;
+  NS.textW = textW;
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/ui/draw-list.js ---- */
+/* ui · 链表：布局（按行排结点）+ 绘制 */
+(function (NS) {
+  'use strict';
+
+  var el = NS.el, txt = NS.txt, rrect = NS.rrect, arrowHead = NS.arrowHead, line = NS.line, quad = NS.quad, textW = NS.textW;
+
+  /* ---------------------------------------------------------------- 布局：链表行 */
+  var NODE_W = 74, NODE_H = 44, STEP = 100, X0 = 158, ROW0 = 104, ROWGAP = 126;
+
+  function layoutList(f) {
+    var rows = [], placed = {}, maxLen = 0, i;
+    for (i = 0; i < f.rows.length; i++) {
+      var row = f.rows[i];
+      var y = ROW0 + i * ROWGAP;
+      var info = { label: row.label, y: y, nodes: [], head: row.head, hideCross: !!row.cut };
+      var p = row.head, x = X0, len = 0, seen = {};
+      if (p && placed[p.id]) { rows.push({ label: row.label, y: y, nodes: [], skip: true }); continue; }
+      while (p && !seen[p.id] && len < 24) {
+        seen[p.id] = 1;
+        if (placed[p.id]) { info.tailAt = placed[p.id]; break; }
+        placed[p.id] = { x: x, y: y, row: i };
+        info.nodes.push({ node: p, x: x, y: y });
+        if (row.cut && p.id === row.cut.id) { info.cutHere = true; info.cutNote = row.cutNote; break; }
+        p = p.next; x += STEP; len++;
+      }
+      info.len = len;
+      if (len > maxLen) maxLen = len;
+      rows.push(info);
+    }
+    var ptrs = (f.ptrs || []).map(function (q) {
+      var at = q.node && placed[q.node.id];
+      return { name: q.name, at: at, val: q.node ? (q.node.isHead ? (q.node.val || '头') : q.node.val) : null };
+    });
+    return { rows: rows, placed: placed, ptrs: ptrs, maxLen: maxLen, mark: f.mark && placed[f.mark.id] ? placed[f.mark.id] : null };
+  }
+
+  function drawList(f) {
+    var L = layoutList(f), i, k;
+    var W = Math.max(560, X0 + Math.max(0, L.maxLen - 1) * STEP + 90);
+    var H = ROW0 + Math.max(1, f.rows.length) * ROWGAP - 40;
+    var g = el('g');
+
+    for (i = 0; i < L.rows.length; i++) {
+      var r = L.rows[i];
+      if (r.skip) continue;
+      g.appendChild(txt(10, r.y + 5, r.label, 'rowlab', 'start'));
+      for (k = 0; k < r.nodes.length; k++) {
+        var nd = r.nodes[k], n = nd.node;
+        /* next 边 */
+        if (n.next) {
+          var np = L.placed[n.next.id];
+          if (np) {
+            if (np.row === i && np.x > nd.x) {
+              g.appendChild(line(nd.x + NODE_W / 2, nd.y, np.x - NODE_W / 2, np.y, 'edge'));
+              g.appendChild(arrowHead(np.x - NODE_W / 2 - 1, np.y, 0));
+            } else if (!r.hideCross) {
+              /* 跨行的 next（结点已被搬到别的行里）：cut 行不画，免得把"旧值"当成真链接 */
+              g.appendChild(quad(nd.x + NODE_W / 2 - 6, nd.y + NODE_H / 2 - 6, np.x + 8, np.y + NODE_H / 2 - 6, 34));
+              g.appendChild(arrowHead(np.x + 8, np.y + NODE_H / 2 - 5, -Math.PI / 2, '#6f5bb5'));
+            }
+          }
+        }
+        /* prior 边（双链表） */
+        if (n.prior) {
+          var pp = L.placed[n.prior.id];
+          if (pp && pp.row === i && pp.x < nd.x) {
+            g.appendChild(quad(nd.x - NODE_W / 2 + 10, nd.y + NODE_H / 2, pp.x + NODE_W / 2 - 6, pp.y + NODE_H / 2, 22, 'edge dash'));
+            g.appendChild(arrowHead(pp.x + NODE_W / 2 - 6, pp.y + NODE_H / 2 + 1, Math.PI / 2, '#6f5bb5'));
+          }
+        }
+        var isMark = L.mark && L.mark.x === nd.x && L.mark.y === nd.y;
+        var rect = rrect(nd.x, nd.y, NODE_W, NODE_H, n.isHead ? 10 : 7);
+        rect.setAttribute('fill', n.isHead ? '#241d3d' : '#17223b');
+        rect.setAttribute('stroke', isMark ? '#38bdf8' : (n.isHead ? '#5b4b96' : '#2f4066'));
+        rect.setAttribute('stroke-width', isMark ? 2.2 : 1.4);
+        if (n.isHead) rect.setAttribute('stroke-dasharray', '4 3');
+        g.appendChild(rect);
+        g.appendChild(txt(nd.x, nd.y + 5, n.isHead ? '头' : n.val, 'lbl'));
+      }
+      /* 结尾 NULL */
+      var last = r.nodes[r.nodes.length - 1];
+      if (last && !last.node.next) {
+        g.appendChild(line(last.x + NODE_W / 2, last.y, last.x + NODE_W / 2 + 22, last.y, 'edge'));
+        g.appendChild(txt(last.x + NODE_W / 2 + 30, last.y + 4, 'NULL', 'lbl sm', 'start'));
+      }
+      if (r.cutHere && last) {
+        g.appendChild(txt(last.x + NODE_W / 2 + 16, last.y + 4, '…', 'lbl sm', 'start'));
+        if (r.cutNote) g.appendChild(txt(last.x + NODE_W / 2 + 34, last.y + 4, r.cutNote, 'lbl sm', 'start'));
+      }
+      if (r.nodes.length === 0 && r.head && !L.placed[r.head.id]) {
+        g.appendChild(txt(X0, r.y + 4, '（空）', 'lbl sm'));
+      }
+    }
+
+    /* 即将接上的那条边：从 from 的右下角画一条紫色虚线到 to，旁边写 r->next = p */
+    /* 目标为空（把 next 改成 NULL）时，只画一小截虚线 + 标签 */
+    if (f.link && f.link.from && !f.link.to) {
+      var ln0 = L.placed[f.link.from.id];
+      if (ln0) {
+        var c0 = f.link.color || '#a78bfa';
+        var sx = ln0.x + NODE_W / 2 + 8, sy = ln0.y;
+        g.appendChild(line(sx, sy, sx + 26, sy, 'edge dash', c0));
+        g.appendChild(txt(sx + 62, sy + 4, 'NULL', 'lbl sm', 'start'));
+        if (f.link.text) {
+          var tw0 = textW(f.link.text) + 14;
+          var bx0 = rrect(sx + 26 + 12 + tw0 / 2, sy - 20, tw0, 19, 5);
+          bx0.setAttribute('fill', '#211a3d'); bx0.setAttribute('stroke', c0); bx0.setAttribute('stroke-width', 1.1);
+          g.appendChild(bx0);
+          g.appendChild(txt(sx + 26 + 12 + tw0 / 2, sy - 16, f.link.text, 'ptr')).setAttribute('fill', c0);
+        }
+      }
+    }
+    if (f.link && f.link.from && f.link.to) {
+      var la = L.placed[f.link.from.id], lb = L.placed[f.link.to.id];
+      if (la && lb) {
+        var col = f.link.color || '#a78bfa';
+        var x1 = la.x + NODE_W / 2 - 6, y1 = la.y + NODE_H / 2 - 5;
+        var x2 = lb.x, y2 = lb.y + NODE_H / 2 + 3;
+        var bend = Math.min(58, 20 + Math.abs(x2 - x1) * 0.10);
+        g.appendChild(quad(x1, y1, x2, y2, bend, 'edge dash', col));
+        g.appendChild(arrowHead(x2, y2 - 2, -Math.PI / 2, col));
+        if (f.link.text) {
+          var tw = textW(f.link.text) + 14;
+          var lt = (x1 + x2) / 2 + bend + 12, ly = (y1 + y2) / 2;
+          /* 两个结点上下对齐时把标签摆到弧线右侧，别压在结点上 */
+          if (Math.abs(x2 - x1) < 70) { lt = Math.max(x1, x2) + tw / 2 + 16; ly = (y1 + y2) / 2 + 2; }
+          else { lt = (x1 + x2) / 2; ly = (y1 + y2) / 2 + bend + 12; }
+          var bx = rrect(lt, ly, tw, 19, 5);
+          bx.setAttribute('fill', '#211a3d'); bx.setAttribute('stroke', col); bx.setAttribute('stroke-width', 1.1);
+          g.appendChild(bx);
+          g.appendChild(txt(lt, ly + 4, f.link.text, 'ptr')).setAttribute('fill', col);
+        }
+      }
+    }
+    /* 指针标签：按名字长度定宽度，再按"互不重叠"分层放置（相邻结点的 slow / p / fast 不再打架） */
+    var lab = [], placedRects = [];
+    for (i = 0; i < L.ptrs.length; i++) {
+      var q = L.ptrs[i];
+      if (!q.at) {
+        var t0 = txt(14, 22 + lab.length * 16, q.name + (q.val == null ? ' → NULL' : ' → （未挂链）'), 'ptr', 'start');
+        t0.setAttribute('fill', '#64748b');
+        g.appendChild(t0);
+        continue;
+      }
+      lab.push({ name: q.name, x: q.at.x, y: q.at.y, w: Math.max(22, q.name.length * 7.4 + 13) });
+    }
+    lab.forEach(function (p) {
+      var w = p.w, h = 20, s = 0, py, ok;
+      do {
+        py = p.y - NODE_H / 2 - 10 - s * 15;
+        ok = true;
+        for (var j = 0; j < placedRects.length; j++) {
+          var r2 = placedRects[j];
+          if (Math.abs(r2.y - py) < h - 1 && !(p.x + w / 2 + 5 < r2.x0 || p.x - w / 2 - 5 > r2.x1)) { ok = false; break; }
+        }
+        s++;
+      } while (!ok && s < 4);
+      placedRects.push({ x0: p.x - w / 2, x1: p.x + w / 2, y: py });
+      var stem = line(p.x, py + h / 2, p.x, p.y - NODE_H / 2 - 1);
+      stem.setAttribute('stroke', '#f472b6');
+      stem.setAttribute('stroke-width', 1.1);
+      g.appendChild(stem);
+      var box = rrect(p.x, py, w, h, 5);
+      box.setAttribute('fill', '#3b1030');
+      box.setAttribute('stroke', '#f472b6');
+      box.setAttribute('stroke-width', 1.2);
+      g.appendChild(box);
+      g.appendChild(txt(p.x, py + 5, p.name, 'ptr')).setAttribute('fill', '#f9a8d4');
+    });
+    return { g: g, w: W, h: H };
+  }
+
+  NS.layoutList = layoutList;
+  NS.drawList = drawList;
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/ui/draw-tree.js ---- */
+/* ui · 二叉树：中序布局 + 绘制 */
+(function (NS) {
+  'use strict';
+
+  var el = NS.el, txt = NS.txt, rrect = NS.rrect, arrowHead = NS.arrowHead, line = NS.line;
+
+  /* ---------------------------------------------------------------- 布局：二叉树 */
+  var TREE_DX = 82, TREE_DY = 74, TREE_W = 54, TREE_H = 36;
+
+  function layoutTree(root) {
+    var pos = {}, order = [], idx = 0, maxD = 0;
+    (function rec(n, d) {
+      if (!n) return;
+      rec(n.l, d + 1);
+      pos[n.id] = { x: 90 + idx * TREE_DX, y: 96 + d * TREE_DY, d: d };
+      order.push(n); idx++;
+      if (d > maxD) maxD = d;
+      rec(n.r, d + 1);
+    })(root, 0);
+    return { pos: pos, n: idx, depth: maxD };
+  }
+  function treeWalk(root, out) {
+    out = out || [];
+    (function rec(n) { if (!n) return; rec(n.l); out.push(n); rec(n.r); })(root);
+    return out;
+  }
+
+  function drawTree(f) {
+    var L = layoutTree(f.root), g = el('g');
+    var nodes = treeWalk(f.root);
+    var i;
+    /* 边 */
+    for (i = 0; i < nodes.length; i++) {
+      var n = nodes[i], a = L.pos[n.id];
+      [[n.l, -1], [n.r, 1]].forEach(function (pair) {
+        var c = pair[0];
+        if (!c) return;
+        var b = L.pos[c.id];
+        var col = pair[1] < 0 ? '#3f5a8a' : '#4a6a3f';
+        g.appendChild(line(a.x, a.y + TREE_H / 2, b.x, b.y - TREE_H / 2, 'edge', col));
+      });
+    }
+    /* 结点 */
+    for (i = 0; i < nodes.length; i++) {
+      var nd = nodes[i], p = L.pos[nd.id];
+      var isMark = f.mark === nd.id;
+      var rect = rrect(p.x, p.y, TREE_W, TREE_H, 8);
+      rect.setAttribute('fill', '#17223b');
+      rect.setAttribute('stroke', isMark ? '#38bdf8' : '#2f4066');
+      rect.setAttribute('stroke-width', isMark ? 2.2 : 1.4);
+      if (isMark) rect.setAttribute('class', 'pulse');
+      g.appendChild(rect);
+      g.appendChild(txt(p.x, p.y + 5, nd.val, 'lbl'));
+      /* 访问序号 */
+      var tag = f.tags[nd.id];
+      if (tag != null) {
+        g.appendChild(el('circle', { cx: p.x + TREE_W / 2 - 4, cy: p.y - TREE_H / 2 + 2, r: 9, fill: '#22c55e' }));
+        g.appendChild(txt(p.x + TREE_W / 2 - 4, p.y - TREE_H / 2 + 6, String(tag), 'badge'));
+      }
+    }
+    /* 指针 */
+    (f.ptrs || []).forEach(function (q) {
+      var p = q.id != null ? L.pos[q.id] : null;
+      if (!p) return;
+      g.appendChild(txt(p.x, p.y - TREE_H / 2 - 10, q.name, 'ptr', 'middle')).setAttribute('fill', '#f9a8d4');
+    });
+    /* 交换左右孩子：两个子结点之间画一条琥珀色双向弧 */
+    if (f.swapPair && f.swapPair[0] != null && f.swapPair[1] != null) {
+      var pa = L.pos[f.swapPair[0]], pb = L.pos[f.swapPair[1]];
+      if (pa && pb) {
+        var midY = Math.max(pa.y, pb.y) + TREE_H / 2 + 26;
+        g.appendChild(el('path', {
+          d: 'M' + pa.x + ',' + (pa.y + TREE_H / 2 + 4) + ' C' + pa.x + ',' + midY + ' ' + pb.x + ',' + midY + ' ' + pb.x + ',' + (pb.y + TREE_H / 2 + 4),
+          fill: 'none', stroke: '#f59e0b', 'stroke-width': 2
+        }));
+        g.appendChild(arrowHead(pb.x, pb.y + TREE_H / 2 + 4, -Math.PI / 2, '#f59e0b'));
+        g.appendChild(arrowHead(pa.x, pa.y + TREE_H / 2 + 4, Math.PI / 2, '#f59e0b'));
+        g.appendChild(txt((pa.x + pb.x) / 2, midY + 14, '互换', 'ptr')).setAttribute('fill', '#fcd34d');
+      }
+    }
+    /* 与 key 的比较结论：画一棵树顶上方的紫色药丸 */
+    if (f.cmpTag) {
+      var ctTxt = f.cmpTag.text;
+      var ctW = ctTxt.length * 7.8 + 20;
+      var ctX = 60 + Math.max(0, L.n - 1) * TREE_DX / 2;
+      var ctY = 22;
+      g.appendChild(el('rect', {
+        x: ctX - ctW / 2, y: ctY - 13, width: ctW, height: 24, rx: 7,
+        fill: '#241a3d', stroke: '#a78bfa', 'stroke-width': 1.4
+      }));
+      g.appendChild(txt(ctX, ctY + 4, ctTxt, 'ptr')).setAttribute('fill',
+        f.cmpTag.ok === true ? '#bbf7d0' : (f.cmpTag.ok === false ? '#fecaca' : '#ddd6fe'));
+    }
+    /* 递归栈改为在上方 HTML 条里显示，这里不再画 */
+    var W = 120 + Math.max(0, L.n - 1) * TREE_DX + 80;
+    var H = 96 + Math.max(0, L.depth) * TREE_DY + 60;
+    return { g: g, w: Math.max(W, 520), h: Math.max(H, 200) };
+  }
+
+  NS.layoutTree = layoutTree;
+  NS.treeWalk = treeWalk;
+  NS.drawTree = drawTree;
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/ui/draw-array.js ---- */
+/* ui · 数组：格子 / 区间底色 / 交换弧 / 比较标签 */
+(function (NS) {
+  'use strict';
+
+  var el = NS.el, txt = NS.txt, rrect = NS.rrect, arrowHead = NS.arrowHead, line = NS.line, textW = NS.textW;
+
+  /* ---------------------------------------------------------------- 布局：数组 */
+  var CELL_W = 44, CELL_H = 32, CELL_GAP = 7, ARR_X0 = 46, ARR_Y0 = 92;
+
+  function cellX(k) { return ARR_X0 + k * (CELL_W + CELL_GAP); }
+
+  function drawArray(f) {
+    var g = el('g'), n = f.arr.length, i;
+    var cw = CELL_W, gx = CELL_GAP;
+    if (n > 16) { cw = Math.max(26, Math.floor(760 / n) - 4); gx = 4; }
+    /* 和变量比且变量画在左边时，整排数组往右让位，别让药丸被画到画布外面 */
+    var pillWL = 0, pillWR = 0;
+    if (f.cmp && f.cmp.b < 0 && f.cmp.vtext) {
+      var pw = Math.max(58, f.cmp.vtext.length * 8 + 16);
+      if (f.cmp.side === 'left') pillWL = pw + 30; else pillWR = pw + 34;
+    }
+    var X0 = ARR_X0 + pillWL;
+    var W = X0 + ARR_X0 + n * (cw + gx) + pillWR;
+    /* 有比较标签时整排数组下移，给"值 关系 值"那一行留出空间 */
+    var dz = 60;   /* 每帧都留出放标签的顶栏，翻页时数组不会上下跳 */
+    var Y0 = ARR_Y0 + dz;
+    var H = 250 + dz;
+
+    /* 区间底色 */
+    (f.spans || []).forEach(function (s) {
+      var x1 = X0 + s.from * (cw + gx) - gx / 2;
+      var x2 = X0 + s.to * (cw + gx) + cw + gx / 2;
+      g.appendChild(el('rect', {
+        x: x1, y: Y0 - CELL_H / 2 - 8, width: x2 - x1, height: CELL_H + 16, rx: 6,
+        fill: s.color || 'rgba(34,197,94,.12)', stroke: s.color ? null : 'rgba(34,197,94,.35)'
+      }));
+      if (s.label) g.appendChild(txt((x1 + x2) / 2, Y0 - CELL_H / 2 - 18, s.label, 'lbl sm'));
+    });
+
+    /* 交换 / 搬动：两个格子加琥珀描边 + 上方双向弧 + 顶点标注 */
+    var swapSet = {};
+    if (f.swap) { swapSet[f.swap[0]] = 1; swapSet[f.swap[1]] = 1; }
+    if (f.jump) { swapSet[f.jump.from] = 1; swapSet[f.jump.to] = 1; }
+
+    var liftUsed = 0;
+    if (f.swap || f.jump) {
+      var yTop = Y0 - CELL_H / 2;
+      var ax, bx, lift, d, apx;
+      if (f.swap) {
+        ax = X0 + f.swap[0] * (cw + gx) + cw / 2;
+        bx = X0 + f.swap[1] * (cw + gx) + cw / 2;
+      } else {
+        ax = X0 + f.jump.from * (cw + gx) + cw / 2;
+        bx = X0 + f.jump.to * (cw + gx) + cw / 2;
+      }
+      lift = Math.min(62, 30 + Math.abs(bx - ax) * 0.22);
+      liftUsed = lift;
+      d = 'M' + ax + ',' + (yTop - 5) + ' C' + ax + ',' + (yTop - 5 - lift) + ' ' + bx + ',' + (yTop - 5 - lift) + ' ' + bx + ',' + (yTop - 5);
+      g.appendChild(el('path', { d: d, fill: 'none', stroke: '#f59e0b', 'stroke-width': 2 }));
+      g.appendChild(arrowHead(bx, yTop - 5, Math.PI / 2, '#f59e0b'));
+      if (f.swap) g.appendChild(arrowHead(ax, yTop - 5, -Math.PI / 2, '#f59e0b'));
+      apx = (ax + bx) / 2;
+      var labTxt = f.swap ? ('交换 ' + f.arr[f.swap[0]] + ' ⇄ ' + f.arr[f.swap[1]]) : (f.jump.label || '搬动');
+      var labY = yTop - 5 - lift - 6;                 /* 放在弧顶上方，别压着弧线 */
+      var tw = textW(labTxt) + 18;
+      var lx0 = apx - tw / 2;
+      if (lx0 < 4) lx0 = 4;                            /* 夹在画布内，两端的标签不会被裁 */
+      if (lx0 + tw > W - 4) lx0 = W - tw - 4;
+      g.appendChild(el('rect', {
+        x: lx0, y: labY - 12, width: tw, height: 21, rx: 6,
+        fill: '#3a2a08', stroke: '#f59e0b', 'stroke-width': 1.2
+      }));
+      g.appendChild(txt(lx0 + tw / 2, labY + 3, labTxt, 'ptr')).setAttribute('fill', '#fcd34d');
+    }
+
+    /* 比较：两个格子加紫色描边 + 上方弧线 + 结论标签；b = -1 表示和右侧的"关键字"比 */
+    var cmpSet = {};
+    if (f.cmp) {
+      if (f.cmp.a >= 0) cmpSet[f.cmp.a] = 1;
+      if (f.cmp.b >= 0) cmpSet[f.cmp.b] = 1;
+    }
+
+    if (f.cmp) {
+      var C = f.cmp;
+      var cxp = function (k) { return X0 + k * (cw + gx) + cw / 2; };
+      var yT = Y0 - CELL_H / 2;
+      var lx = C.a >= 0 ? cxp(C.a) : null;
+      var rx = C.b >= 0 ? cxp(C.b) : null;
+      var pillX = null, pillW = 0;
+
+      /* 和"变量"比（key / pivot / t）：在数组一侧画一个药丸，虚线与被比较的格子相连 */
+      if (C.b < 0 && lx != null && C.vtext) {
+        pillW = Math.max(58, C.vtext.length * 8 + 16);
+        var onLeft = C.side === 'left';
+        pillX = onLeft ? (X0 - 30 - pillW / 2) : (X0 + n * (cw + gx) + 26 + pillW / 2);
+        g.appendChild(el('rect', {
+          x: pillX - pillW / 2, y: Y0 - 20, width: pillW, height: 40, rx: 8,
+          fill: '#241a3d', stroke: '#a78bfa', 'stroke-width': 1.8
+        }));
+        g.appendChild(txt(pillX, Y0 + 5, C.vtext, 'ptr')).setAttribute('fill', '#ddd6fe');
+        var fromX = onLeft ? pillX + pillW / 2 : pillX - pillW / 2;
+        var toX = onLeft ? (lx - cw / 2 - 3) : (lx + cw / 2 + 3);
+        var dd = 'M' + fromX + ',' + Y0 + ' C' + ((fromX + toX) / 2) + ',' + (Y0 - 26) + ' ' + ((fromX + toX) / 2) + ',' + (Y0 - 26) + ' ' + toX + ',' + Y0;
+        g.appendChild(el('path', { d: dd, fill: 'none', stroke: '#a78bfa', 'stroke-width': 1.6, 'stroke-dasharray': '5 4' }));
+      }
+
+      /* 两格之间的紫色弧（同一帧还有交换弧时，抬高一层免得两张标签叠在一起） */
+      var cmpLift = Math.min(58, 26 + Math.abs((rx == null ? lx : rx) - lx) * 0.2);
+      if (f.swap || f.jump) cmpLift += 40;
+      if (lx != null && rx != null && lx !== rx && !(f.swap || f.jump)) {
+        var liftC = cmpLift;
+        var dc = 'M' + lx + ',' + (yT - 4) + ' C' + lx + ',' + (yT - 4 - liftC) + ' ' + rx + ',' + (yT - 4 - liftC) + ' ' + rx + ',' + (yT - 4);
+        g.appendChild(el('path', { d: dc, fill: 'none', stroke: '#a78bfa', 'stroke-width': 1.8, 'stroke-dasharray': '6 4' }));
+        g.appendChild(el('path', { d: 'M' + lx + ',' + (yT - 4) + ' l-5,4 l5,4 z', fill: '#a78bfa' }));
+        g.appendChild(el('path', { d: 'M' + rx + ',' + (yT - 4) + ' l5,4 l-5,4 z', fill: '#a78bfa' }));
+      }
+
+      /* 结论标签：97 > 13 ✓ / A[3]=16 < 43 → 往右（格子已经高亮，前缀 A[k]= 省掉更短） */
+      var strip = function (t) { return String(t == null ? '' : t).replace(/^[AH]\[\d+\]\s*=\s*/, ''); };
+      var tTxt = strip(C.left) + ' ' + (C.op || '') + ' ' + strip(C.right);
+      if (C.res) tTxt += '  ' + C.res;
+      var cxMid = (lx != null && rx != null) ? (lx + rx) / 2 : (lx != null ? lx : (pillX || 0));
+      var twoCells = (lx != null && rx != null);
+      var cyMid = twoCells ? (yT - 4 - cmpLift - 2) : (yT - 18);
+      /* 和变量比（key/pivot/t）且同一帧还有交换/搬动标签时，再抬一层，别两张标签叠在一起 */
+      if (f.swap || f.jump) {
+        /* 琥珀标签的顶边在 yT-11-lift-12，比较标签要整个落在它上面 */
+        var amberTop = yT - 11 - liftUsed - 12;
+        cyMid = Math.min(cyMid, amberTop - 12 - 8);
+      }
+      if (cyMid < 16) cyMid = 16;
+      var tcw = textW(tTxt) + 18;
+      if (cxMid - tcw / 2 < 4) cxMid = tcw / 2 + 4;
+      if (cxMid + tcw / 2 > W - 4) cxMid = W - tcw / 2 - 4;
+      var okCol = C.ok === true ? '#22c55e' : (C.ok === false ? '#f59e0b' : '#a78bfa');
+      g.appendChild(el('rect', {
+        x: cxMid - tcw / 2, y: cyMid - 13, width: tcw, height: 22, rx: 6,
+        fill: '#241a3d', stroke: okCol, 'stroke-width': 1.3
+      }));
+      g.appendChild(txt(cxMid, cyMid + 4, tTxt, 'ptr')).setAttribute('fill', C.ok === true ? '#bbf7d0' : (C.ok === false ? '#fde68a' : '#ddd6fe'));
+    }
+
+    for (i = 0; i < n; i++) {
+      var x = X0 + i * (cw + gx) + cw / 2;
+      var v = f.arr[i];
+      var isSorted = f.sorted[i];
+      var rect = rrect(x, Y0, cw, CELL_H, 6);
+      /* 比较/交换>已排序：正在参与比较的格子必须让出来，否则被绿色盖掉看不见 */
+      rect.setAttribute('fill', cmpSet[i] ? '#2a1f45' : (swapSet[i] ? '#3a2a08' : (isSorted ? '#12301f' : '#17223b')));
+      rect.setAttribute('stroke', cmpSet[i] ? '#a78bfa' : (swapSet[i] ? '#f59e0b' : (isSorted ? '#2f7f4f' : '#2f4066')));
+      if (swapSet[i] || cmpSet[i]) rect.setAttribute('stroke-width', 2.2);
+      g.appendChild(rect);
+      g.appendChild(txt(x, Y0 + 5, v == null ? '' : String(v), 'lbl'));
+      g.appendChild(txt(x, Y0 + CELL_H / 2 + 16, String(i), 'lbl sm'));
+    }
+
+    /* 指针 */
+    var slots = {};
+    (f.marks || []).forEach(function (m) {
+      if (m.at == null || m.at < 0 || m.at >= n) return;
+      var x = X0 + m.at * (cw + gx) + cw / 2;
+      var row = slots[m.at] = (slots[m.at] == null) ? 0 : slots[m.at] + 1;
+      var y = Y0 + CELL_H / 2 + 34 + row * 18;
+      var col = m.color || '#38bdf8';
+      g.appendChild(line(x, Y0 + CELL_H / 2 + 2, x, y - 12, 'edge', col));
+      g.appendChild(el('path', {
+        d: 'M' + (x - 7) + ',' + (y - 12) + ' l7,-9 l7,9 z', fill: col
+      }));
+      g.appendChild(txt(x, y + 4, m.name, 'ptr')).setAttribute('fill', col);
+    });
+
+    if (f.labels) {
+      for (i = 0; i < n && i < f.labels.length; i++) {
+        if (!f.labels[i]) continue;
+        g.appendChild(txt(X0 + i * (cw + gx) + cw / 2, Y0 - CELL_H / 2 - 6, f.labels[i], 'lbl sm'));
+      }
+    }
+    return { g: g, w: Math.max(W, 480), h: H };
+  }
+
+  NS.cellX = cellX;
+  NS.drawArray = drawArray;
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/ui/draw-graph.js ---- */
+/* ui · 图：顶点 / 边 / 权值 / 状态配色 */
+(function (NS) {
+  'use strict';
+
+  var el = NS.el, txt = NS.txt, line = NS.line, arrowHead = NS.arrowHead;
+
+  /* ---------------------------------------------------------------- 布局：图 */
+  var VR = 21;
+
+  function drawGraph(f) {
+    var g = el('g'), G = f.g, i, k;
+    var pos = {};
+    for (i = 0; i < G.verts.length; i++) pos[G.verts[i].id] = G.verts[i];
+
+    /* 边 */
+    for (i = 0; i < G.edges.length; i++) {
+      var e = G.edges[i], a = pos[e[0]], b = pos[e[1]];
+      if (!a || !b) continue;
+      var key = e[0] + '-' + e[1];
+      var on = f.edgeOn[key] || f.edgeOn[e[1] + '-' + e[0]];
+      var col = on ? '#38bdf8' : '#3b4d73';
+      var dx = b.x - a.x, dy = b.y - a.y, len = Math.sqrt(dx * dx + dy * dy) || 1;
+      var ux = dx / len, uy = dy / len;
+      var x1 = a.x + ux * VR, y1 = a.y + uy * VR;
+      var x2 = b.x - ux * (VR + 3), y2 = b.y - uy * (VR + 3);
+      if (!G.directed) {
+        if (e[0] > e[1]) continue;  /* 无向图只画一次 */
+      }
+      g.appendChild(line(x1, y1, x2, y2, 'edge', col)).setAttribute('stroke-width', on ? 2.6 : 1.6);
+      if (G.directed) g.appendChild(arrowHead(x2, y2, Math.atan2(dy, dx), col));
+      if (e[2] != null) {
+        g.appendChild(txt((a.x + b.x) / 2 + uy * 12, (a.y + b.y) / 2 - ux * 12, String(e[2]), 'wt'));
+      }
+    }
+
+    /* 顶点 */
+    for (i = 0; i < G.verts.length; i++) {
+      var v = G.verts[i];
+      var st = f.state[v.id] || '';
+      var fill = st === 'done' ? '#123524' : st === 'front' ? '#3a2a10' : st === 'cur' ? '#0e3350' : '#17223b';
+      var stroke = st === 'done' ? '#22c55e' : st === 'front' ? '#f59e0b' : st === 'cur' ? '#38bdf8' : '#2f4066';
+      var c = el('circle', { cx: v.x, cy: v.y, r: VR, fill: fill, stroke: stroke, 'stroke-width': st === 'cur' ? 2.6 : 1.6 });
+      if (st === 'cur') c.setAttribute('class', 'pulse');
+      g.appendChild(c);
+      g.appendChild(txt(v.x, v.y + 5, v.label != null ? String(v.label) : v.id, 'lbl'));
+      var lab = f.labels[v.id];
+      if (lab != null) g.appendChild(txt(v.x, v.y - VR - 9, String(lab), 'lbl sm'));
+    }
+
+    var xs = G.verts.map(function (v) { return v.x; }), ys = G.verts.map(function (v) { return v.y; });
+    var W = Math.max.apply(null, xs) + 90, H = Math.max.apply(null, ys) + 80;
+    return { g: g, w: Math.max(W, 520), h: Math.max(H, 220) };
+  }
+
+  NS.drawGraph = drawGraph;
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/ui/measure.js ---- */
+/* ui · 按帧的 mode 分派到对应的绘制函数，返回 { g, w, h } */
+(function (NS) {
+  'use strict';
+
+  var el = NS.el, drawList = NS.drawList, drawTree = NS.drawTree, drawArray = NS.drawArray, drawGraph = NS.drawGraph;
+
+  function measure(f) {
+    if (f.mode === 'list') return drawList(f);
+    if (f.mode === 'tree') return drawTree(f);
+    if (f.mode === 'array') return drawArray(f);
+    if (f.mode === 'graph') return drawGraph(f);
+    return { g: el('g'), w: 400, h: 200 };
+  }
+
+  NS.measure = measure;
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/ui/types.js ---- */
+/* ui · 结构体定义（右侧「结构体」卡片用的静态文本） */
+(function (NS) {
+  'use strict';
+
+  /* 图这一章用到的结构体：邻接表三件套 + 邻接矩阵 */
+  var GRAPH_TYPES = [
+    '#define MaxVertexNum 100',
+    '',
+    'typedef struct <b>ArcNode</b> {      /* 边表结点＝一条边 */',
+    '    int  adjvex;         /* 指向哪个顶点 */',
+    '    struct ArcNode *nextarc;   /* 下一条边 */',
+    '    int  weight;         /* 权值 */',
+    '} ArcNode;',
+    '',
+    'typedef struct <b>VNode</b> {        /* 顶点表结点＝一个顶点 */',
+    '    ElemType data;       /* 顶点信息 */',
+    '    ArcNode *firstarc;   /* 第一条边 */',
+    '} VNode, <b>AdjList</b>[MaxVertexNum];',
+    '',
+    'typedef struct {            /* 邻接表＝顶点数组＋边链表 */',
+    '    AdjList vertices;    /* vertices[i] 是第 i 个顶点 */',
+    '    int vexnum, arcnum;  /* 顶点数、边数 */',
+    '} <b>ALGraph</b>;',
+    '',
+    'typedef struct {            /* 邻接矩阵版：稠密图 */',
+    '    ElemType edge[MaxVertexNum][MaxVertexNum];',
+    '    int vexnum, arcnum;',
+    '} <b>MGraph</b>;'
+  ].join('\n');
+
+  var LIST_TYPES = [
+    'typedef struct <b>LNode</b> {        /* 单链表结点 */',
+    '    ElemType data;       /* 数据域 */',
+    '    struct LNode *next;  /* 指针域：下一个结点 */',
+    '} LNode, <b>*LinkList</b>;',
+    '',
+    '/* 头结点：不放数据，只负责"指路"，处理边界更省事 */',
+    '',
+    'typedef struct <b>DNode</b> {        /* 双链表结点 */',
+    '    ElemType data;',
+    '    struct DNode *prior;  /* 前驱 */',
+    '    struct DNode *next;   /* 后继 */',
+    '} DNode, *DLinkList;'
+  ].join('\n');
+
+  var TREE_TYPES = [
+    'typedef struct <b>BiTNode</b> {     /* 二叉树结点 */',
+    '    ElemType data;',
+    '    struct BiTNode *lchild;  /* 左孩子 */',
+    '    struct BiTNode *rchild;  /* 右孩子 */',
+    '} BiTNode, <b>*BiTree</b>;',
+    '',
+    '/* 线索二叉树：空的指针拿来指"前驱/后继" */',
+    'typedef struct <b>ThreadNode</b> {',
+    '    ElemType data;',
+    '    struct ThreadNode *lchild, *rchild;',
+    '    int ltag, rtag;  /* 0=孩子 1=线索 */',
+    '} ThreadNode, *ThreadTree;'
+  ].join('\n');
+
+  var TYPE_MAP = { graph: GRAPH_TYPES, list: LIST_TYPES, tree: TREE_TYPES };
+  var TYPE_NAME = { graph: '图', list: '链表', tree: '二叉树' };
+
+  NS.TYPE_MAP = TYPE_MAP;
+  NS.TYPE_NAME = TYPE_NAME;
+})(window.DSANIM = window.DSANIM || {});
+
+/* ---- src/ui/app.js ---- */
+/* 界面装配：章节 / 模板 / 帧的加载、播放控制、URL 同步 */
+(function (NS) {
+  'use strict';
+
+  var measure = NS.measure, TYPE_MAP = NS.TYPE_MAP, TYPE_NAME = NS.TYPE_NAME;
+
+  var DATA = window.DSANIM;
+  var CHAP = DATA.CHAPTERS;
+
+  var stage = document.getElementById('stage');
+  var codeEl = document.getElementById('code');
+  var caseEl = document.getElementById('caseSel');
+  var descEl = document.getElementById('desc');
+  var extraEl = document.getElementById('extra');
+  var stackPanel = document.getElementById('stackpanel');
+  var stackBody = document.getElementById('stackbody');
+  var stackTag = document.getElementById('stacktag');
+  var stackDepth = document.getElementById('stackdepth');
+  var stackTitle = document.getElementById('stacktitle');
+  var dsPanel = document.getElementById('dspanel');
+  var dsRows = document.getElementById('dsrows');
+  var dsKind = document.getElementById('dskind');
+  var dsFoot = document.getElementById('dsfoot');
+  var indPanel = document.getElementById('indpanel');
+  var indBody = document.getElementById('indbody');
+  var indKind = document.getElementById('indkind');
+  var indFoot = document.getElementById('indfoot');
+  var sideCol = document.getElementById('sidecol');
+  var tdBox = document.getElementById('typedefs');
+  var tdBody = document.getElementById('tdbody');
+  var selEl = document.getElementById('demoSel');
+  var tabsEl = document.getElementById('tabs');
+  var noteEl = document.getElementById('note');
+  var rangeEl = document.getElementById('range');
+  var progEl = document.getElementById('prog');
+  var playBtn = document.getElementById('play');
+  var speedEl = document.getElementById('speed');
+
+  var curChap = 0, curDemo = 0, frames = [], step = 0, timer = null;
+  var maxDepth = 0, BLK = 33, BLK_H = 29;   /* 递归栈：本模板最大栈深（决定桶高）、单块占高（29 + gap 4） */
+
+  function buildTabs() {
+    CHAP.forEach(function (c, i) {
+      var b = document.createElement('button');
+      b.className = 'tab' + (i === curChap ? ' on' : '');
+      b.textContent = c.name + '（' + c.demos.length + '）';
+      b.onclick = function () { switchChapter(i); };
+      b.dataset.i = i;
+      tabsEl.appendChild(b);
+    });
+  }
+
+  function switchChapter(i) {
+    curChap = i;
+    Array.prototype.forEach.call(tabsEl.children, function (b, k) {
+      b.classList.toggle('on', k === i);
+    });
+    selEl.innerHTML = '';
+    CHAP[i].demos.forEach(function (d, k) {
+      var o = document.createElement('option');
+      o.value = k; o.textContent = d.name;
+      selEl.appendChild(o);
+    });
+    load(0);
+  }
+
+  /* 把当前行 if/while 的判定条件单独包一层 .cond（括号配对扫描，取第一对完整括号） */
+  function markCond(row) {
+    var body = row.lastChild;
+    if (!body || !body.dataset || body.dataset.cond) return;
+    var s = body.textContent || '';
+    var m = /(?:^|[^\w])(if|while)\s*\(/.exec(s);
+    if (!m) return;
+    var open = m.index + m[0].length - 1;
+    if (s[open] !== '(') return;
+    var depth = 0, close = -1;
+    for (var i = open; i < s.length; i++) {
+      if (s[i] === '(') depth++;
+      else if (s[i] === ')') { depth--; if (depth === 0) { close = i; break; } }
+    }
+    if (close < 0) return;
+    var span = document.createElement('span');
+    span.className = 'cond';
+    span.textContent = s.slice(open, close + 1);
+    var tail = document.createTextNode(s.slice(close + 1));
+    body.textContent = s.slice(0, open);
+    body.appendChild(span);
+    body.appendChild(tail);
+    body.dataset.cond = '1';
+  }
+  function markSoftCond(row) {
+    var body = row.lastChild;
+    if (!body || !body.dataset || body.dataset.cond) return;
+    var s = body.textContent || '';
+    var m = /(?:^|[^\w])(if|while)\s*\(/.exec(s);
+    if (!m) return;
+    var open = m.index + m[0].length - 1;
+    if (s[open] !== '(') return;
+    var depth = 0, close = -1;
+    for (var i = open; i < s.length; i++) {
+      if (s[i] === '(') depth++;
+      else if (s[i] === ')') { depth--; if (depth === 0) { close = i; break; } }
+    }
+    if (close < 0) return;
+    var span = document.createElement('span');
+    span.className = 'cond soft';
+    span.textContent = s.slice(open, close + 1);
+    var tail = document.createTextNode(s.slice(close + 1));
+    body.textContent = s.slice(0, open);
+    body.appendChild(span);
+    body.appendChild(tail);
+    body.dataset.cond = '1';
+  }
+  function unmarkCond(row) {
+    var body = row.lastChild;
+    if (!body || !body.dataset || !body.dataset.cond) return;
+    body.textContent = body.textContent;      /* 收成一个纯文本节点 */
+    delete body.dataset.cond;
+  }
+
+  /* 图这一章用到的结构体：邻接表三件套 + 邻接矩阵 */
+  var GRAPH_TYPES = [
+    '#define MaxVertexNum 100',
+    '',
+    'typedef struct <b>ArcNode</b> {      /* 边表结点＝一条边 */',
+    '    int  adjvex;         /* 指向哪个顶点 */',
+    '    struct ArcNode *nextarc;   /* 下一条边 */',
+    '    int  weight;         /* 权值 */',
+    '} ArcNode;',
+    '',
+    'typedef struct <b>VNode</b> {        /* 顶点表结点＝一个顶点 */',
+    '    ElemType data;       /* 顶点信息 */',
+    '    ArcNode *firstarc;   /* 第一条边 */',
+    '} VNode, <b>AdjList</b>[MaxVertexNum];',
+    '',
+    'typedef struct {            /* 邻接表＝顶点数组＋边链表 */',
+    '    AdjList vertices;    /* vertices[i] 是第 i 个顶点 */',
+    '    int vexnum, arcnum;  /* 顶点数、边数 */',
+    '} <b>ALGraph</b>;',
+    '',
+    'typedef struct {            /* 邻接矩阵版：稠密图 */',
+    '    ElemType edge[MaxVertexNum][MaxVertexNum];',
+    '    int vexnum, arcnum;',
+    '} <b>MGraph</b>;'
+  ].join('\n');
+
+  var LIST_TYPES = [
+    'typedef struct <b>LNode</b> {        /* 单链表结点 */',
+    '    ElemType data;       /* 数据域 */',
+    '    struct LNode *next;  /* 指针域：下一个结点 */',
+    '} LNode, <b>*LinkList</b>;',
+    '',
+    '/* 头结点：不放数据，只负责"指路"，处理边界更省事 */',
+    '',
+    'typedef struct <b>DNode</b> {        /* 双链表结点 */',
+    '    ElemType data;',
+    '    struct DNode *prior;  /* 前驱 */',
+    '    struct DNode *next;   /* 后继 */',
+    '} DNode, *DLinkList;'
+  ].join('\n');
+
+  var TREE_TYPES = [
+    'typedef struct <b>BiTNode</b> {     /* 二叉树结点 */',
+    '    ElemType data;',
+    '    struct BiTNode *lchild;  /* 左孩子 */',
+    '    struct BiTNode *rchild;  /* 右孩子 */',
+    '} BiTNode, <b>*BiTree</b>;',
+    '',
+    '/* 线索二叉树：空的指针拿来指"前驱/后继" */',
+    'typedef struct <b>ThreadNode</b> {',
+    '    ElemType data;',
+    '    struct ThreadNode *lchild, *rchild;',
+    '    int ltag, rtag;  /* 0=孩子 1=线索 */',
+    '} ThreadNode, *ThreadTree;'
+  ].join('\n');
+
+  var TYPE_MAP = { graph: GRAPH_TYPES, list: LIST_TYPES, tree: TREE_TYPES };
+  var TYPE_NAME = { graph: '图', list: '链表', tree: '二叉树' };
+
+  function showTypes(chapId) {
+    var txt = TYPE_MAP[chapId] || null;
+    tdBox.classList.toggle('on', !!txt);
+    if (!txt) return;
+    document.getElementById('tdhead').textContent =
+      '结构体定义（' + TYPE_NAME[chapId] + '这一章用到的）· 可上下滚动';
+    if (tdBody.dataset.chap !== chapId) {
+      tdBody.innerHTML = txt.replace(/\/\*([^*]*)\*\//g, '<i>/*$1*/</i>');
+      tdBody.dataset.chap = chapId;
+    }
+  }
+
+  function renderCode(demo) {
+    codeEl.innerHTML = '';
+    demo.code.forEach(function (src, i) {
+      var row = document.createElement('div');
+      row.className = 'cline';
+      row.dataset.i = i;
+      var no = document.createElement('span');
+      no.className = 'no';
+      no.textContent = String(i + 1);
+      var body = document.createElement('span');
+      body.textContent = src;
+      row.appendChild(no); row.appendChild(body);
+      codeEl.appendChild(row);
+    });
+  }
+
+  caseEl.addEventListener('change', function () { load(curDemo, caseEl.value); });
+
+  function load(k, ci) {
+    stop();
+    curDemo = k;
+    var demo = CHAP[curChap].demos[k];
+    noteEl.innerHTML = demo.note || '';
+    showTypes(CHAP[curChap].id);   /* 链表/二叉树/图 三章各显示一份结构体定义 */
+    renderCode(demo);
+    frames = [];
+    /* 案例：同一段代码换不同输入数据看，入口在 #caseSel */
+    var cs = demo.cases || null;
+    if (cs) {
+      caseEl.style.display = '';
+      caseEl.innerHTML = '';
+      cs.forEach(function (c, idx) {
+        var o = document.createElement('option');
+        o.value = String(idx); o.textContent = c.label; caseEl.appendChild(o);
+      });
+      caseEl.value = '0';
+    } else {
+      caseEl.style.display = 'none';
+      caseEl.innerHTML = '';
+    }
+    var pick = cs ? cs[Math.min(ci == null ? 0 : parseInt(ci, 10), cs.length - 1)] : null;
+    if (cs && ci != null) caseEl.value = String(ci);
+    /* 生成器是手写编排的，写错了会抛异常。没有这层兜底的话，
+       页面会停在"上一帧"的画面上，看起来像卡死——所以这里接住，
+       把它变成一句能读懂的提示。 */
+    var err = null;
+    try {
+      var it = demo.run(pick);
+      var r;
+      while (!(r = it.next()).done) frames.push(r.value);
+    } catch (e) {
+      err = e;
+      if (window.console) console.error('模板 ' + demo.id + ' 的生成器抛异常：', e);
+    }
+    if (!frames.length) {
+      descEl.innerHTML = err
+        ? '<span class="badge">出错</span>这个模板的动画生成器抛了异常：' + String((err && err.message) || err)
+        : '<span class="badge">空</span>这个模板没有产生任何帧。';
+      rangeEl.max = '0';
+      return;
+    }
+    var vbW = 560, vbH = 200;
+    frames.forEach(function (f) {
+      var m = measure(f);
+      if (m.w > vbW) vbW = m.w;
+      if (m.h > vbH) vbH = m.h;
+    });
+    stage.setAttribute('viewBox', '0 0 ' + vbW + ' ' + vbH);
+    /* 递归栈的桶高按整个模板的最大栈深定，逐帧不变，避免跳来跳去 */
+    maxDepth = 0;
+    frames.forEach(function (f) { if (f.stack && f.stack.length > maxDepth) maxDepth = f.stack.length; });
+    prevDepth = null;
+    stackTitle.textContent = demo.stackTitle || '递归栈';
+    /* 让 1 个 viewBox 单位 ≈ 1px：内容不被放大到失真，窄屏再等比缩小 */
+    var up = frames[0].mode === 'array' ? 1.0 : (frames[0].mode === 'graph' ? 1.65 : 1.3);
+    stage.style.maxWidth = Math.round(vbW * up) + 'px';
+    rangeEl.max = String(frames.length - 1);
+    step = 0;
+    showStep();
+  }
+
+  function showStep() {
+    var f = frames[step];
+    if (!f) return;
+    var m = measure(f);
+    stage.innerHTML = '';
+    stage.appendChild(m.g);
+    descEl.innerHTML = f.desc || '';
+    /* 代码高亮：整行 + 这一行里的判定条件 */
+    var prev = codeEl.querySelector('.cline.hl');
+    if (prev) { prev.classList.remove('hl'); unmarkCond(prev); }
+    Array.prototype.forEach.call(codeEl.querySelectorAll('.cline'), function (r) { unmarkCond(r); });
+    var row = codeEl.querySelector('.cline[data-i="' + f.line + '"]');
+    if (row) {
+      row.classList.add('hl');
+      markCond(row);
+      /* 当前行没有 if/while（是语句体）时，把上面那层的条件也用淡样式点出来 */
+      if (!row.querySelector('.cond')) {
+        for (var b = f.line - 1; b >= Math.max(0, f.line - 4); b--) {
+          var up = codeEl.querySelector('.cline[data-i="' + b + '"]');
+          if (up && /(?:^|[^\w])(if|while)\s*\(/.test(up.textContent)) { markSoftCond(up); break; }
+        }
+      }
+      var top = row.offsetTop - codeEl.parentNode.offsetTop;
+      var box = codeEl.parentNode;
+      if (top < box.scrollTop || top > box.scrollTop + box.clientHeight - 40) {
+        box.scrollTop = top - box.clientHeight / 2;
+      }
+    }
+    /* 附加信息 */
+    extraEl.innerHTML = '';
+    (f.side || []).forEach(function (s) {
+      var d = document.createElement('span');
+      d.innerHTML = s;
+      extraEl.appendChild(d);
+    });
+    /* 递归调用栈：竖桶，栈底在下、栈顶在上 */
+    renderStack(f.stack);
+    /* 图：把邻接表画在右边，和画面里的边一一对应 */
+    renderAdj(f);
+    /* 入度表：拓扑排序用，逐帧显示 indegree[] 的值和"正在看谁" */
+    renderInd(f);
+    /* 卡片都没内容时，整列收起，别白占宽度 */
+    sideCol.style.display = (stackPanel.classList.contains('on') || dsPanel.classList.contains('on') || indPanel.classList.contains('on')) ? 'flex' : 'none';
+    rangeEl.value = String(step);
+    progEl.textContent = (step + 1) + ' / ' + frames.length;
+  }
+
+  /* 上一帧的栈深度，用来判断这一帧是"进栈"还是"出栈" */
+  var prevDepth = null;
+
+  /* 入度表：indegree[] 的每一格 + 一个"当前正在处理谁"的游标 */
+  function renderInd(f) {
+    if (!f.ind) { indPanel.classList.remove('on'); return; }
+    indPanel.classList.add('on');
+    var vals = f.ind.vals || [], at = f.ind.at;
+    indKind.textContent = '共 ' + vals.length + ' 个顶点';
+    indBody.innerHTML = '';
+    vals.forEach(function (v, i) {
+      var d = document.createElement('div');
+      d.className = 'ind-cell' + (i === at ? ' on' : '') + (v === 0 ? ' zero' : '');
+      var name = document.createElement('div');
+      name.textContent = 'V' + i;
+      var num = document.createElement('b');
+      num.textContent = String(v);
+      d.appendChild(name); d.appendChild(num);
+      indBody.appendChild(d);
+    });
+    indFoot.innerHTML = f.ind.note || '入度为 0 的点才能进栈';
+  }
+
+  /* 邻接表：把 vertices[i].firstarc 那条单链表画成一行行箭头 */
+  function renderAdj(f) {
+    if (!f.g) { dsPanel.classList.remove('on'); return; }
+    dsPanel.classList.add('on');
+    var g = f.g, adj = {}, i;
+    g.verts.forEach(function (x) { adj[x.id] = []; });
+    g.edges.forEach(function (e) {
+      adj[e[0]].push({ v: e[1], w: e[2] });
+      if (!g.directed) adj[e[1]].push({ v: e[0], w: e[2] });
+    });
+    dsKind.textContent = (g.directed ? '有向图' : '无向图') + ' · V=' + g.verts.length + ' E=' + g.edges.length;
+
+    var sv = f.scan ? f.scan.v : f.cur;
+    var sw = f.scan ? f.scan.w : null;
+    var mark = f.dsMark;
+
+    dsRows.innerHTML = '';
+    g.verts.forEach(function (x) {
+      var on = mark ? mark.indexOf(x.id) >= 0 : (x.id === sv);
+      var row = document.createElement('div');
+      row.className = 'ds-row' + (on ? ' on' : '');
+
+      var box = document.createElement('span');
+      box.className = 'ds-v';
+      box.textContent = x.id;
+      row.appendChild(box);
+
+      var list = adj[x.id] || [];
+      if (!list.length) {
+        var nl = document.createElement('span');
+        nl.className = 'ds-null';
+        nl.textContent = '∧';
+        row.appendChild(nl);
+      }
+      list.forEach(function (a) {
+        var to = document.createElement('span');
+        to.className = 'ds-to';
+        to.textContent = '→';
+        row.appendChild(to);
+        var arc = document.createElement('span');
+        arc.className = 'ds-arc' + (x.id === sv && a.v === sw ? ' w' : '');
+        arc.textContent = a.w == null ? a.v : (a.v + '·' + a.w);
+        row.appendChild(arc);
+      });
+      if (list.length) {
+        var tail = document.createElement('span');
+        tail.className = 'ds-null';
+        tail.textContent = '∧';
+        row.appendChild(tail);
+      }
+      dsRows.appendChild(row);
+    });
+
+    if (f.dsFoot) {
+      dsFoot.innerHTML = f.dsFoot;
+    } else if (f.scan && f.scan.w != null) {
+      dsFoot.innerHTML = '正在扫 <b>' + f.scan.v + '</b> 的邻接表：看到邻居 <b>' + f.scan.w + '</b>';
+    } else if (sv != null) {
+      dsFoot.innerHTML = '当前顶点 <b>' + sv + '</b> 的邻接表';
+    } else {
+      dsFoot.innerHTML = '图的存储：顶点表 + 边表';
+    }
+  }
+
+  function renderStack(st) {
+    if (!st) {                       /* 非递归模板：整块面板收起 */
+      stackPanel.classList.remove('on');
+      prevDepth = null;
+      return;
+    }
+    stackPanel.classList.add('on');
+    stackBody.innerHTML = '';
+    var n = st.length, H = Math.max(124, maxDepth * BLK + (maxDepth > 0 ? 18 : 0));
+    stackBody.style.height = H + 'px';
+
+    if (!n) {
+      var em = document.createElement('div');
+      em.className = 'sp-empty';
+      em.textContent = '空栈';
+      stackBody.appendChild(em);
+    }
+    st.forEach(function (s, k) {
+      var d = document.createElement('div');
+      d.className = 'sp-b' + (k === n - 1 ? ' top' : '');
+      d.textContent = s;
+      d.title = s;
+      /* 只有"刚压进去的那个"才播进入动画，否则每翻一页全场都在闪 */
+      if (k === n - 1 && prevDepth != null && n > prevDepth) d.classList.add('pushed');
+      stackBody.appendChild(d);
+    });
+
+    /* 栈顶 / 栈底 标注，跟着内容走 */
+    if (n) {
+      var groupH = n * BLK_H + (n - 1) * 4;          /* 块总高 */
+      var freeTop = (H - 15) - groupH;               /* 上方空出来的高度（padding 7+6 + 底边框 2 = 15） */
+      var labTop = document.createElement('div');
+      labTop.className = 'sp-lab top';
+      labTop.textContent = n === 1 ? '◀ 栈顶 = 栈底' : '◀ 栈顶';
+      labTop.style.top = (7 + freeTop - 1) + 'px';
+      stackBody.appendChild(labTop);
+      if (n > 1) {
+        var labBot = document.createElement('div');
+        labBot.className = 'sp-lab';
+        labBot.textContent = '◀ 栈底';
+        labBot.style.bottom = '8px';
+        stackBody.appendChild(labBot);
+      }
+    }
+
+    /* 进栈 / 出栈 提示 */
+    stackTag.className = 'sp-tag';
+    if (prevDepth != null && n !== prevDepth) {
+      stackTag.textContent = n > prevDepth ? '↑ 进栈' : '↓ 出栈';
+      stackTag.className = 'sp-tag on ' + (n > prevDepth ? 'push' : 'pop');
+    } else {
+      stackTag.textContent = '';
+    }
+    prevDepth = n;
+
+    stackDepth.innerHTML = '栈深 <b>' + n + '</b> / 峰值 ' + maxDepth;
+  }
+
+  function go(d) {
+    var t = step + d;
+    if (t < 0) t = 0;
+    if (t >= frames.length) t = frames.length - 1;
+    if (t === step) return;
+    step = t;
+    showStep();
+  }
+  function play() {
+    if (timer) { stop(); return; }
+    playBtn.textContent = '暂停';
+    timer = setInterval(function () {
+      if (step >= frames.length - 1) { stop(); return; }
+      step++; showStep();
+    }, +speedEl.value);
+  }
+  function stop() {
+    if (timer) clearInterval(timer);
+    timer = null;
+    playBtn.textContent = '播放';
+  }
+
+  /* ---------------------------------------------------------------- 事件 */
+  document.getElementById('prev').onclick = function () { stop(); go(-1); };
+  document.getElementById('next').onclick = function () { stop(); go(1); };
+  playBtn.onclick = play;
+  rangeEl.oninput = function () { stop(); step = +rangeEl.value; showStep(); };
+  selEl.onchange = function () { load(+selEl.value); };
+  speedEl.oninput = function () { if (timer) { stop(); play(); } };
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight') { e.preventDefault(); stop(); go(1); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); stop(); go(-1); }
+    else if (e.code === 'Space') { e.preventDefault(); play(); }
+  });
+
+  function fromHash() {
+    var h = location.hash.replace('#', '');
+    if (!h) return;
+    var parts = h.split('@');
+    var cid = parts[0], did = parts[1];
+    var ci = -1, di = 0;
+    CHAP.forEach(function (c, i) {
+      if (c.id === cid) { ci = i; di = Math.max(0, c.demos.findIndex(function (d) { return d.id === did; })); }
+    });
+    if (ci < 0) return;
+    switchChapter(ci);
+    selEl.value = String(di);
+    load(di, parts[3] != null ? +parts[3] : null);   /* #章@模板@步@案例 */
+    if (parts[2] != null) { step = Math.min(+parts[2], frames.length - 1); showStep(); }
+  }
+  window.addEventListener('hashchange', fromHash);
+
+  buildTabs();
+  if (CHAP[0].demos.length) switchChapter(0);
+  fromHash();
+
+
+  /* 测试钩子：node --test 里的冒烟用例靠它把每个模板、每个用例都渲染一遍。
+     页面本身不依赖它，删掉也不影响使用。 */
+  NS.app = {
+    chapters: function () {
+      return CHAP.map(function (c) { return { id: c.id, name: c.name, demos: c.demos.map(function (d) { return d.id; }) }; });
+    },
+    select: function (chapter, demo, caseIdx) {
+      switchChapter(chapter);
+      selEl.value = String(demo);
+      load(demo, caseIdx == null ? null : caseIdx);
+      return frames.length;
+    },
+    stepTo: function (i) { step = Math.max(0, Math.min(i, frames.length - 1)); showStep(); return step; },
+    frames: function () { return frames; },
+    state: function () { return { chapter: curChap, demo: curDemo, step: step, frames: frames.length }; }
+  };
+})(window.DSANIM = window.DSANIM || {});
+
+</script>
+</body>
+</html>

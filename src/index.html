@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>408 数据结构 · 可交互动画（第 2–6 章）</title>
+<style>
+{{STYLES}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">408 数据结构 · 可交互动画<span class="sub">代码与结构逐步同步</span></div>
+  <div class="tabs" id="tabs"></div>
+  <div class="hint">← → 单步　空格 播放</div>
+</header>
+
+<main>
+  <section class="left">
+    <div class="pick">
+      <select id="demoSel"></select>
+      <select id="caseSel" style="display:none"></select>
+      <p class="note" id="note"></p>
+    </div>
+    <div class="codebox"><div class="code" id="code"></div></div>
+    <div class="typedefs" id="typedefs">
+      <div class="td-head" id="tdhead">结构体定义</div>
+      <pre id="tdbody"></pre>
+    </div>
+  </section>
+  <section class="right">
+    <div class="desc" id="desc"></div>
+    <div class="extra" id="extra"></div>
+    <div class="stagewrap">
+      <div class="sidecol" id="sidecol">
+        <div class="card dspanel" id="dspanel">
+          <div class="ds-head">邻接表 <span class="ds-kind" id="dskind"></span></div>
+          <div class="ds-rows" id="dsrows"></div>
+          <div class="ds-foot" id="dsfoot"></div>
+        </div>
+        <div class="card indpanel" id="indpanel">
+          <div class="ds-head">入度 indegree[]<span class="ds-kind" id="indkind"></span></div>
+          <div class="ind-grid" id="indbody"></div>
+          <div class="ds-foot" id="indfoot"></div>
+        </div>
+        <div class="stackpanel" id="stackpanel">
+          <div class="sp-head">
+            <span class="sp-title" id="stacktitle">递归栈</span>
+            <span class="sp-tag" id="stacktag"></span>
+          </div>
+          <div class="sp-bucket" id="stackbody"></div>
+          <div class="sp-depth" id="stackdepth"></div>
+        </div>
+      </div>
+      <div class="svgholder">
+        <svg id="stage" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <button id="prev">‹ 上一步</button>
+  <button id="play">播放</button>
+  <button id="next">下一步 ›</button>
+  <input id="range" type="range" min="0" max="0" value="0">
+  <span id="prog">1 / 1</span>
+  <span class="speed">速度 <input id="speed" type="range" min="180" max="1600" step="20" value="760"></span>
+</footer>
+
+<script>
+{{SCRIPTS}}
+</script>
+</body>
+</html>

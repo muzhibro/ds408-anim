@@ -1,0 +1,33 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # 项目零依赖，没有 npm install 这一步
+      - name: 构建单文件产物
+        run: node scripts/build.mjs
+
+      - name: 跑全部测试（帧指纹 / 行号自洽 / 全帧渲染 / 构建一致性）
+        run: node --test "tests/**/*.test.mjs"
+
+      # 构建产物必须和仓库里的 index.html 一致，否则说明有人改了 src 没重新构建
+      - name: 检查产物是否已提交
+        run: |
+          if [ -n "$(git status --porcelain index.html)" ]; then
+            echo "::error::index.html 与 src/ 不一致，请本地跑 npm run build 后一起提交"
+            git --no-pager diff --stat index.html
+            exit 1
+          fi

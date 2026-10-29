@@ -1,5 +1,9 @@
 # 408 数据结构 · 可交互动画
 
+[![test](https://github.com/muzhibro/ds408-anim/actions/workflows/test.yml/badge.svg)](https://github.com/muzhibro/ds408-anim/actions/workflows/test.yml)
+
+**在线看**：<https://muzhibro.github.io/ds408-anim/>
+
 把 408 里最常考的算法过程做成**可以一步一步看**的动画：左边是 C 代码逐行高亮（当前执行的判定条件单独标出来），右边是同一时刻真实的数据结构状态（链表 / 二叉树 / 数组 / 图，外加递归栈、邻接表、入度表）。
 
 - **5 章 38 个模板 69 个用例 1949 帧**，每帧都带一句人话说明
@@ -166,15 +170,7 @@ npm run dump list sum        # 逐帧看一眼高亮行对不对
 1. **代码与动画是两份实现**——最值得做的升级：写一个 C 子集解释器（指针、结构体、数组、递归），让 `run` 从源码执行中自动产生帧。这一步做完，"高亮行对不上"这类问题从根上消失。
 2. 只覆盖第 2–6 章（线性表、树、图、查找、排序），第 1 章绪论和第 7 章文件没做。
 3. 窄屏（≤900px）改成单列：**先图后码**——说明、动画、递归栈在上，代码在下；图的 svg 等比缩放到容器宽度，代码区自己滚。已用 headless Chrome 在 500×900 下逐屏截图验收，真正的 390px 宽（iPhone）没在真机上试过。
-4. 项目最初是单文件手写，**没有 git 历史**（开发机上没有安装 git）。建议：
-
-```bash
-git init
-git add .
-git commit -m "重构为模块化项目：src/ 分层 + 构建 + 测试"
-```
-
-`legacy/index.html` 保留了重构前的单文件版本，可以用 `git diff --no-index legacy/index.html index.html` 对照。
+4. **git 历史只有一次提交**：项目最初是单文件手写（版本演进都在这一个文件里），重构后才建的仓库。`legacy/index.html` 保留了重构前的原版，可以用 `git diff --no-index legacy/index.html index.html` 对照重构前后的差别。
 
 ## 附
 

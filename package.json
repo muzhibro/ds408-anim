@@ -13,6 +13,7 @@
     "check": "npm run build && npm test",
     "digest": "node scripts/frame-digest.mjs",
     "digest:write": "node scripts/frame-digest.mjs --write",
+    "coverage": "node scripts/coverage.mjs",
     "dump": "node scripts/dump-frames.mjs"
   },
   "dependencies": {},

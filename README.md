@@ -16,8 +16,9 @@
 # 只想看动画：直接双击 index.html
 
 npm run build   # 从 src/ 生成 index.html（改了源码之后跑这个）
-npm test        # 23 个测试：帧指纹 / 全帧渲染 / 行号自洽 / 构建一致性 / 进度记忆
+npm test        # 27 个测试：帧指纹 / 全帧渲染 / 行号自洽 / 构建一致性 / 进度记忆 / 覆盖率报告
 npm run dump list reverse      # 打印某个模板的代码行号与每帧的高亮行，人工核对用
+npm run coverage               # 报告：哪些代码行从来没被任何一帧高亮过
 ```
 
 需要 Node.js ≥ 22（只用到内置模块，**没有 `npm install`**）。
@@ -139,6 +140,29 @@ npm run dump list sum        # 逐帧看一眼高亮行对不对
 | 结构自检 | manifest 与 `src/` 文件互相对得上、demo 文件名与 id 一一对应 |
 | 构建一致性 | `index.html` 里的帧指纹必须等于源码的帧指纹；无未替换占位符、无外链 |
 | 进度记忆（`tests/resume.test.mjs`） | 刷新后能不能回到上次那一帧；存储被禁用/写满时**不能**因此白屏；旧数据越界要夹回合法范围 |
+| 覆盖率报告（`tests/coverage.test.mjs`） | 报告脚本本身能不能跑、参数对不对；**不断言覆盖率数字**——补内容是常态，用数字卡人只会让人去改测试 |
+
+## 覆盖率报告：哪些行从来没讲过
+
+```bash
+npm run coverage          # 只列"调用 / 赋值 / 分支"这类需要补的缺口
+npm run coverage -- --all # 连声明行、函数签名行一起列
+npm run coverage tree     # 只看某一章
+```
+
+它遍历每个模板的每一帧，收集 `frame.line`，再和 `code[]` 里"有实质动作"的行做差集。**这是报告不是闸门**：永远退出 0，因为"这一行不亮"未必是错（有些分支这个用例根本走不到），要人来判断。
+
+当前数字：**实质行 245 / 359 覆盖（68%），38 个模板里 31 个有缺口**，其中 17 行是函数调用、14 行是赋值、47 行是判定。几个典型的：
+
+| 模板 | 从没亮过 | 说明 |
+| --- | --- | --- |
+| `graph/graph-dijkstra` | `dist[v] = dist[u] + G.edge[u][v];` | **松弛操作**整段没讲 |
+| `tree/tree-complete` | `Q[rear++] = p->lchild;` | 入队动作没讲（只讲了出队，这也是之前错行的根源） |
+| `tree/tree-level` | `while (front < rear) {`、`visit(p);` | 循环条件和访问没讲 |
+| `tree/tree-bst` | `return IsBST(T->rchild, pre);` | 右子树递归没发生 |
+| `tree/tree-swap` | `SwapLR(T->lchild);`、`T->rchild = t;` | 递归和指针交换都没讲 |
+
+这份清单就是"还差哪些讲解"的待办。
 
 ## 这次重构顺带修掉的错行
 

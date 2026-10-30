@@ -121,6 +121,7 @@
 | 改绘制样式 | `src/ui/draw-*.js` 或 `styles.css` | `npm run build`；`ui-smoke` 会抓崩溃 |
 | 加一种新的帧类型 | `src/core/*-frame.js` + `src/ui/draw-*.js` + `measure.js` 分派 | `frames.test.mjs` 里的 `mode` 白名单 |
 | 换数据结构 | 新增 `src/core/xxx-frame.js` 并排在 manifest 里 | 别改已有帧的字段名，否则指纹全变 |
+| 查"哪一段还没讲" | `npm run coverage`（只看调用/赋值/分支三个桶） | 这是报告不是闸门，数字不达标不拦构建 |
 
 ## 7. 已知的设计债
 

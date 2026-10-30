@@ -31,3 +31,7 @@ jobs:
             git --no-pager diff --stat index.html
             exit 1
           fi
+
+      # 覆盖率报告只打印到日志里，不拦构建（见 README「哪些行从来没讲过」）
+      - name: 覆盖率报告（哪些代码行从没被高亮）
+        run: node scripts/coverage.mjs

@@ -1,4 +1,17 @@
   * { box-sizing: border-box; }
+  /* 深色主题的滚动条：细、透明轨道、低对比滑块，亮了就跟夜空背景的蓝灰调一致。
+     color-scheme 让系统级滚动的默认配色也走深色（Firefox / 右键菜单 / 原生控件）。 */
+  html { color-scheme: dark; }
+  * { scrollbar-width: thin; scrollbar-color: #26354f transparent; }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: #26354f; border-radius: 9px;
+    border: 2px solid transparent; background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: #3a5075; }
+  ::-webkit-scrollbar-thumb:active { background: #4a6591; }
+  ::-webkit-scrollbar-corner { background: transparent; }
   html, body { height: 100%; margin: 0; }
   body {
     display: flex; flex-direction: column; overflow: hidden;
@@ -214,4 +227,15 @@
     footer { flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
     #range { flex: 1 1 100%; order: 5; }
     button { padding: 8px 12px; }
+  }
+
+  /* 系统设置里开了"减少动态效果"的人，多半是对闪动敏感（前庭功能障碍、偏头痛）。
+     这里只关掉动画和过渡，逐帧内容本身不变——动画是内容，不该被吃掉。 */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .001ms !important;
+      scroll-behavior: auto !important;
+    }
   }

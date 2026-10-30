@@ -11,25 +11,25 @@
 <body>
 <header>
   <div class="brand">408 数据结构 · 可交互动画<span class="sub">代码与结构逐步同步</span></div>
-  <div class="tabs" id="tabs"></div>
-  <div class="hint">← → 单步　空格 播放</div>
+  <div class="tabs" id="tabs" role="tablist" aria-label="章节"></div>
+  <div class="hint" aria-hidden="true">← → 单步　空格 播放</div>
 </header>
 
 <main>
-  <section class="left">
+  <section class="left" aria-label="算法代码">
     <div class="pick">
-      <select id="demoSel"></select>
-      <select id="caseSel" style="display:none"></select>
+      <select id="demoSel" aria-label="选择模板"></select>
+      <select id="caseSel" aria-label="选择输入用例" style="display:none"></select>
       <p class="note" id="note"></p>
     </div>
-    <div class="codebox"><div class="code" id="code"></div></div>
+    <div class="codebox" role="region" aria-label="带高亮的 C 代码"><div class="code" id="code"></div></div>
     <div class="typedefs" id="typedefs">
       <div class="td-head" id="tdhead">结构体定义</div>
-      <pre id="tdbody"></pre>
+      <pre id="tdbody" tabindex="0" aria-label="结构体定义，可用方向键滚动"></pre>
     </div>
   </section>
-  <section class="right">
-    <div class="desc" id="desc"></div>
+  <section class="right" aria-label="动画与说明">
+    <div class="desc" id="desc" aria-live="polite"></div>
     <div class="extra" id="extra"></div>
     <div class="stagewrap">
       <div class="sidecol" id="sidecol">
@@ -53,19 +53,19 @@
         </div>
       </div>
       <div class="svgholder">
-        <svg id="stage" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
+        <svg id="stage" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" role="img" aria-label="动画画布"></svg>
       </div>
     </div>
   </section>
 </main>
 
 <footer>
-  <button id="prev">‹ 上一步</button>
-  <button id="play">播放</button>
-  <button id="next">下一步 ›</button>
-  <input id="range" type="range" min="0" max="0" value="0">
-  <span id="prog">1 / 1</span>
-  <span class="speed">速度 <input id="speed" type="range" min="180" max="1600" step="20" value="760"></span>
+  <button id="prev" aria-label="上一步">‹ 上一步</button>
+  <button id="play" aria-label="播放或暂停">播放</button>
+  <button id="next" aria-label="下一步">下一步 ›</button>
+  <input id="range" type="range" min="0" max="0" value="0" aria-label="帧进度">
+  <span id="prog" aria-hidden="true">1 / 1</span>
+  <span class="speed">速度 <input id="speed" type="range" min="180" max="1600" step="20" value="760" aria-label="播放速度"></span>
 </footer>
 
 <script>

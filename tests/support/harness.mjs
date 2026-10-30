@@ -19,7 +19,7 @@ export function readModule(rel) {
   return fs.readFileSync(path.join(ROOT, rel), 'utf8');
 }
 
-function makeContext(withDom) {
+function makeContext(withDom, extra) {
   const sandbox = { console };
   sandbox.window = sandbox;
   sandbox.globalThis = sandbox;
@@ -30,6 +30,7 @@ function makeContext(withDom) {
     sandbox.setInterval = () => 0;
     sandbox.clearInterval = () => {};
   }
+  if (extra) Object.assign(sandbox, extra);
   return vm.createContext(sandbox);
 }
 
@@ -43,10 +44,11 @@ export function loadData(options = {}) {
   return ctx.DSANIM;
 }
 
-/** 加载数据层 + 界面层，返回 { NS, document } */
-export function loadPage(options = {}) {
+/** 加载数据层 + 界面层，返回 { NS, document }
+ *  extra 里的键会先塞进沙箱（例如给一个假的 localStorage），再执行模块。 */
+export function loadPage(extra = null, options = {}) {
   const manifest = readManifest();
-  const ctx = makeContext(true);
+  const ctx = makeContext(true, extra);
   for (const rel of manifest.data.concat(manifest.ui)) {
     vm.runInContext(readModule(rel), ctx, { filename: rel, ...options });
   }

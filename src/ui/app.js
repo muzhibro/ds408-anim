@@ -40,12 +40,18 @@
   var maxDepth = 0, BLK = 33, BLK_H = 29;   /* 递归栈：本模板最大栈深（决定桶高）、单块占高（29 + gap 4） */
 
   function buildTabs() {
+    tabsEl.setAttribute('role', 'tablist');
+    tabsEl.setAttribute('aria-label', '章节');
     CHAP.forEach(function (c, i) {
       var b = document.createElement('button');
       b.className = 'tab' + (i === curChap ? ' on' : '');
       b.textContent = c.name + '（' + c.demos.length + '）';
       b.onclick = function () { switchChapter(i); };
       b.dataset.i = i;
+      b.id = 'tab-' + i;
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-selected', i === curChap ? 'true' : 'false');
+      b.setAttribute('aria-controls', 'stage');
       tabsEl.appendChild(b);
     });
   }
@@ -54,6 +60,7 @@
     curChap = i;
     Array.prototype.forEach.call(tabsEl.children, function (b, k) {
       b.classList.toggle('on', k === i);
+      b.setAttribute('aria-selected', k === i ? 'true' : 'false');
     });
     selEl.innerHTML = '';
     CHAP[i].demos.forEach(function (d, k) {
@@ -118,64 +125,7 @@
     delete body.dataset.cond;
   }
 
-  /* 图这一章用到的结构体：邻接表三件套 + 邻接矩阵 */
-  var GRAPH_TYPES = [
-    '#define MaxVertexNum 100',
-    '',
-    'typedef struct <b>ArcNode</b> {      /* 边表结点＝一条边 */',
-    '    int  adjvex;         /* 指向哪个顶点 */',
-    '    struct ArcNode *nextarc;   /* 下一条边 */',
-    '    int  weight;         /* 权值 */',
-    '} ArcNode;',
-    '',
-    'typedef struct <b>VNode</b> {        /* 顶点表结点＝一个顶点 */',
-    '    ElemType data;       /* 顶点信息 */',
-    '    ArcNode *firstarc;   /* 第一条边 */',
-    '} VNode, <b>AdjList</b>[MaxVertexNum];',
-    '',
-    'typedef struct {            /* 邻接表＝顶点数组＋边链表 */',
-    '    AdjList vertices;    /* vertices[i] 是第 i 个顶点 */',
-    '    int vexnum, arcnum;  /* 顶点数、边数 */',
-    '} <b>ALGraph</b>;',
-    '',
-    'typedef struct {            /* 邻接矩阵版：稠密图 */',
-    '    ElemType edge[MaxVertexNum][MaxVertexNum];',
-    '    int vexnum, arcnum;',
-    '} <b>MGraph</b>;'
-  ].join('\n');
-
-  var LIST_TYPES = [
-    'typedef struct <b>LNode</b> {        /* 单链表结点 */',
-    '    ElemType data;       /* 数据域 */',
-    '    struct LNode *next;  /* 指针域：下一个结点 */',
-    '} LNode, <b>*LinkList</b>;',
-    '',
-    '/* 头结点：不放数据，只负责"指路"，处理边界更省事 */',
-    '',
-    'typedef struct <b>DNode</b> {        /* 双链表结点 */',
-    '    ElemType data;',
-    '    struct DNode *prior;  /* 前驱 */',
-    '    struct DNode *next;   /* 后继 */',
-    '} DNode, *DLinkList;'
-  ].join('\n');
-
-  var TREE_TYPES = [
-    'typedef struct <b>BiTNode</b> {     /* 二叉树结点 */',
-    '    ElemType data;',
-    '    struct BiTNode *lchild;  /* 左孩子 */',
-    '    struct BiTNode *rchild;  /* 右孩子 */',
-    '} BiTNode, <b>*BiTree</b>;',
-    '',
-    '/* 线索二叉树：空的指针拿来指"前驱/后继" */',
-    'typedef struct <b>ThreadNode</b> {',
-    '    ElemType data;',
-    '    struct ThreadNode *lchild, *rchild;',
-    '    int ltag, rtag;  /* 0=孩子 1=线索 */',
-    '} ThreadNode, *ThreadTree;'
-  ].join('\n');
-
-  var TYPE_MAP = { graph: GRAPH_TYPES, list: LIST_TYPES, tree: TREE_TYPES };
-  var TYPE_NAME = { graph: '图', list: '链表', tree: '二叉树' };
+  /* 结构体定义文本统一放在 ui/types.js（TYPE_MAP / TYPE_NAME），这里不再重复一份 */
 
   function showTypes(chapId) {
     var txt = TYPE_MAP[chapId] || null;
@@ -315,6 +265,12 @@
     sideCol.style.display = (stackPanel.classList.contains('on') || dsPanel.classList.contains('on') || indPanel.classList.contains('on')) ? 'flex' : 'none';
     rangeEl.value = String(step);
     progEl.textContent = (step + 1) + ' / ' + frames.length;
+    /* 读屏软件拿不到 SVG 画面，把这一帧的说明和进度同步成可读文本 */
+    rangeEl.setAttribute('aria-valuenow', String(step));
+    rangeEl.setAttribute('aria-valuemax', String(frames.length - 1));
+    rangeEl.setAttribute('aria-valuetext', '第 ' + (step + 1) + ' 帧，共 ' + frames.length + ' 帧');
+    stage.setAttribute('aria-label', '第 ' + (step + 1) + ' 帧：' + (f.desc || '').replace(/<[^>]+>/g, ''));
+    saveState();
   }
 
   /* 上一帧的栈深度，用来判断这一帧是"进栈"还是"出栈" */
@@ -473,6 +429,7 @@
   function play() {
     if (timer) { stop(); return; }
     playBtn.textContent = '暂停';
+    playBtn.setAttribute('aria-label', '暂停');
     timer = setInterval(function () {
       if (step >= frames.length - 1) { stop(); return; }
       step++; showStep();
@@ -482,6 +439,7 @@
     if (timer) clearInterval(timer);
     timer = null;
     playBtn.textContent = '播放';
+    playBtn.setAttribute('aria-label', '播放');
   }
 
   /* ---------------------------------------------------------------- 事件 */
@@ -496,6 +454,44 @@
     else if (e.key === 'ArrowLeft') { e.preventDefault(); stop(); go(-1); }
     else if (e.code === 'Space') { e.preventDefault(); play(); }
   });
+
+  /* ------------------------------------------------- 进度记忆（localStorage）
+     隐私模式、sandbox、被禁用的存储都会抛异常，所以先探一次能力，之后静默跳过。 */
+  var STORE_KEY = 'ds408-anim:progress';
+  var canStore = (function () {
+    try { return typeof localStorage !== 'undefined' && !!localStorage; } catch (e) { return false; }
+  })();
+  /* 首屏装配期间禁止写存储：装配会先 switchChapter(0) 渲染一次，
+     那一帧的 saveState 会把"上次看到哪"覆盖成第 1 章第 1 帧。 */
+  var booting = true;
+
+  function saveState() {
+    if (booting || !canStore) return;
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify({
+        chapter: curChap, demo: curDemo,
+        caseIdx: caseEl.value === '' ? null : +caseEl.value,
+        step: step, at: Date.now()
+      }));
+    } catch (e) { /* 写不进去就算了，不影响看动画 */ }
+  }
+
+  function readState() {
+    if (!canStore) return null;
+    try { return JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) { return null; }
+  }
+
+  /* 打开页面时接着上次的位置：章节 → 模板 → 用例 → 帧 */
+  function restoreLast() {
+    var s = readState();
+    if (!s || typeof s.chapter !== 'number' || !CHAP[s.chapter]) return false;
+    switchChapter(s.chapter);
+    var di = Math.min(Math.max(0, s.demo | 0), CHAP[s.chapter].demos.length - 1);
+    selEl.value = String(di);
+    load(di, s.caseIdx == null ? null : s.caseIdx);
+    if (s.step > 0) { step = Math.min(s.step, frames.length - 1); showStep(); }
+    return true;
+  }
 
   function fromHash() {
     var h = location.hash.replace('#', '');
@@ -516,7 +512,14 @@
 
   buildTabs();
   if (CHAP[0].demos.length) switchChapter(0);
+  /* 地址栏的 #章@模板@步@案例 优先；没有就接着上次看的地方 */
+  var hasHash = typeof location !== 'undefined' && location.hash.length > 1;
+  if (!hasHash) restoreLast();
   fromHash();
+  booting = false;   /* 首屏定位完成，之后每次翻页都可以记进度了 */
+  /* 用 #章节@模板@帧 直接进来的人也要记一笔：否则分享出去的链接打开后，
+     下次刷新又会回到自己上一次的位置，链接看起来"没记住" */
+  saveState();
 
 
   /* 测试钩子：node --test 里的冒烟用例靠它把每个模板、每个用例都渲染一遍。

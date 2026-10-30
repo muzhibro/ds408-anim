@@ -16,19 +16,26 @@
 </header>
 
 <main>
-  <section class="left" aria-label="算法代码">
+  <section class="left" id="leftcol" aria-label="算法代码">
     <div class="pick">
+      <input id="demoFilter" type="search" autocomplete="off" spellcheck="false"
+             placeholder="筛选模板：Dijkstra / 逆置 / 快排…（按 / 聚焦）"
+             aria-label="按名字筛选当前章节的模板" aria-describedby="filterHint">
+      <span id="filterHint" class="filter-hint" role="status" aria-live="polite"></span>
       <select id="demoSel" aria-label="选择模板"></select>
       <select id="caseSel" aria-label="选择输入用例" style="display:none"></select>
       <p class="note" id="note"></p>
     </div>
-    <div class="codebox" role="region" aria-label="带高亮的 C 代码"><div class="code" id="code"></div></div>
+    <div class="codebox" role="region" aria-label="带高亮的 C 代码，可用方向键滚动"
+         id="codebox" tabindex="0"><div class="code" id="code"></div></div>
     <div class="typedefs" id="typedefs">
       <div class="td-head" id="tdhead">结构体定义</div>
       <pre id="tdbody" tabindex="0" aria-label="结构体定义，可用方向键滚动"></pre>
     </div>
   </section>
-  <section class="right" aria-label="动画与说明">
+  <div class="splitter" id="splitter" role="separator" aria-orientation="vertical"
+       aria-label="拖动或用左右方向键调整代码区宽度" tabindex="0"></div>
+  <section class="right" id="rightcol" aria-label="动画与说明">
     <div class="desc" id="desc" aria-live="polite"></div>
     <div class="extra" id="extra"></div>
     <div class="stagewrap">
@@ -63,9 +70,16 @@
   <button id="prev" aria-label="上一步">‹ 上一步</button>
   <button id="play" aria-label="播放或暂停">播放</button>
   <button id="next" aria-label="下一步">下一步 ›</button>
+  <button id="share" aria-label="复制当前帧的链接">复制链接</button>
   <input id="range" type="range" min="0" max="0" value="0" aria-label="帧进度">
   <span id="prog" aria-hidden="true">1 / 1</span>
-  <span class="speed">速度 <input id="speed" type="range" min="180" max="1600" step="20" value="760" aria-label="播放速度"></span>
+  <span class="speed">
+    <span class="speed-end" aria-hidden="true">慢</span>
+    <input id="speed" type="range" min="1" max="5" step="1" value="3"
+           aria-label="播放速度（5 档，越往右越快）" aria-valuetext="第 3 档，共 5 档">
+    <span class="speed-end" aria-hidden="true">快</span>
+    <span id="speedval" aria-hidden="true">3 档</span>
+  </span>
 </footer>
 
 <script>

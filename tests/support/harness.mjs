@@ -26,9 +26,19 @@ function makeContext(withDom, extra) {
   if (withDom) {
     sandbox.document = createDocument();
     sandbox.location = { hash: '' };
+    /* 真实页面用 history.replaceState 同步地址栏；沙箱里给个最小实现，
+       顺便让"链接里带了什么"可以直接断言 */
+    sandbox.history = {
+      replaceState(_s, _t, url) {
+        const u = String(url || '');
+        sandbox.location.hash = u.startsWith('#') ? u : '#' + (u.split('#')[1] || '');
+      }
+    };
     sandbox.addEventListener = () => {};
     sandbox.setInterval = () => 0;
     sandbox.clearInterval = () => {};
+    sandbox.setTimeout = () => 0;
+    sandbox.clearTimeout = () => {};
   }
   if (extra) Object.assign(sandbox, extra);
   return vm.createContext(sandbox);

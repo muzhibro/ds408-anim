@@ -20,6 +20,12 @@
   ::-webkit-scrollbar-thumb:active { background: #4a6591; }
   ::-webkit-scrollbar-corner { background: transparent; }
   html, body { height: 100%; margin: 0; }
+  /* 键盘可达性：全站只在"键盘操作时"画焦点环（:focus-visible），
+     鼠标点击不会留下难看的框。之前一条 :focus 规则都没有，
+     Tab 走一圈看不见自己在哪儿。 */
+  :focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; border-radius: 4px; }
+  .tab:focus-visible, button:focus-visible { outline-offset: 1px; }
+  .cline:focus-visible { outline: none; }
   body {
     display: flex; flex-direction: column; overflow: hidden;
     background: #0b1020; color: #e6edf7;
@@ -39,7 +45,25 @@
 
   main { flex: 1; display: flex; min-height: 0; }
   .left { width: 430px; min-width: 300px; display: flex; flex-direction: column; border-right: 1px solid #1e293b; }
+  /* 代码区与画布之间的分隔条：8px 的拖动热区，中间一条 1px 亮线 */
+  .splitter {
+    flex: 0 0 8px; cursor: col-resize; background: transparent; position: relative;
+    touch-action: none;
+  }
+  .splitter::after {
+    content: ''; position: absolute; inset: 0 3px; border-radius: 2px;
+    background: transparent; transition: background .15s;
+  }
+  .splitter:hover::after, .splitter.dragging::after, .splitter:focus-visible::after { background: #38bdf8; }
+  .splitter:focus-visible { outline-offset: 0; }
   .pick { padding: 10px 12px; border-bottom: 1px solid #16203a; }
+  #demoFilter {
+    width: 100%; background: #0d1626; color: #dbe7fb; border: 1px solid #24314e;
+    border-radius: 7px; padding: 6px 9px; font-size: 12.5px; font-family: inherit;
+    margin-bottom: 6px;
+  }
+  #demoFilter::placeholder { color: #5b6c88; }
+  .filter-hint { display: block; font-size: 11px; color: #7d8ba3; min-height: 14px; margin: -2px 2px 4px; }
   select {
     width: 100%; background: #111a2e; color: #dbe7fb; border: 1px solid #24314e;
     border-radius: 7px; padding: 7px 9px; font-size: 13px; font-family: inherit;
@@ -167,10 +191,18 @@
   button:hover:not(:disabled) { border-color: #3b82f6; color: #fff; }
   button:disabled { opacity: .38; cursor: default; }
   #play { background: linear-gradient(180deg, #2563eb, #1d4ed8); border-color: #3b82f6; color: #fff; min-width: 74px; }
+  /* 播放中按钮变成"暂停"，颜色换成琥珀色：一眼能看出"现在在动"，
+     也避免蓝色按钮被误认成"再点一次播放" */
+  #play.playing {
+    background: linear-gradient(180deg, #d97706, #b45309);
+    border-color: #f59e0b; color: #fffbeb;
+  }
   #range { flex: 1; accent-color: #38bdf8; }
   #prog { font-size: 12px; color: #8ea6c6; min-width: 74px; text-align: center; font-variant-numeric: tabular-nums; }
-  .speed { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #8ea6c6; }
-  .speed input { width: 96px; accent-color: #38bdf8; }
+  .speed { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #8ea6c6; }
+  .speed input { width: 92px; accent-color: #38bdf8; }
+  .speed-end { font-size: 11px; color: #6b7f9c; letter-spacing: .5px; }
+  #speedval { font-size: 11px; color: #8ea6c6; min-width: 58px; font-variant-numeric: tabular-nums; }
 
   /* SVG 元素 */
   .nd rect, .nd circle { transition: stroke .12s, fill .12s; }
@@ -243,6 +275,8 @@
     footer { flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
     #range { flex: 1 1 100%; order: 5; }
     button { padding: 8px 12px; }
+    /* 手机上左右是上下排的，拖动条没有意义 */
+    .splitter { display: none; }
   }
 
   /* 系统设置里开了"减少动态效果"的人，多半是对闪动敏感（前庭功能障碍、偏头痛）。
@@ -266,19 +300,26 @@
 </header>
 
 <main>
-  <section class="left" aria-label="算法代码">
+  <section class="left" id="leftcol" aria-label="算法代码">
     <div class="pick">
+      <input id="demoFilter" type="search" autocomplete="off" spellcheck="false"
+             placeholder="筛选模板：Dijkstra / 逆置 / 快排…（按 / 聚焦）"
+             aria-label="按名字筛选当前章节的模板" aria-describedby="filterHint">
+      <span id="filterHint" class="filter-hint" role="status" aria-live="polite"></span>
       <select id="demoSel" aria-label="选择模板"></select>
       <select id="caseSel" aria-label="选择输入用例" style="display:none"></select>
       <p class="note" id="note"></p>
     </div>
-    <div class="codebox" role="region" aria-label="带高亮的 C 代码"><div class="code" id="code"></div></div>
+    <div class="codebox" role="region" aria-label="带高亮的 C 代码，可用方向键滚动"
+         id="codebox" tabindex="0"><div class="code" id="code"></div></div>
     <div class="typedefs" id="typedefs">
       <div class="td-head" id="tdhead">结构体定义</div>
       <pre id="tdbody" tabindex="0" aria-label="结构体定义，可用方向键滚动"></pre>
     </div>
   </section>
-  <section class="right" aria-label="动画与说明">
+  <div class="splitter" id="splitter" role="separator" aria-orientation="vertical"
+       aria-label="拖动或用左右方向键调整代码区宽度" tabindex="0"></div>
+  <section class="right" id="rightcol" aria-label="动画与说明">
     <div class="desc" id="desc" aria-live="polite"></div>
     <div class="extra" id="extra"></div>
     <div class="stagewrap">
@@ -313,9 +354,16 @@
   <button id="prev" aria-label="上一步">‹ 上一步</button>
   <button id="play" aria-label="播放或暂停">播放</button>
   <button id="next" aria-label="下一步">下一步 ›</button>
+  <button id="share" aria-label="复制当前帧的链接">复制链接</button>
   <input id="range" type="range" min="0" max="0" value="0" aria-label="帧进度">
   <span id="prog" aria-hidden="true">1 / 1</span>
-  <span class="speed">速度 <input id="speed" type="range" min="180" max="1600" step="20" value="760" aria-label="播放速度"></span>
+  <span class="speed">
+    <span class="speed-end" aria-hidden="true">慢</span>
+    <input id="speed" type="range" min="1" max="5" step="1" value="3"
+           aria-label="播放速度（5 档，越往右越快）" aria-valuetext="第 3 档，共 5 档">
+    <span class="speed-end" aria-hidden="true">快</span>
+    <span id="speedval" aria-hidden="true">3 档</span>
+  </span>
 </footer>
 
 <script>
@@ -4040,9 +4088,232 @@ CH('sort').demos.push({
   var progEl = document.getElementById('prog');
   var playBtn = document.getElementById('play');
   var speedEl = document.getElementById('speed');
+  var speedValEl = document.getElementById('speedval');
+  var filterEl = document.getElementById('demoFilter');
+  var hintEl = document.getElementById('filterHint');
+  var splitEl = document.getElementById('splitter');
+  var leftEl = document.getElementById('leftcol');
+  var shareBtn = document.getElementById('share');
+  var codeBoxEl = document.getElementById('codebox');
 
-  var curChap = 0, curDemo = 0, frames = [], step = 0, timer = null;
+  var curChap = 0, curDemo = 0, frames = [], step = 0, timer = null, resetTimer = null;
   var maxDepth = 0, BLK = 33, BLK_H = 29;   /* 递归栈：本模板最大栈深（决定桶高）、单块占高（29 + gap 4） */
+
+  /* 速度：5 档，滑块越往右越快。数组存的是"每帧停多少毫秒"，
+     所以必须是从大到小——左端慢、右端快。 */
+  var SPEED_STEPS = [1600, 1100, 760, 480, 280];
+  var SPEED_NAMES = ['很慢', '慢', '正常', '快', '很快'];
+
+  function speedLevel() {
+    var v = parseInt(speedEl.value, 10);
+    if (isNaN(v)) v = 3;
+    return Math.min(SPEED_STEPS.length, Math.max(1, v));
+  }
+  function speedDelay() { return SPEED_STEPS[speedLevel() - 1]; }
+  /* 档位一变，就把"慢/快"的读数、无障碍文本、正在跑的定时器一起同步 */
+  function syncSpeed() {
+    var lv = speedLevel();
+    if (+speedEl.value !== lv) speedEl.value = String(lv);
+    var txt = SPEED_NAMES[lv - 1] + '（' + lv + '/' + SPEED_STEPS.length + '）';
+    if (speedValEl) speedValEl.textContent = lv + ' 档 · ' + SPEED_NAMES[lv - 1];
+    speedEl.setAttribute('aria-valuetext', '第 ' + lv + ' 档，' + SPEED_NAMES[lv - 1] + '，每帧 ' + speedDelay() + ' 毫秒');
+    speedEl.setAttribute('title', '播放速度：' + txt);
+  }
+
+  /* ------------------------------------------------------- 模板筛选（输入框）
+     38 个模板靠下拉翻太慢，所以给一个筛选框：只按"名字/编号"过滤当前章节，
+     不会跨章跳转（跨章的事交给上面的章标签）。 */
+  var demoQuery = '';
+  var filterTimer = null;
+
+  function demoMatches(d) {
+    if (!demoQuery) return true;
+    var q = demoQuery.toLowerCase();
+    return d.name.toLowerCase().indexOf(q) >= 0 || d.id.toLowerCase().indexOf(q) >= 0;
+  }
+  /* 本章没命中时，告诉用户"它其实在别章"，省得以为整个网站都没这个模板 */
+  function noMatchHint() {
+    var q = demoQuery.toLowerCase();
+    var where = [];
+    CHAP.forEach(function (c) {
+      if (c === CHAP[curChap]) return;
+      var n = c.demos.filter(demoMatches).length;
+      if (n) where.push(c.name + ' ' + n + ' 个');
+      else if (c.name.toLowerCase().indexOf(q) >= 0) where.push(c.name + '（整章）');
+    });
+    if (where.length) return '本章没有，' + where.join('、') + '——点上面的章标签过去';
+    return '没有匹配的模板，按 Esc 清空筛选';
+  }
+  /* 按当前筛选重建下拉；返回过滤后第一个真实下标（没有就是 -1） */
+  function rebuildDemoOptions() {
+    var all = CHAP[curChap].demos;
+    selEl.innerHTML = '';
+    var first = -1;
+    all.forEach(function (d, k) {
+      if (!demoMatches(d)) return;
+      if (first < 0) first = k;
+      var o = document.createElement('option');
+      o.value = String(k);
+      o.textContent = d.name;
+      selEl.appendChild(o);
+    });
+    if (first < 0) {
+      selEl.disabled = true;
+      hintEl.textContent = noMatchHint();
+      return -1;
+    }
+    selEl.disabled = false;
+    hintEl.textContent = demoQuery ? '筛出 ' + selEl.children.length + ' / ' + all.length + ' 个模板' : '';
+    return first;
+  }
+  function setFilter(v) {
+    demoQuery = String(v || '').trim();
+    if (filterEl.value !== demoQuery && document.activeElement !== filterEl) filterEl.value = demoQuery;
+    var first = rebuildDemoOptions();
+    if (first < 0) return;
+    /* 当前模板被筛掉了 → 自动跳到第一个命中的，省一次点击 */
+    if (CHAP[curChap].demos[curDemo] && !demoMatches(CHAP[curChap].demos[curDemo])) load(first);
+    else selEl.value = String(curDemo);
+  }
+
+  /* --------------------------------------------------- 代码区宽度（可拖动）
+     代码行太长会折行（实测 449 行里有 116 行折成两行），折行后行号与内容对不齐。
+     给一根拖动条：宽度记在 localStorage，键盘也能调。
+     默认 560px —— 449 行代码里 431 行（96%）在 65 字符以内，这个宽度刚好放得下，
+     剩下几行特别长的（图的 Dijkstra / Prim）再靠拖。 */
+  var SPLIT_KEY = 'ds408-anim:split';
+  var splitW = 560;
+  var SPLIT_MIN = 300;
+
+  function viewportW() {
+    return (typeof window !== 'undefined' && window.innerWidth) || 1440;
+  }
+  function splitMax() { return Math.max(SPLIT_MIN + 20, Math.round(viewportW() * 0.62)); }
+  function applySplit(w) {
+    splitW = Math.max(SPLIT_MIN, Math.min(splitMax(), Math.round(w)));
+    if (leftEl && leftEl.style) leftEl.style.width = splitW + 'px';
+    if (splitEl) {
+      splitEl.setAttribute('aria-valuenow', String(splitW));
+      splitEl.setAttribute('aria-valuemin', String(SPLIT_MIN));
+      splitEl.setAttribute('aria-valuemax', String(splitMax()));
+      splitEl.setAttribute('title', '拖动调整代码区宽度：' + splitW + 'px');
+    }
+    return splitW;
+  }
+  function saveSplit() {
+    if (!canStore) return;
+    try { localStorage.setItem(SPLIT_KEY, String(splitW)); } catch (e) { /* 存不下就算了 */ }
+  }
+  function restoreSplit() {
+    var w = NaN;
+    if (canStore) {
+      try { w = parseInt(localStorage.getItem(SPLIT_KEY), 10); } catch (e) { w = NaN; }
+    }
+    applySplit(isFinite(w) ? w : splitW);
+  }
+  function bindSplitter() {
+    var dragging = false, startX = 0, startW = 0;
+    function down(e) {
+      dragging = true;
+      startX = e.clientX; startW = splitW;
+      splitEl.classList.add('dragging');
+      if (splitEl.setPointerCapture && e.pointerId != null) {
+        try { splitEl.setPointerCapture(e.pointerId); } catch (err) { /* 无所谓 */ }
+      }
+      e.preventDefault();
+    }
+    function move(e) {
+      if (!dragging) return;
+      applySplit(startW + (e.clientX - startX));
+    }
+    function up() {
+      if (!dragging) return;
+      dragging = false;
+      splitEl.classList.remove('dragging');
+      saveSplit();
+    }
+    if (!splitEl) return;
+    splitEl.addEventListener('pointerdown', down);
+    splitEl.addEventListener('pointermove', move);
+    splitEl.addEventListener('pointerup', up);
+    splitEl.addEventListener('pointercancel', up);
+    splitEl.addEventListener('keydown', function (e) {
+      var d = e.key === 'ArrowLeft' ? -20 : e.key === 'ArrowRight' ? 20 : 0;
+      if (d) { e.preventDefault(); applySplit(splitW + d); saveSplit(); }
+      else if (e.key === 'Home') { e.preventDefault(); applySplit(SPLIT_MIN); saveSplit(); }
+      else if (e.key === 'End') { e.preventDefault(); applySplit(splitMax()); saveSplit(); }
+    });
+  }
+
+  /* ----------------------------------------------- 地址栏同步 + 复制链接
+     深链接本来就能"读"（#章@模板@帧@用例），但页面从不往地址栏写，
+     所以没法把"第 12 帧"发给别人。这里用 replaceState 静默更新，
+     不产生历史记录，浏览器返回键的行为不变。 */
+  var hashTimer = null;
+
+  function hashOf() {
+    var ch = CHAP[curChap];
+    var demo = ch && ch.demos[curDemo];
+    if (!demo) return '';
+    var ci = caseEl.value === '' ? 0 : caseEl.value;
+    return '#' + ch.id + '@' + demo.id + '@' + step + '@' + ci;
+  }
+  function syncHashNow() {
+    if (typeof history === 'undefined' || !history.replaceState) return;
+    var h = hashOf();
+    if (!h || location.hash === h) return;
+    try { history.replaceState(null, '', h); } catch (e) { /* 沙箱里可能不让改 */ }
+  }
+  function syncHash() {
+    if (hashTimer) clearTimeout(hashTimer);
+    hashTimer = setTimeout(function () { hashTimer = null; syncHashNow(); }, 160);
+  }
+
+  function fullLink() {
+    var h = hashOf();
+    if (typeof location === 'undefined') return h;
+    var base = String(location.href || '').split('#')[0];
+    return base + h;
+  }
+  function copyText(txt) {
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(txt);
+    }
+    /* 老浏览器 / 非 https 的兜底：塞一个隐藏 textarea 里选中复制 */
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = txt;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = document.execCommand && document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok ? Promise.resolve() : Promise.reject(new Error('execCommand 不支持'));
+    } catch (e) {
+      return Promise.reject(e);
+    }
+  }
+  var shareTimer = null;
+  function flashShare(text, ok) {
+    if (!shareBtn) return;
+    shareBtn.textContent = text;
+    shareBtn.classList.toggle('done', !!ok);
+    shareBtn.setAttribute('aria-label', text);
+    if (shareTimer) clearTimeout(shareTimer);
+    shareTimer = setTimeout(function () {
+      shareTimer = null;
+      shareBtn.textContent = '复制链接';
+      shareBtn.classList.remove('done');
+      shareBtn.setAttribute('aria-label', '复制当前帧的链接');
+    }, 1600);
+  }
+  function doShare() {
+    syncHashNow();
+    copyText(fullLink()).then(function () { flashShare('已复制', true); },
+      function () { flashShare('复制失败', false); });
+  }
 
   function buildTabs() {
     tabsEl.setAttribute('role', 'tablist');
@@ -4067,13 +4338,8 @@ CH('sort').demos.push({
       b.classList.toggle('on', k === i);
       b.setAttribute('aria-selected', k === i ? 'true' : 'false');
     });
-    selEl.innerHTML = '';
-    CHAP[i].demos.forEach(function (d, k) {
-      var o = document.createElement('option');
-      o.value = k; o.textContent = d.name;
-      selEl.appendChild(o);
-    });
-    load(0);
+    var first = rebuildDemoOptions();
+    load(first < 0 ? 0 : first);
   }
 
   /* 把当前行 if/while 的判定条件单独包一层 .cond（括号配对扫描，取第一对完整括号） */
@@ -4188,7 +4454,9 @@ CH('sort').demos.push({
 
   function load(k, ci) {
     stop();
+    cancelReset();
     curDemo = k;
+    if (selEl.children.length) selEl.value = String(k);
     var demo = CHAP[curChap].demos[k];
     noteEl.innerHTML = demo.note || '';
     showTypes(CHAP[curChap].id);   /* 链表/二叉树/图 三章各显示一份结构体定义 */
@@ -4300,6 +4568,7 @@ CH('sort').demos.push({
     rangeEl.setAttribute('aria-valuetext', '第 ' + (step + 1) + ' 帧，共 ' + frames.length + ' 帧');
     stage.setAttribute('aria-label', '第 ' + (step + 1) + ' 帧：' + (f.desc || '').replace(/<[^>]+>/g, ''));
     saveState();
+    syncHash();   /* 地址栏跟着走：这样"把第 12 帧发给同学"就只是复制一下地址 */
   }
 
   /* 上一帧的栈深度，用来判断这一帧是"进栈"还是"出栈" */
@@ -4448,6 +4717,7 @@ CH('sort').demos.push({
   }
 
   function go(d) {
+    cancelReset();
     var t = step + d;
     if (t < 0) t = 0;
     if (t >= frames.length) t = frames.length - 1;
@@ -4457,28 +4727,63 @@ CH('sort').demos.push({
   }
   function play() {
     if (timer) { stop(); return; }
+    cancelReset();
+    /* 已经停在最后一帧时再点播放：从第 1 帧重新开始，而不是立刻又"播完" */
+    if (step >= frames.length - 1) { step = 0; showStep(); }
     playBtn.textContent = '暂停';
     playBtn.setAttribute('aria-label', '暂停');
+    playBtn.classList.add('playing');
     timer = setInterval(function () {
-      if (step >= frames.length - 1) { stop(); return; }
+      if (step >= frames.length - 1) { finish(); return; }
       step++; showStep();
-    }, +speedEl.value);
+    }, speedDelay());
+  }
+  /* 播完：先停在最后一帧让人看清结果，过一会儿再回到开头 */
+  function finish() {
+    stop();
+    resetTimer = setTimeout(function () {
+      resetTimer = null;
+      step = 0;
+      showStep();
+    }, Math.max(700, speedDelay()));
+  }
+  function cancelReset() {
+    if (resetTimer) { clearTimeout(resetTimer); resetTimer = null; }
   }
   function stop() {
     if (timer) clearInterval(timer);
     timer = null;
     playBtn.textContent = '播放';
     playBtn.setAttribute('aria-label', '播放');
+    playBtn.classList.remove('playing');
   }
 
   /* ---------------------------------------------------------------- 事件 */
   document.getElementById('prev').onclick = function () { stop(); go(-1); };
   document.getElementById('next').onclick = function () { stop(); go(1); };
   playBtn.onclick = play;
-  rangeEl.oninput = function () { stop(); step = +rangeEl.value; showStep(); };
+  rangeEl.oninput = function () { stop(); cancelReset(); step = +rangeEl.value; showStep(); };
   selEl.onchange = function () { load(+selEl.value); };
-  speedEl.oninput = function () { if (timer) { stop(); play(); } };
+  speedEl.oninput = function () {
+    syncSpeed();
+    if (timer) { stop(); play(); }   /* 正在播就按新速度重开定时器 */
+  };
+  if (filterEl) {
+    filterEl.addEventListener('input', function () {
+      if (filterTimer) clearTimeout(filterTimer);
+      filterTimer = setTimeout(function () { filterTimer = null; setFilter(filterEl.value); }, 120);
+    });
+  }
+  if (shareBtn) shareBtn.onclick = doShare;
   document.addEventListener('keydown', function (e) {
+    var tag = (e.target && e.target.tagName) || '';
+    var typing = tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA';
+    /* "/" 跳到筛选框：38 个模板翻下拉太慢，这是最常用的入口 */
+    if (e.key === '/' && !typing) { e.preventDefault(); if (filterEl) filterEl.focus(); return; }
+    if (e.key === 'Escape' && filterEl && document.activeElement === filterEl) {
+      e.preventDefault(); filterEl.value = ''; setFilter(''); return;
+    }
+    if (typing) return;   /* 在输入框里按方向键，应该是移动光标而不是翻帧 */
     if (e.key === 'ArrowRight') { e.preventDefault(); stop(); go(1); }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); stop(); go(-1); }
     else if (e.code === 'Space') { e.preventDefault(); play(); }
@@ -4500,7 +4805,7 @@ CH('sort').demos.push({
       localStorage.setItem(STORE_KEY, JSON.stringify({
         chapter: curChap, demo: curDemo,
         caseIdx: caseEl.value === '' ? null : +caseEl.value,
-        step: step, at: Date.now()
+        step: step, speed: speedLevel(), at: Date.now()
       }));
     } catch (e) { /* 写不进去就算了，不影响看动画 */ }
   }
@@ -4514,6 +4819,7 @@ CH('sort').demos.push({
   function restoreLast() {
     var s = readState();
     if (!s || typeof s.chapter !== 'number' || !CHAP[s.chapter]) return false;
+    if (s.speed) { speedEl.value = String(s.speed); syncSpeed(); }
     switchChapter(s.chapter);
     var di = Math.min(Math.max(0, s.demo | 0), CHAP[s.chapter].demos.length - 1);
     selEl.value = String(di);
@@ -4532,6 +4838,9 @@ CH('sort').demos.push({
       if (c.id === cid) { ci = i; di = Math.max(0, c.demos.findIndex(function (d) { return d.id === did; })); }
     });
     if (ci < 0) return;
+    /* 深链接永远优先：就算筛选框里还留着上次的关键字，也要能跳到链接指定的模板 */
+    demoQuery = '';
+    if (filterEl) filterEl.value = '';
     switchChapter(ci);
     selEl.value = String(di);
     load(di, parts[3] != null ? +parts[3] : null);   /* #章@模板@步@案例 */
@@ -4540,6 +4849,9 @@ CH('sort').demos.push({
   window.addEventListener('hashchange', fromHash);
 
   buildTabs();
+  syncSpeed();   /* 把档位读数、无障碍文本与初始值对齐 */
+  restoreSplit();   /* 上次拖出来的代码区宽度 */
+  bindSplitter();
   if (CHAP[0].demos.length) switchChapter(0);
   /* 地址栏的 #章@模板@步@案例 优先；没有就接着上次看的地方 */
   var hasHash = typeof location !== 'undefined' && location.hash.length > 1;
@@ -4565,7 +4877,28 @@ CH('sort').demos.push({
     },
     stepTo: function (i) { step = Math.max(0, Math.min(i, frames.length - 1)); showStep(); return step; },
     frames: function () { return frames; },
-    state: function () { return { chapter: curChap, demo: curDemo, step: step, frames: frames.length }; }
+    state: function () { return { chapter: curChap, demo: curDemo, step: step, frames: frames.length }; },
+    /* 速度档位：给测试用，断言"5 档、越往右越快" */
+    speed: function () {
+      return { level: speedLevel(), delay: speedDelay(), steps: SPEED_STEPS.slice(), names: SPEED_NAMES.slice() };
+    },
+    setSpeed: function (lv) { speedEl.value = String(lv); syncSpeed(); return speedDelay(); },
+    /* 播放器：给测试用，验证"播完回开头"和按钮状态 */
+    play: function () { play(); return !!timer; },
+    stop: function () { stop(); return !!timer; },
+    playing: function () { return !!timer; },
+    playState: function () {
+      return { playing: !!timer, label: playBtn.textContent, cls: playBtn.className };
+    },
+    /* 外壳：筛选、地址栏同步、拖动条 —— 都是"界面行为"，值得有测试盯着 */
+    setFilter: function (q) { if (filterEl) filterEl.value = q; setFilter(q); return selEl.children.length; },
+    options: function () {
+      return Array.prototype.map.call(selEl.children, function (o) { return { value: o.value, text: o.textContent }; });
+    },
+    hash: function () { syncHashNow(); return location.hash; },
+    link: function () { syncHashNow(); return fullLink(); },
+    codeWidth: function () { return splitW; },
+    setCodeWidth: function (w) { applySplit(w); saveSplit(); return splitW; }
   };
 })(window.DSANIM = window.DSANIM || {});
 

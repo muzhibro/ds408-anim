@@ -13,6 +13,12 @@
   ::-webkit-scrollbar-thumb:active { background: #4a6591; }
   ::-webkit-scrollbar-corner { background: transparent; }
   html, body { height: 100%; margin: 0; }
+  /* 键盘可达性：全站只在"键盘操作时"画焦点环（:focus-visible），
+     鼠标点击不会留下难看的框。之前一条 :focus 规则都没有，
+     Tab 走一圈看不见自己在哪儿。 */
+  :focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; border-radius: 4px; }
+  .tab:focus-visible, button:focus-visible { outline-offset: 1px; }
+  .cline:focus-visible { outline: none; }
   body {
     display: flex; flex-direction: column; overflow: hidden;
     background: #0b1020; color: #e6edf7;
@@ -32,7 +38,25 @@
 
   main { flex: 1; display: flex; min-height: 0; }
   .left { width: 430px; min-width: 300px; display: flex; flex-direction: column; border-right: 1px solid #1e293b; }
+  /* 代码区与画布之间的分隔条：8px 的拖动热区，中间一条 1px 亮线 */
+  .splitter {
+    flex: 0 0 8px; cursor: col-resize; background: transparent; position: relative;
+    touch-action: none;
+  }
+  .splitter::after {
+    content: ''; position: absolute; inset: 0 3px; border-radius: 2px;
+    background: transparent; transition: background .15s;
+  }
+  .splitter:hover::after, .splitter.dragging::after, .splitter:focus-visible::after { background: #38bdf8; }
+  .splitter:focus-visible { outline-offset: 0; }
   .pick { padding: 10px 12px; border-bottom: 1px solid #16203a; }
+  #demoFilter {
+    width: 100%; background: #0d1626; color: #dbe7fb; border: 1px solid #24314e;
+    border-radius: 7px; padding: 6px 9px; font-size: 12.5px; font-family: inherit;
+    margin-bottom: 6px;
+  }
+  #demoFilter::placeholder { color: #5b6c88; }
+  .filter-hint { display: block; font-size: 11px; color: #7d8ba3; min-height: 14px; margin: -2px 2px 4px; }
   select {
     width: 100%; background: #111a2e; color: #dbe7fb; border: 1px solid #24314e;
     border-radius: 7px; padding: 7px 9px; font-size: 13px; font-family: inherit;
@@ -160,10 +184,18 @@
   button:hover:not(:disabled) { border-color: #3b82f6; color: #fff; }
   button:disabled { opacity: .38; cursor: default; }
   #play { background: linear-gradient(180deg, #2563eb, #1d4ed8); border-color: #3b82f6; color: #fff; min-width: 74px; }
+  /* 播放中按钮变成"暂停"，颜色换成琥珀色：一眼能看出"现在在动"，
+     也避免蓝色按钮被误认成"再点一次播放" */
+  #play.playing {
+    background: linear-gradient(180deg, #d97706, #b45309);
+    border-color: #f59e0b; color: #fffbeb;
+  }
   #range { flex: 1; accent-color: #38bdf8; }
   #prog { font-size: 12px; color: #8ea6c6; min-width: 74px; text-align: center; font-variant-numeric: tabular-nums; }
-  .speed { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #8ea6c6; }
-  .speed input { width: 96px; accent-color: #38bdf8; }
+  .speed { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #8ea6c6; }
+  .speed input { width: 92px; accent-color: #38bdf8; }
+  .speed-end { font-size: 11px; color: #6b7f9c; letter-spacing: .5px; }
+  #speedval { font-size: 11px; color: #8ea6c6; min-width: 58px; font-variant-numeric: tabular-nums; }
 
   /* SVG 元素 */
   .nd rect, .nd circle { transition: stroke .12s, fill .12s; }
@@ -236,6 +268,8 @@
     footer { flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
     #range { flex: 1 1 100%; order: 5; }
     button { padding: 8px 12px; }
+    /* 手机上左右是上下排的，拖动条没有意义 */
+    .splitter { display: none; }
   }
 
   /* 系统设置里开了"减少动态效果"的人，多半是对闪动敏感（前庭功能障碍、偏头痛）。

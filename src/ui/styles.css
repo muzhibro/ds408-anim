@@ -47,6 +47,17 @@
   .cline .no { position: absolute; left: 4px; top: 0; width: 28px; text-align: right; color: #41526e; user-select: none; }
   .cline.hl { background: rgba(56,189,248,.13); box-shadow: inset 2px 0 0 #38bdf8; color: #eaf4ff; }
   .cline.hl .no { color: #7ea9d8; }
+  /* 代码上色：配色对齐 VS Code Dark+，按这个深底（#0b1220）微调过亮度 */
+  .t-com { color: #6a9955; }      /* 注释 */
+  .t-str { color: #ce9178; }      /* 字符串、字符 */
+  .t-num { color: #b5cea8; }      /* 数字 */
+  .t-kw  { color: #c586c0; }      /* if / while / return … */
+  .t-ty  { color: #4ec9b0; }      /* int / BiTree / LNode … */
+  .t-fn  { color: #dcdcaa; }      /* 函数名 */
+  .t-cn  { color: #4fc1ff; }      /* 宏常量：MAXSIZE / NULL … */
+  .t-fd  { color: #9cdcfe; }      /* -> 与 . 后面的字段 */
+  .t-pre { color: #4fc1ff; }      /* #include / #define 整行 */
+  .t-op  { color: #8ea7c8; }      /* 运算符与标点 */
   /* 当前这一行的判定条件（if/while 括号里那一段）单独提亮，箭头指向的就是它 */
   .cond {
     background: rgba(167,139,250,.34); box-shadow: inset 0 -2px 0 #a78bfa;
@@ -178,8 +189,6 @@
     margin: 0; padding: 8px 12px 10px; overflow: auto; max-height: 232px;
     font: 10px/1.5 "Cascadia Code", Consolas, monospace; color: #c6d4ea; white-space: pre;
   }
-  .typedefs pre i { color: #64748b; font-style: normal; }
-  .typedefs pre b { color: #f0abfc; font-weight: 600; }
   .indpanel { display: none; }
   .indpanel.on { display: block; }
   .indpanel .ds-kind { margin-left: auto; }

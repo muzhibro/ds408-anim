@@ -54,6 +54,17 @@
   .cline .no { position: absolute; left: 4px; top: 0; width: 28px; text-align: right; color: #41526e; user-select: none; }
   .cline.hl { background: rgba(56,189,248,.13); box-shadow: inset 2px 0 0 #38bdf8; color: #eaf4ff; }
   .cline.hl .no { color: #7ea9d8; }
+  /* 代码上色：配色对齐 VS Code Dark+，按这个深底（#0b1220）微调过亮度 */
+  .t-com { color: #6a9955; }      /* 注释 */
+  .t-str { color: #ce9178; }      /* 字符串、字符 */
+  .t-num { color: #b5cea8; }      /* 数字 */
+  .t-kw  { color: #c586c0; }      /* if / while / return … */
+  .t-ty  { color: #4ec9b0; }      /* int / BiTree / LNode … */
+  .t-fn  { color: #dcdcaa; }      /* 函数名 */
+  .t-cn  { color: #4fc1ff; }      /* 宏常量：MAXSIZE / NULL … */
+  .t-fd  { color: #9cdcfe; }      /* -> 与 . 后面的字段 */
+  .t-pre { color: #4fc1ff; }      /* #include / #define 整行 */
+  .t-op  { color: #8ea7c8; }      /* 运算符与标点 */
   /* 当前这一行的判定条件（if/while 括号里那一段）单独提亮，箭头指向的就是它 */
   .cond {
     background: rgba(167,139,250,.34); box-shadow: inset 0 -2px 0 #a78bfa;
@@ -185,8 +196,6 @@
     margin: 0; padding: 8px 12px 10px; overflow: auto; max-height: 232px;
     font: 10px/1.5 "Cascadia Code", Consolas, monospace; color: #c6d4ea; white-space: pre;
   }
-  .typedefs pre i { color: #64748b; font-style: normal; }
-  .typedefs pre b { color: #f0abfc; font-weight: 600; }
   .indpanel { display: none; }
   .indpanel.on { display: block; }
   .indpanel .ds-kind { margin-left: auto; }
@@ -3561,37 +3570,37 @@ CH('sort').demos.push({
   var GRAPH_TYPES = [
     '#define MaxVertexNum 100',
     '',
-    'typedef struct <b>ArcNode</b> {      /* 边表结点＝一条边 */',
+    'typedef struct ArcNode {      /* 边表结点＝一条边 */',
     '    int  adjvex;         /* 指向哪个顶点 */',
     '    struct ArcNode *nextarc;   /* 下一条边 */',
     '    int  weight;         /* 权值 */',
     '} ArcNode;',
     '',
-    'typedef struct <b>VNode</b> {        /* 顶点表结点＝一个顶点 */',
+    'typedef struct VNode {        /* 顶点表结点＝一个顶点 */',
     '    ElemType data;       /* 顶点信息 */',
     '    ArcNode *firstarc;   /* 第一条边 */',
-    '} VNode, <b>AdjList</b>[MaxVertexNum];',
+    '} VNode, AdjList[MaxVertexNum];',
     '',
     'typedef struct {            /* 邻接表＝顶点数组＋边链表 */',
     '    AdjList vertices;    /* vertices[i] 是第 i 个顶点 */',
     '    int vexnum, arcnum;  /* 顶点数、边数 */',
-    '} <b>ALGraph</b>;',
+    '} ALGraph;',
     '',
     'typedef struct {            /* 邻接矩阵版：稠密图 */',
     '    ElemType edge[MaxVertexNum][MaxVertexNum];',
     '    int vexnum, arcnum;',
-    '} <b>MGraph</b>;'
+    '} MGraph;'
   ].join('\n');
 
   var LIST_TYPES = [
-    'typedef struct <b>LNode</b> {        /* 单链表结点 */',
+    'typedef struct LNode {        /* 单链表结点 */',
     '    ElemType data;       /* 数据域 */',
     '    struct LNode *next;  /* 指针域：下一个结点 */',
-    '} LNode, <b>*LinkList</b>;',
+    '} LNode, *LinkList;',
     '',
     '/* 头结点：不放数据，只负责"指路"，处理边界更省事 */',
     '',
-    'typedef struct <b>DNode</b> {        /* 双链表结点 */',
+    'typedef struct DNode {        /* 双链表结点 */',
     '    ElemType data;',
     '    struct DNode *prior;  /* 前驱 */',
     '    struct DNode *next;   /* 后继 */',
@@ -3599,14 +3608,14 @@ CH('sort').demos.push({
   ].join('\n');
 
   var TREE_TYPES = [
-    'typedef struct <b>BiTNode</b> {     /* 二叉树结点 */',
+    'typedef struct BiTNode {     /* 二叉树结点 */',
     '    ElemType data;',
     '    struct BiTNode *lchild;  /* 左孩子 */',
     '    struct BiTNode *rchild;  /* 右孩子 */',
-    '} BiTNode, <b>*BiTree</b>;',
+    '} BiTNode, *BiTree;',
     '',
     '/* 线索二叉树：空的指针拿来指"前驱/后继" */',
-    'typedef struct <b>ThreadNode</b> {',
+    'typedef struct ThreadNode {',
     '    ElemType data;',
     '    struct ThreadNode *lchild, *rchild;',
     '    int ltag, rtag;  /* 0=孩子 1=线索 */',
@@ -3620,12 +3629,101 @@ CH('sort').demos.push({
   NS.TYPE_NAME = TYPE_NAME;
 })(window.DSANIM = window.DSANIM || {});
 
+/* ---- src/ui/highlight.js ---- */
+/* ui · C 代码上色
+ *
+ * 把 demo.code 的一行 C 代码切成词元，交给 app 渲染成带 class 的 <span>。
+ * 输出的是词元数组而不是 HTML 字符串：这样测试可以断言"拼回去等于原文"，
+ * 渲染全程走 textContent，不需要担心转义，也不会把代码当标签解析。
+ *
+ * 只认这个项目用得到的 C 子集：关键字、标准类型、自定义结构体名、宏常量、
+ * 函数名、-> 与 . 后面的字段、数字、字符串、字符、行注释、块注释、# 预处理行。
+ */
+(function (NS) {
+  'use strict';
+
+  function set(s) { var m = {}; s.split(' ').forEach(function (w) { m[w] = 1; }); return m; }
+
+  var KW = set('if else while for do return break continue switch case default goto false true');
+  var TYPE = set('void int char short long float double unsigned signed const static typedef struct union enum sizeof');
+  var CONST = set('NULL MAXSIZE MAXV INF');
+  var CUSTOM = set('LNode LinkList DNode DLinkList BiTree BiTNode ThreadNode ThreadTree SqList '
+    + 'ArcNode VNode ALGraph MGraph Edge Stack Queue Visited ElemType Status WeightType VertexType');
+
+  /* 顺序有意义：注释与字符串要在运算符之前，-> 要在单个 - 之前 */
+  var RE = /(\s+)|(\/\*[\s\S]*?\*\/)|(\/\/[^\n]*)|(L?"(?:[^"\\]|\\.)*")|('(?:[^'\\]|\\.)*')|(->|\.\.\.)|(==|!=|<=|>=|&&|\|\||\+\+|--|[=+\-*\/%<>!&|^~?:;,.()\[\]{}])|([0-9][0-9A-Za-z_.]*)|([A-Za-z_][A-Za-z0-9_]*)/g;
+
+  function tokens(line) {
+    var out = [];
+    var lastSig = '';          /* 上一个非空白词元，用来判断 -> 后面的字段名 */
+    RE.lastIndex = 0;
+    var m;
+    while ((m = RE.exec(line))) {
+      if (m[1]) { out.push({ text: m[0], cls: null }); continue; }
+      if (m[2] || m[3]) { out.push({ text: m[0], cls: 't-com' }); lastSig = '/*'; continue; }
+      if (m[4] || m[5]) { out.push({ text: m[0], cls: 't-str' }); lastSig = 'str'; continue; }
+      if (m[6] || m[7]) { out.push({ text: m[0], cls: 't-op' }); lastSig = m[0]; continue; }
+      if (m[8]) { out.push({ text: m[0], cls: 't-num' }); lastSig = 'num'; continue; }
+
+      var w = m[0];
+      var cls = null;
+      if (lastSig === '->' || lastSig === '.') cls = 't-fd';
+      else if (KW[w]) cls = 't-kw';
+      else if (TYPE[w] || CUSTOM[w]) cls = 't-ty';
+      else if (CONST[w] || /^[A-Z][A-Z0-9_]{2,}$/.test(w)) cls = 't-cn';   /* T / Q 这类单字母变量不算宏 */
+      else if (/^\s*\(/.test(line.slice(RE.lastIndex))) cls = 't-fn';
+      out.push({ text: w, cls: cls });
+      lastSig = w;
+    }
+    return out;
+  }
+
+  /* 返回"这一行从哪里开始是没闭合的块注释"，没有则 -1 */
+  function openComment(s) {
+    var i = 0;
+    for (;;) {
+      var a = s.indexOf('/*', i);
+      if (a < 0) return -1;
+      var b = s.indexOf('*/', a + 2);
+      if (b < 0) return a;
+      i = b + 2;
+    }
+  }
+
+  /* 整段代码：跨行的块注释要让下一行继承状态，所以按顺序走，不能单行独立着色 */
+  function highlight(code) {
+    var inBlock = false;
+    return code.map(function (line) {
+      var src = String(line == null ? '' : line);
+
+      if (inBlock) {
+        var end = src.indexOf('*/');
+        if (end < 0) return [{ text: src, cls: 't-com' }];
+        inBlock = false;
+        return [{ text: src.slice(0, end + 2), cls: 't-com' }].concat(tokens(src.slice(end + 2)));
+      }
+
+      if (/^\s*#/.test(src)) return [{ text: src, cls: 't-pre' }];
+
+      var open = openComment(src);
+      if (open >= 0) {
+        inBlock = true;
+        return tokens(src.slice(0, open)).concat([{ text: src.slice(open), cls: 't-com' }]);
+      }
+      return tokens(src);
+    });
+  }
+
+  NS.highlight = highlight;
+})(window.DSANIM = window.DSANIM || {});
+
 /* ---- src/ui/app.js ---- */
 /* 界面装配：章节 / 模板 / 帧的加载、播放控制、URL 同步 */
 (function (NS) {
   'use strict';
 
   var measure = NS.measure, TYPE_MAP = NS.TYPE_MAP, TYPE_NAME = NS.TYPE_NAME;
+  var highlight = NS.highlight;
 
   var DATA = window.DSANIM;
   var CHAP = DATA.CHAPTERS;
@@ -3695,57 +3793,33 @@ CH('sort').demos.push({
   }
 
   /* 把当前行 if/while 的判定条件单独包一层 .cond（括号配对扫描，取第一对完整括号） */
-  function markCond(row) {
-    var body = row.lastChild;
-    if (!body || !body.dataset || body.dataset.cond) return;
-    var s = body.textContent || '';
+  function condRange(s) {
     var m = /(?:^|[^\w])(if|while)\s*\(/.exec(s);
-    if (!m) return;
+    if (!m) return null;
     var open = m.index + m[0].length - 1;
-    if (s[open] !== '(') return;
-    var depth = 0, close = -1;
+    if (s[open] !== '(') return null;
+    var depth = 0;
     for (var i = open; i < s.length; i++) {
       if (s[i] === '(') depth++;
-      else if (s[i] === ')') { depth--; if (depth === 0) { close = i; break; } }
+      else if (s[i] === ')') { depth--; if (depth === 0) return { start: open, end: i }; }
     }
-    if (close < 0) return;
-    var span = document.createElement('span');
-    span.className = 'cond';
-    span.textContent = s.slice(open, close + 1);
-    var tail = document.createTextNode(s.slice(close + 1));
-    body.textContent = s.slice(0, open);
-    body.appendChild(span);
-    body.appendChild(tail);
-    body.dataset.cond = '1';
+    return null;
   }
-  function markSoftCond(row) {
+  function markCond(row, soft) {
     var body = row.lastChild;
     if (!body || !body.dataset || body.dataset.cond) return;
-    var s = body.textContent || '';
-    var m = /(?:^|[^\w])(if|while)\s*\(/.exec(s);
-    if (!m) return;
-    var open = m.index + m[0].length - 1;
-    if (s[open] !== '(') return;
-    var depth = 0, close = -1;
-    for (var i = open; i < s.length; i++) {
-      if (s[i] === '(') depth++;
-      else if (s[i] === ')') { depth--; if (depth === 0) { close = i; break; } }
-    }
-    if (close < 0) return;
-    var span = document.createElement('span');
-    span.className = 'cond soft';
-    span.textContent = s.slice(open, close + 1);
-    var tail = document.createTextNode(s.slice(close + 1));
-    body.textContent = s.slice(0, open);
-    body.appendChild(span);
-    body.appendChild(tail);
+    var r = condRange(body.textContent || '');
+    if (!r) return;
     body.dataset.cond = '1';
+    r.soft = !!soft;
+    paintRow(row, +row.dataset.i, r);
   }
+  function markSoftCond(row) { markCond(row, true); }
   function unmarkCond(row) {
     var body = row.lastChild;
     if (!body || !body.dataset || !body.dataset.cond) return;
-    body.textContent = body.textContent;      /* 收成一个纯文本节点 */
     delete body.dataset.cond;
+    paintRow(row, +row.dataset.i, null);      /* 重绘成没有 .cond 的样子 */
   }
 
   /* 结构体定义文本统一放在 ui/types.js（TYPE_MAP / TYPE_NAME），这里不再重复一份 */
@@ -3757,13 +3831,60 @@ CH('sort').demos.push({
     document.getElementById('tdhead').textContent =
       '结构体定义（' + TYPE_NAME[chapId] + '这一章用到的）· 可上下滚动';
     if (tdBody.dataset.chap !== chapId) {
-      tdBody.innerHTML = txt.replace(/\/\*([^*]*)\*\//g, '<i>/*$1*/</i>');
+      /* 结构体定义也走同一套上色：先去掉文本里的 <b>，结构体名本来就靠类型色区分 */
+      var lines = txt.replace(/<\/?b>/g, '').split('\n');
+      var rows = highlight(lines);
+      tdBody.textContent = '';
+      lines.forEach(function (_, i) {
+        if (i) tdBody.appendChild(document.createTextNode('\n'));
+        rows[i].forEach(function (t) { tdBody.appendChild(tokNode(t)); });
+      });
       tdBody.dataset.chap = chapId;
     }
   }
 
+  /* 当前模板每一行的词元；重新上色（比如取消判定高亮）时复用，不重新切词 */
+  var LINE_TOKENS = [];
+
+  function tokNode(t) {
+    if (!t.cls) return document.createTextNode(t.text);
+    var sp = document.createElement('span');
+    sp.className = t.cls;
+    sp.textContent = t.text;
+    return sp;
+  }
+
+  /* 按词元重绘一行；cond = {start,end} 时把这几个字符单独包进 .cond，其余保持上色 */
+  function paintRow(row, i, cond) {
+    var body = row.lastChild;
+    if (!body) return;
+    body.textContent = '';
+    var toks = LINE_TOKENS[i] || [];
+    var pos = 0, condEl = null;
+    toks.forEach(function (t) {
+      var start = pos, end = pos + t.text.length;
+      pos = end;
+      if (!cond || end <= cond.start || start > cond.end) { body.appendChild(tokNode(t)); return; }
+
+      var cutA = cond.start - start;
+      var pre = cutA > 0 ? t.text.slice(0, cutA) : '';
+      if (pre) body.appendChild(tokNode({ text: pre, cls: t.cls }));
+      if (!condEl) {
+        condEl = document.createElement('span');
+        condEl.className = cond.soft ? 'cond soft' : 'cond';
+        body.appendChild(condEl);
+      }
+      var from = Math.max(0, cutA), to = Math.min(t.text.length, cond.end + 1 - start);
+      var mid = t.text.slice(from, to);
+      if (mid) condEl.appendChild(tokNode({ text: mid, cls: t.cls }));
+      var post = t.text.slice(to);
+      if (post) body.appendChild(tokNode({ text: post, cls: t.cls }));
+    });
+  }
+
   function renderCode(demo) {
     codeEl.innerHTML = '';
+    LINE_TOKENS = highlight(demo.code);
     demo.code.forEach(function (src, i) {
       var row = document.createElement('div');
       row.className = 'cline';
@@ -3772,9 +3893,10 @@ CH('sort').demos.push({
       no.className = 'no';
       no.textContent = String(i + 1);
       var body = document.createElement('span');
-      body.textContent = src;
+      body.className = 'cl';
       row.appendChild(no); row.appendChild(body);
       codeEl.appendChild(row);
+      paintRow(row, i, null);
     });
   }
 

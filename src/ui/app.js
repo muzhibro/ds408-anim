@@ -3,6 +3,7 @@
   'use strict';
 
   var measure = NS.measure, TYPE_MAP = NS.TYPE_MAP, TYPE_NAME = NS.TYPE_NAME;
+  var highlight = NS.highlight;
 
   var DATA = window.DSANIM;
   var CHAP = DATA.CHAPTERS;
@@ -72,57 +73,33 @@
   }
 
   /* 把当前行 if/while 的判定条件单独包一层 .cond（括号配对扫描，取第一对完整括号） */
-  function markCond(row) {
-    var body = row.lastChild;
-    if (!body || !body.dataset || body.dataset.cond) return;
-    var s = body.textContent || '';
+  function condRange(s) {
     var m = /(?:^|[^\w])(if|while)\s*\(/.exec(s);
-    if (!m) return;
+    if (!m) return null;
     var open = m.index + m[0].length - 1;
-    if (s[open] !== '(') return;
-    var depth = 0, close = -1;
+    if (s[open] !== '(') return null;
+    var depth = 0;
     for (var i = open; i < s.length; i++) {
       if (s[i] === '(') depth++;
-      else if (s[i] === ')') { depth--; if (depth === 0) { close = i; break; } }
+      else if (s[i] === ')') { depth--; if (depth === 0) return { start: open, end: i }; }
     }
-    if (close < 0) return;
-    var span = document.createElement('span');
-    span.className = 'cond';
-    span.textContent = s.slice(open, close + 1);
-    var tail = document.createTextNode(s.slice(close + 1));
-    body.textContent = s.slice(0, open);
-    body.appendChild(span);
-    body.appendChild(tail);
-    body.dataset.cond = '1';
+    return null;
   }
-  function markSoftCond(row) {
+  function markCond(row, soft) {
     var body = row.lastChild;
     if (!body || !body.dataset || body.dataset.cond) return;
-    var s = body.textContent || '';
-    var m = /(?:^|[^\w])(if|while)\s*\(/.exec(s);
-    if (!m) return;
-    var open = m.index + m[0].length - 1;
-    if (s[open] !== '(') return;
-    var depth = 0, close = -1;
-    for (var i = open; i < s.length; i++) {
-      if (s[i] === '(') depth++;
-      else if (s[i] === ')') { depth--; if (depth === 0) { close = i; break; } }
-    }
-    if (close < 0) return;
-    var span = document.createElement('span');
-    span.className = 'cond soft';
-    span.textContent = s.slice(open, close + 1);
-    var tail = document.createTextNode(s.slice(close + 1));
-    body.textContent = s.slice(0, open);
-    body.appendChild(span);
-    body.appendChild(tail);
+    var r = condRange(body.textContent || '');
+    if (!r) return;
     body.dataset.cond = '1';
+    r.soft = !!soft;
+    paintRow(row, +row.dataset.i, r);
   }
+  function markSoftCond(row) { markCond(row, true); }
   function unmarkCond(row) {
     var body = row.lastChild;
     if (!body || !body.dataset || !body.dataset.cond) return;
-    body.textContent = body.textContent;      /* 收成一个纯文本节点 */
     delete body.dataset.cond;
+    paintRow(row, +row.dataset.i, null);      /* 重绘成没有 .cond 的样子 */
   }
 
   /* 结构体定义文本统一放在 ui/types.js（TYPE_MAP / TYPE_NAME），这里不再重复一份 */
@@ -134,13 +111,60 @@
     document.getElementById('tdhead').textContent =
       '结构体定义（' + TYPE_NAME[chapId] + '这一章用到的）· 可上下滚动';
     if (tdBody.dataset.chap !== chapId) {
-      tdBody.innerHTML = txt.replace(/\/\*([^*]*)\*\//g, '<i>/*$1*/</i>');
+      /* 结构体定义也走同一套上色：先去掉文本里的 <b>，结构体名本来就靠类型色区分 */
+      var lines = txt.replace(/<\/?b>/g, '').split('\n');
+      var rows = highlight(lines);
+      tdBody.textContent = '';
+      lines.forEach(function (_, i) {
+        if (i) tdBody.appendChild(document.createTextNode('\n'));
+        rows[i].forEach(function (t) { tdBody.appendChild(tokNode(t)); });
+      });
       tdBody.dataset.chap = chapId;
     }
   }
 
+  /* 当前模板每一行的词元；重新上色（比如取消判定高亮）时复用，不重新切词 */
+  var LINE_TOKENS = [];
+
+  function tokNode(t) {
+    if (!t.cls) return document.createTextNode(t.text);
+    var sp = document.createElement('span');
+    sp.className = t.cls;
+    sp.textContent = t.text;
+    return sp;
+  }
+
+  /* 按词元重绘一行；cond = {start,end} 时把这几个字符单独包进 .cond，其余保持上色 */
+  function paintRow(row, i, cond) {
+    var body = row.lastChild;
+    if (!body) return;
+    body.textContent = '';
+    var toks = LINE_TOKENS[i] || [];
+    var pos = 0, condEl = null;
+    toks.forEach(function (t) {
+      var start = pos, end = pos + t.text.length;
+      pos = end;
+      if (!cond || end <= cond.start || start > cond.end) { body.appendChild(tokNode(t)); return; }
+
+      var cutA = cond.start - start;
+      var pre = cutA > 0 ? t.text.slice(0, cutA) : '';
+      if (pre) body.appendChild(tokNode({ text: pre, cls: t.cls }));
+      if (!condEl) {
+        condEl = document.createElement('span');
+        condEl.className = cond.soft ? 'cond soft' : 'cond';
+        body.appendChild(condEl);
+      }
+      var from = Math.max(0, cutA), to = Math.min(t.text.length, cond.end + 1 - start);
+      var mid = t.text.slice(from, to);
+      if (mid) condEl.appendChild(tokNode({ text: mid, cls: t.cls }));
+      var post = t.text.slice(to);
+      if (post) body.appendChild(tokNode({ text: post, cls: t.cls }));
+    });
+  }
+
   function renderCode(demo) {
     codeEl.innerHTML = '';
+    LINE_TOKENS = highlight(demo.code);
     demo.code.forEach(function (src, i) {
       var row = document.createElement('div');
       row.className = 'cline';
@@ -149,9 +173,10 @@
       no.className = 'no';
       no.textContent = String(i + 1);
       var body = document.createElement('span');
-      body.textContent = src;
+      body.className = 'cl';
       row.appendChild(no); row.appendChild(body);
       codeEl.appendChild(row);
+      paintRow(row, i, null);
     });
   }
 

@@ -61,6 +61,7 @@
     "src/ui/draw-graph.js",
     "src/ui/measure.js",
     "src/ui/types.js",
+    "src/ui/highlight.js",
     "src/ui/app.js"
   ]
 }

@@ -2,67 +2,62 @@
 
 [![test](https://github.com/muzhibro/ds408-anim/actions/workflows/test.yml/badge.svg)](https://github.com/muzhibro/ds408-anim/actions/workflows/test.yml)
 
-**在线看**：<https://muzhibro.github.io/ds408-anim/>
+在线：<https://muzhibro.github.io/ds408-anim/>
 
-把 408 里最常考的算法过程做成**可以一步一步看**的动画：左边是 C 代码逐行高亮（当前执行的判定条件单独标出来），右边是同一时刻真实的数据结构状态（链表 / 二叉树 / 数组 / 图，外加递归栈、邻接表、入度表）。
+左边 C 代码逐行高亮，右边同一时刻的数据结构状态（链表 / 二叉树 / 数组 / 图，外带递归栈、邻接表、入度表）。一步步点着看，每帧一句说明。
 
-- **5 章 38 个模板 70 个用例 2932 帧**，每帧都带一句人话说明
-- 代码按 C 语法上色（关键字 / 类型 / 函数名 / 字段 / 数字 / 注释），当前行加亮、判定条件单独框出
-- 地址栏跟着当前帧走：随时复制链接，发给别人的就是这一帧
-- **全站搜索**（按 `/`，38 个模板跨 5 章，按名字/编号/章名都能搜，选中直接跳章）、代码区宽度可拖（键盘也能调）、全键盘可操作
-- 零依赖、纯静态：**双击 `index.html` 就能看**，不需要装环境、不需要联网
-- 帧序列可自动化校验：`npm test` 1 秒跑完 2932 帧
+5 章 38 个模板 70 个用例 2932 帧。零依赖，双击 `index.html` 就能看。
 
-## 快速开始
+## 跑起来
 
 ```bash
-# 只想看动画：直接双击 index.html
+# 只想看：双击 index.html
 
-npm run build   # 从 src/ 生成 index.html（改了源码之后跑这个）
-npm test        # 48 个测试：帧指纹 / 全帧渲染 / 行号自洽 / 构建一致性 / 进度记忆 / 播放器 / 外壳交互 / 覆盖率报告
-npm run dump list reverse      # 打印某个模板的代码行号与每帧的高亮行，人工核对用
-npm run coverage               # 报告：哪些代码行从来没被任何一帧高亮过
+npm run build     # src/ -> index.html，改完源码必跑
+npm test          # 50 个测试，1 秒
+npm run dump list reverse        # 打印某模板每帧的高亮行，人工核对用
+npm run coverage                 # 哪些代码行从来没被高亮过
 ```
 
-需要 Node.js ≥ 22（只用到内置模块，**没有 `npm install`**）。
+Node ≥ 22。没有 `npm install`，也没有 `node_modules`。
 
-## 目录结构
+## 目录
 
 ```
-index.html              构建产物：单文件页面（双击即开）
-legacy/index.html       重构前的原始单文件版本，仅作对照，不再维护
+index.html            构建产物，单文件（这个是要提交的，别手改）
+legacy/index.html     重构前的单文件版本，只作对照
 src/
-  index.html            页面骨架，留 {{STYLES}} / {{SCRIPTS}} 两个占位符
-  manifest.json         模块清单：数组顺序 = 脚本加载顺序
-  core/                 帧工厂与基础设施（不认识 DOM）
-    registry.js         章节注册表 CHAPTERS / CH(id)
-    stack.js            递归栈的“当前活跃栈”（帧工厂读它）
-    list.js             mk/mkHead/build/walk/F —— 链表帧
-    tree.js             T/cloneTree/FT —— 二叉树帧
-    array-frame.js      FA —— 数组帧
-    graph-frame.js      FG —— 图帧
-  demos/<章>/<NN>-<id>.js  每个模板一个文件，文件名 = 序号 + 模板 id
-  ui/                   渲染层（只认帧，不认算法）
-    svg.js              SVG 图元（el/txt/line/quad/...）
-    draw-list|tree|array|graph.js   四种布局与绘制
-    measure.js          量一帧的包围盒，用来算 viewBox
-    types.js            结构体定义文本
-    highlight.js        C 代码上色（词法扫描，不用正则替换 HTML）
-    app.js              标签页 / 模板切换 / 播放器 / URL 深链接 / 测试钩子
+  index.html          页面骨架，{{STYLES}} / {{SCRIPTS}} 两个占位符
+  manifest.json       模块清单，数组顺序就是加载顺序
+  core/               帧工厂，不认 DOM
+    registry.js       CHAPTERS / CH(id)
+    stack.js          递归栈的当前状态（帧工厂从这儿读）
+    list.js           mk / mkHead / build / walk / F
+    tree.js           T / cloneTree / FT
+    array-frame.js    FA
+    graph-frame.js    FG
+  demos/<章>/<NN>-<id>.js   一个模板一个文件
+  ui/                 渲染层，只认帧不认算法
+    svg.js            SVG 图元
+    draw-list|tree|array|graph.js  四种布局
+    measure.js        量包围盒，算 viewBox
+    types.js          结构体定义文本
+    highlight.js      C 代码上色
+    app.js            切章 / 播放器 / 深链接 / 搜索 / 测试钩子
   ui/styles.css
 scripts/
-  build.mjs             拼装 + 语法检查 → index.html
-  frame-digest.mjs      帧指纹：改动后一眼看出哪个用例变了
-  dump-frames.mjs       打印某模板的帧，人工核对高亮行
-tests/                  node:test，含一个零依赖 DOM 替身
-docs/ARCHITECTURE.md    设计说明：为什么这么分层、帧模型、扩展方式
+  build.mjs           拼装 + 语法检查
+  frame-digest.mjs    帧指纹
+  dump-frames.mjs     逐帧打印
+  coverage.mjs        覆盖率报告
+tests/                node:test，自带一个 DOM 替身
 ```
 
 ## 加一个模板
 
-以"链表求和"为例，三步。
+以"链表求和"为例。
 
-**1. 新建 `src/demos/list/15-sum.js`**
+1. 新建 `src/demos/list/15-sum.js`：
 
 ```js
 /* demo · 链表：求和 */
@@ -102,99 +97,90 @@ docs/ARCHITECTURE.md    设计说明：为什么这么分层、帧模型、扩�
 })(window.DSANIM = window.DSANIM || {});
 ```
 
-**2. 在 `src/manifest.json` 的 `data` 数组里登记**（位置就是显示顺序）
+2. 在 `src/manifest.json` 的 `data` 里加上 `"src/demos/list/15-sum.js"`（位置就是显示顺序）。
+3. `npm run build && npm test`，再 `npm run dump list sum` 逐帧看一眼。
 
-```json
-"src/demos/list/15-sum.js"
-```
+漏登记、编号重复、顺序不对，测试都会报出来。
 
-**3. 构建 + 验证**
+## 一帧是什么
 
-```bash
-npm run build && npm test
-npm run dump list sum        # 逐帧看一眼高亮行对不对
-```
-
-测试里的"demo 文件名与模板 id 一一对应""38 个模板"这些断言会拦下漏登记、编号重复、顺序错乱。
-
-## 帧模型
-
-每个模板的 `run(case)` 是个**生成器**，`yield` 出来的东西就是一帧：
+`run(case)` 是生成器，`yield` 一次就是一帧：
 
 ```js
-{ mode: 'list' | 'tree' | 'array' | 'graph',   // 用哪种布局画
-  line: 3,                                     // 高亮第几行（0 起）
-  desc: '…',                                   // 这一帧在干什么
-  rows / ptrs / mark / …                       // 该时刻的数据结构快照
-}
+{ mode: 'list',   // list / tree / array / graph，决定用哪个 draw-* 画
+  line: 3,        // 高亮 code[] 的第几行（0 起）
+  desc: '…',      // 右侧说明
+  rows: [ … ] }   // 该模式的载荷
 ```
 
-关键在于**快照是深拷贝的**：`F()` 把当时的结点图拷一份存进帧里，所以后面再怎么改链表也不会篡改历史帧。渲染层（`src/ui/`）只读帧、不认识算法；数据层（`src/demos/`）只产帧、不碰 DOM。这条分界线就是它能被自动测试的原因——2932 帧可以在 Node 里全部跑一遍，不需要浏览器。
+帧里的数据结构是**深拷贝的快照**：`F()` 把可达结点复制一遍再把 `next` 指回副本，所以后面继续改链表不会污染已经产出的帧，帧里也能有环（循环链表、双向链表）。
 
-细节见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
+四种模式的载荷字段见 `docs/ARCHITECTURE.md`。
 
-## 测试都测什么
+## 测试
 
-| 测试 | 拦什么问题 |
+| 文件 | 管什么 |
 | --- | --- |
-| 帧指纹（`tests/fixtures/frames.golden.json`） | 改了某个模板后，精确指出**哪个用例的帧变了**；确认无误后 `npm run digest:write` 更新基准 |
-| 2932 帧全渲染（`tests/ui-smoke.test.mjs`，DOM 替身） | 白屏、抛异常、说明为空、高亮行和 `frame.line` 对不上 |
-| 行号自洽 | 帧的 `line` 落在 `code[]` 范围内、说明不为空 |
-| `expect` 末态断言 | 链表模板最后一帧的结构必须和预期一致（14 个模板） |
-| 结构自检 | manifest 与 `src/` 文件互相对得上、demo 文件名与 id 一一对应 |
-| 构建一致性 | `index.html` 里的帧指纹必须等于源码的帧指纹；无未替换占位符、无外链 |
-| 进度记忆（`tests/resume.test.mjs`） | 刷新后能不能回到上次那一帧；存储被禁用/写满时**不能**因此白屏；旧数据越界要夹回合法范围 |
-| 覆盖率报告（`tests/coverage.test.mjs`） | 报告脚本本身能不能跑、参数对不对；**不断言覆盖率数字**——补内容是常态，用数字卡人只会让人去改测试 |
+| `frames.test.mjs` | 帧指纹、`line` 越界、空说明、链表末态、章节清单 |
+| `ui-smoke.test.mjs` | 2932 帧逐帧渲染：不白屏、说明非空、高亮行对得上 |
+| `structure.test.mjs` | manifest ↔ 文件、demo 文件名 ↔ id ↔ 注册顺序 |
+| `build.test.mjs` | 构建能跑、产物无占位符无外链、产物帧指纹 = 源码帧指纹 |
+| `resume.test.mjs` | 刷新后回到上次那一帧；存储不可用时不白屏 |
+| `player.test.mjs` | 播放/暂停/播完复位 |
+| `speed.test.mjs` | 速度档位与记忆 |
+| `shell.test.mjs` | 搜索、拖宽、地址栏、深链接 |
+| `highlight.test.mjs` | 词元拼回去必须逐字等于原文 |
+| `coverage.test.mjs` | 报告脚本本身能跑（不断言覆盖率数字） |
 
-## 覆盖率报告：哪些行从来没讲过
+帧不写成逐帧断言，是因为 38 个模板全写出来会是几千行的 fixture，没人看。指纹（sha256）平时只显示"一致"，变动时直接告诉你是 `tree/tree-bst#2`。确认无误后 `npm run digest:write` 更新基准。
+
+DOM 替身是自己写的（200 行），不是 jsdom，因为要能离线跑。代价是它只管"会不会炸"，不管"好不好看"——好看得靠 `npm run dump` 和人眼。
+
+## 覆盖率
 
 ```bash
-npm run coverage          # 只列"调用 / 赋值 / 分支"这类需要补的缺口
-npm run coverage -- --all # 连声明行、函数签名行一起列
-npm run coverage tree     # 只看某一章
+npm run coverage            # 只列调用/赋值/分支这类要补的
+npm run coverage -- --all   # 连声明行、函数签名一起列
+npm run coverage tree       # 只看一章
 ```
 
-它遍历每个模板的每一帧，收集 `frame.line`，再和 `code[]` 里"有实质动作"的行做差集。**这是报告不是闸门**：永远退出 0，因为"这一行不亮"未必是错（有些分支这个用例根本走不到），要人来判断。
+遍历所有帧收集 `frame.line`，和 `code[]` 里"有实质动作"的行做差集。永远退出 0——某行不亮未必是错，有些分支这个用例根本走不到，要人判断。
 
-当前数字：**实质行 359 / 359 覆盖（100%），38 个模板里 0 个缺口**。补到 100% 之前它报的典型缺口是：`graph/graph-dijkstra` 的松弛赋值 `dist[v] = dist[u] + G.edge[u][v];`、`tree/tree-complete` 的入队 `Q[rear++] = p->lchild;`、`tree/tree-level` 的 `while (front < rear) {` 与 `visit(p);`、`tree/tree-swap` 的递归调用与 `T->rchild = t;`——**每一行都对应一个真正漏讲的步骤**，补帧之后这些模板的讲解才完整。
+现在是 359/359。补到 100% 之前它报的缺口都是真漏讲：Dijkstra 的松弛、`tree-complete` 的入队、`tree-level` 的 `visit(p)`、`tree-swap` 的递归调用。补的时候顺手又发现了几处行号错位（Kruskal 的 `a == b`、Dijkstra 的 `done[u] = 1`、BFS 的起点入队、拓扑的出栈删边）。
 
-补缺口的做法不是"给行号凑数"，而是回到算法里问：这一步为什么存在？于是顺手又发现了几处更隐蔽的行号错位（Kruskal 的 `a == b` 判定、Dijkstra 的 `done[u] = 1`、BFS 的起点入队、拓扑排序的出栈/删边），一并修掉了。
+## 踩过的坑
 
-## 这次重构顺带修掉的错行
+**行号错位。** 帧的 `line` 是手写下标，审计时揪出 6 处，补覆盖率时又揪出十几处：
 
-审计时发现 6 处"说明和高亮行对不上"，都是生成器里手写的行号下标错位（原文件里是硬编码的 `FT(8)` 这类调用）：
+| 位置 | 原来 | 改为 |
+| --- | --- | --- |
+| `tree/05-tree-complete` 首次遇空孩子 / 空后又出现结点 / 出队入队 | `FT(6,7,8)` | `FT(7,8,6)` |
+| `tree/04-tree-height` 进入结点先问左子树 | `FT(1)` | `FT(2)` |
+| `tree/07-tree-bst` 反例判定 | `FT(4)` | `FT(3)` |
+| `sort/01-sort-insert` 两次比较 | `FA(4)` | `FA(3)` |
+| `sort/04-sort-quick` 比较/填坑/相遇落位 | `FA(4,5,6,7,9)` | `FA(3,4,5,6,8)` |
+| `sort/06-sort-merge` 单元素返回、对半劈 | `FA(12,13)` | `FA(11,12)` |
 
-| 位置 | 原来 | 改为 | 原因 |
-| --- | --- | --- | --- |
-| `tree/05-tree-complete` 首次遇到空孩子 | `FT(6)` | `FT(7)` | 指到了出队语句 |
-| `tree/05-tree-complete` 空之后又出现结点 | `FT(7)` | `FT(8)` | 指到了 `if (!p)` |
-| `tree/05-tree-complete` 出队并入队两个孩子 | `FT(8)` | `FT(6)` | 指到了 `if (seenNull)`，连续 7 帧全错 |
-| `tree/04-tree-height` 进入结点先问左子树 | `FT(1)` | `FT(2)` | 指到了判空行 |
-| `tree/07-tree-bst` 反例判定不是 BST | `FT(4)` | `FT(3)` | 指到了 `*pre = T->data`，应为比较行 |
-| `sort/01-sort-insert` 两次比较 | `FA(4)` | `FA(3)` | 指到了赋值行，判定框不出现 |
-| `sort/04-sort-quick` 比较 / 填坑 / 坑位转移 / low 右移 / 相遇落位 | `FA(4,5,6,7,9)` | `FA(3,4,5,6,8)` | 整体错位一行，11 帧里连续错 |
-| `sort/06-sort-merge` 单元素直接返回、对半劈 | `FA(12,13)` | `FA(11,12)` | 指到了 `int mid = …` 和递归调用行 |
+共 21 个用例的帧内容变了，帧数一个没变。这类错误光看代码看不出来——`line` 只是个数字，只有拿说明去对代码那行才知道对不对，`npm run dump` 就是干这个的。
 
-另修了一处审计没列出的：`tree/07-tree-bst` 里"pre 更新为"指到了右子树递归行，应为 `*pre = T->data`。
+**推送。** 这台机器直连 GitHub 会超时，靠本地代理。代理关了 `git push` 会卡死，先 `Test-NetConnection 127.0.0.1 -Port 10808` 看一眼；代理关掉时用 `git -c http.proxy= -c https.proxy= push`。
 
-改完一共只有 21 个用例的帧内容变化，**每个用例的帧数一帧没变**，总帧数仍是 1949（后来补内容缺口才涨到 2932）。
+**改文本编码。** 用 PowerShell 的 `Set-Content` 改 `index.html` 会把 UTF-8 当 GBK 存，页面立刻乱码。改文件用编辑器或 Node。
 
-## 设计取舍（也是可以追问的点）
+## 几个决定
 
-- **为什么不用 React / Vite / TypeScript**：交付场景是"发给同学、老师，双击就能看"。一旦引入构建工具，产物就要带 runtime 或者依赖 CDN，离线/学校机房电脑上容易翻车。所以选择"命名空间模块 + 顺序拼接"，构建脚本 60 行，零依赖。
-- **为什么产物是单文件**：`index.html` 一个文件即可分发；`src/` 里是给人看的、可维护的源码，两边由 manifest 和测试保证一致。
-- **为什么 C 代码只是展示文本**：当前 `code[]` 是手写的字符串，动画由 JS 生成器另外编排，两者靠人工保持一致——这是最实在的短板。下一步可以做"C 子集解释器"，让动画直接从源码推导出来（见下）。
-- **帧里存的是快照而不是操作序列**：好处是渲染无状态、可跳帧、可回放、可离线全量测试；代价是内存（近 3000 帧就几 MB，可接受）。
+不用 React / Vite / TS：交付方式是"发个文件，双击就能看"。带 runtime 或依赖 CDN，在学校机房、没网的电脑上就翻车。命名空间模块 + 顺序拼接够了，构建脚本 60 行。
 
-## 已知限制 / 下一步
+产物是单文件：发微信、拷 U 盘、`file://` 双击都行；`src/` 是给人看和改的，两边由 manifest 和测试保证一致。
 
-1. **代码与动画是两份实现**——最值得做的升级：写一个 C 子集解释器（指针、结构体、数组、递归），让 `run` 从源码执行中自动产生帧。这一步做完，"高亮行对不上"这类问题从根上消失。
-2. 只覆盖第 2–6 章（线性表、树、图、查找、排序），第 1 章绪论和第 7 章文件没做。
-3. 窄屏（≤900px）改成单列：**先图后码**——说明、动画、递归栈在上，代码在下；图的 svg 等比缩放到容器宽度，代码区自己滚。已用 headless Chrome 在 500×900 与 390×844 下截图验收，真机没试过。
-4. 代码区默认 560px（449 行里 431 行在 65 字符以内，实测折行从 116 行降到 24 行：449 行里剩 5%），再长的行靠拖动条拉宽或等宽横向不折——**没有做"代码不折行 + 横向滚动"**，因为折行在手机上是唯一能看的办法。
-5. **git 历史只有一次提交**：项目最初是单文件手写（版本演进都在这一个文件里），重构后才建的仓库。`legacy/index.html` 保留了重构前的原版，可以用 `git diff --no-index legacy/index.html index.html` 对照重构前后的差别。
+帧里存快照不存操作序列：渲染层无状态，能跳帧、能回放、能离线全量跑测试。代价是内存，三千帧几 MB，无所谓。
 
-## 附
+C 代码是展示文本，动画是另一份手写的 JS：这是最实在的短板，行号错位就是从这儿来的。真解法是写个 C 子集解释器，让帧从源码执行里出来。
 
-- `使用说明.md`：给"只想看动画"的人的操作说明（快捷键、面板含义）
-- `docs/ARCHITECTURE.md`：分层、帧模型、构建与测试的实现细节
+## 还没做的
+
+1. 代码与动画两份实现（上面那条）。写个 C 子集解释器能让 `line` 由 AST 节点决定，再也不会指错。
+2. 只做了第 2–6 章。第 1 章（顺序表、复杂度）和第 7 章（B 树、散列、KMP）没有。
+3. `app.js` 快 900 行了，切章、播放器、深链接、搜索、分隔条都塞在里面，该拆成几个文件。
+4. 浏览器层没进 CI。`npm test` 用的是 DOM 替身，焦点框、拖拽、localStorage 落盘这些测不到，现在靠手跑 headless Chrome。
+5. 没有体积预算。现在 252 KB（gzip 68.6 KB），加一条 `< 300 KB` 的断言省得以后悄悄膨胀。

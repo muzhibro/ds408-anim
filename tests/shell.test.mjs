@@ -18,27 +18,42 @@ function fakeStorage(seed) {
   };
 }
 
-test('筛选框按名字过滤模板，并把当前模板自动切到第一个命中的', () => {
+test('搜索是全站的：在图章搜 dijkstra 只出一个结果，选项带章名前缀', () => {
   const { NS } = loadPage();
   NS.app.select(2, 0, 0);                 /* 图 · 第一个模板 */
-  const all = NS.app.options().length;
-  assert.ok(all >= 6, '图这一章应该有 6 个模板，实际 ' + all);
+  assert.equal(NS.app.options().length, 6);
 
-  const n = NS.app.setFilter('dijkstra');
-  assert.equal(n, 1);
-  assert.equal(NS.app.options().map((o) => o.value).join(','), '3');
+  assert.equal(NS.app.setFilter('dijkstra'), 1);
+  assert.equal(NS.app.options()[0].text, '图 · 4.6 Dijkstra 单源最短路');
   assert.equal(NS.app.state().demo, 3, '应该自动切到 Dijkstra');
 
   NS.app.setFilter('');
-  assert.equal(NS.app.options().length, all, '清空筛选要恢复全部');
+  assert.equal(NS.app.options().length, 6, '清空搜索要恢复本章全部');
 });
 
-test('筛不到东西时给出提示，并且不崩', () => {
+test('在链表章搜图的模板，会直接跳章', () => {
+  const { NS } = loadPage();
+  NS.app.select(0, 0, 0);
+  assert.equal(NS.app.state().chapter, 0);
+
+  assert.equal(NS.app.setFilter('kruskal'), 1);
+  assert.equal(NS.app.state().chapter, 2, '应该跳到图这一章');
+  assert.equal(NS.app.chapters()[2].demos[NS.app.state().demo], 'graph-kruskal');
+});
+
+test('按章名搜：输入"二叉树"能出整章 9 个模板', () => {
+  const { NS } = loadPage();
+  NS.app.select(0, 0, 0);
+  assert.equal(NS.app.setFilter('二叉树'), 9);
+  assert.match(NS.app.options()[0].text, /^二叉树 · /);
+});
+
+test('搜不到东西时给出提示，并且不崩', () => {
   const { NS, document } = loadPage();
   NS.app.select(0, 0, 0);
   assert.equal(NS.app.setFilter('不存在的模板'), 0);
   assert.equal(document.getElementById('demoSel').disabled, true);
-  assert.match(document.getElementById('filterHint').textContent, /没有匹配/);
+  assert.match(document.getElementById('filterHint').textContent, /全站都没有匹配/);
 });
 
 test('地址栏跟着当前章节 / 模板 / 帧 / 用例走', () => {

@@ -303,8 +303,8 @@
   <section class="left" id="leftcol" aria-label="算法代码">
     <div class="pick">
       <input id="demoFilter" type="search" autocomplete="off" spellcheck="false"
-             placeholder="筛选模板：Dijkstra / 逆置 / 快排…（按 / 聚焦）"
-             aria-label="按名字筛选当前章节的模板" aria-describedby="filterHint">
+             placeholder="搜模板：Dijkstra / 逆置 / 快排…（全站 38 个，按 / 聚焦）"
+             aria-label="搜索全部 5 章的模板" aria-describedby="filterHint">
       <span id="filterHint" class="filter-hint" role="status" aria-live="polite"></span>
       <select id="demoSel" aria-label="选择模板"></select>
       <select id="caseSel" aria-label="选择输入用例" style="display:none"></select>
@@ -4120,60 +4120,82 @@ CH('sort').demos.push({
     speedEl.setAttribute('title', '播放速度：' + txt);
   }
 
-  /* ------------------------------------------------------- 模板筛选（输入框）
-     38 个模板靠下拉翻太慢，所以给一个筛选框：只按"名字/编号"过滤当前章节，
-     不会跨章跳转（跨章的事交给上面的章标签）。 */
+  /* ------------------------------------------------------- 模板搜索（输入框）
+     38 个模板分散在 5 章，只按当前章过滤没多大用（一章最多 14 个，下拉翻得动）。
+     所以这里是**全站搜索**：名字、id、章名都能命中，结果跨章，选中就跳过去。
+     下拉里的每一项都记在 pickList 里，因为搜索结果的序号和"第几个模板"不是一回事。 */
   var demoQuery = '';
   var filterTimer = null;
+  var pickList = [];          /* [{c: 章下标, d: 模板下标}]，与下拉项一一对应 */
 
-  function demoMatches(d) {
-    if (!demoQuery) return true;
+  function searchHits() {
     var q = demoQuery.toLowerCase();
-    return d.name.toLowerCase().indexOf(q) >= 0 || d.id.toLowerCase().indexOf(q) >= 0;
-  }
-  /* 本章没命中时，告诉用户"它其实在别章"，省得以为整个网站都没这个模板 */
-  function noMatchHint() {
-    var q = demoQuery.toLowerCase();
-    var where = [];
-    CHAP.forEach(function (c) {
-      if (c === CHAP[curChap]) return;
-      var n = c.demos.filter(demoMatches).length;
-      if (n) where.push(c.name + ' ' + n + ' 个');
-      else if (c.name.toLowerCase().indexOf(q) >= 0) where.push(c.name + '（整章）');
+    var out = [];
+    CHAP.forEach(function (ch, ci) {
+      var wholeChapter = ch.name.toLowerCase().indexOf(q) >= 0;
+      ch.demos.forEach(function (d, di) {
+        if (wholeChapter ||
+            d.name.toLowerCase().indexOf(q) >= 0 ||
+            d.id.toLowerCase().indexOf(q) >= 0) {
+          out.push({ c: ci, d: di });
+        }
+      });
     });
-    if (where.length) return '本章没有，' + where.join('、') + '——点上面的章标签过去';
-    return '没有匹配的模板，按 Esc 清空筛选';
+    return out;
   }
-  /* 按当前筛选重建下拉；返回过滤后第一个真实下标（没有就是 -1） */
+
+  /* 重建下拉。返回下拉里的第一项（{c,d}），一项都没有时返回 null。
+     没有搜索词时就是"当前章的全部模板"，行为与以前一致。 */
   function rebuildDemoOptions() {
-    var all = CHAP[curChap].demos;
     selEl.innerHTML = '';
-    var first = -1;
+    pickList = [];
+    if (demoQuery) {
+      var hits = searchHits();
+      if (!hits.length) {
+        selEl.disabled = true;
+        hintEl.textContent = '全站都没有匹配的模板，按 Esc 清空';
+        return null;
+      }
+      hits.forEach(function (h, i) {
+        var o = document.createElement('option');
+        o.value = String(i);
+        /* 跨章结果必须带章名，否则"拓扑排序"和"直接插入排序"看不出区别 */
+        o.textContent = CHAP[h.c].name + ' · ' + CHAP[h.c].demos[h.d].name;
+        selEl.appendChild(o);
+        pickList.push(h);
+      });
+      selEl.disabled = false;
+      hintEl.textContent = hits.length + ' 个结果（全站 38 个模板）';
+      return hits[0];
+    }
+    var all = CHAP[curChap].demos;
     all.forEach(function (d, k) {
-      if (!demoMatches(d)) return;
-      if (first < 0) first = k;
       var o = document.createElement('option');
       o.value = String(k);
       o.textContent = d.name;
       selEl.appendChild(o);
+      pickList.push({ c: curChap, d: k });
     });
-    if (first < 0) {
-      selEl.disabled = true;
-      hintEl.textContent = noMatchHint();
-      return -1;
-    }
     selEl.disabled = false;
-    hintEl.textContent = demoQuery ? '筛出 ' + selEl.children.length + ' / ' + all.length + ' 个模板' : '';
-    return first;
+    hintEl.textContent = '';
+    return all.length ? { c: curChap, d: 0 } : null;
   }
+
+  /* 下拉的选中项 = 当前正在看的那个模板（搜索时序号要对上 pickList） */
+  function syncSelValue() {
+    if (!selEl.children.length) return;
+    for (var i = 0; i < pickList.length; i++) {
+      if (pickList[i].c === curChap && pickList[i].d === curDemo) { selEl.value = String(i); return; }
+    }
+  }
+
   function setFilter(v) {
     demoQuery = String(v || '').trim();
     if (filterEl.value !== demoQuery && document.activeElement !== filterEl) filterEl.value = demoQuery;
     var first = rebuildDemoOptions();
-    if (first < 0) return;
-    /* 当前模板被筛掉了 → 自动跳到第一个命中的，省一次点击 */
-    if (CHAP[curChap].demos[curDemo] && !demoMatches(CHAP[curChap].demos[curDemo])) load(first);
-    else selEl.value = String(curDemo);
+    if (!first) return;
+    /* 边打字边看第一个结果最省事：跨章就顺手把章也切过去 */
+    goto(first.c, first.d);
   }
 
   /* --------------------------------------------------- 代码区宽度（可拖动）
@@ -4332,14 +4354,29 @@ CH('sort').demos.push({
     });
   }
 
+  function paintTabs() {
+    Array.prototype.forEach.call(tabsEl.children, function (b, k) {
+      b.classList.toggle('on', k === curChap);
+      b.setAttribute('aria-selected', k === curChap ? 'true' : 'false');
+    });
+  }
+
+  /* 跳到"第 c 章的 d 号模板"。搜索结果是跨章的，所以切章与载入必须一起做 */
+  function goto(c, d, ci) {
+    if (c !== curChap) { curChap = c; paintTabs(); showTypes(CHAP[c].id); }
+    load(d, ci);
+  }
+
   function switchChapter(i) {
     curChap = i;
-    Array.prototype.forEach.call(tabsEl.children, function (b, k) {
-      b.classList.toggle('on', k === i);
-      b.setAttribute('aria-selected', k === i ? 'true' : 'false');
-    });
+    paintTabs();
+    /* 点章标签 = 明确想按章浏览，顺手把搜索词清掉，否则下拉里还是别的章的结果 */
+    if (demoQuery) {
+      demoQuery = '';
+      if (filterEl) filterEl.value = '';
+    }
     var first = rebuildDemoOptions();
-    load(first < 0 ? 0 : first);
+    if (first) load(first.d); else load(0);
   }
 
   /* 把当前行 if/while 的判定条件单独包一层 .cond（括号配对扫描，取第一对完整括号） */
@@ -4456,7 +4493,7 @@ CH('sort').demos.push({
     stop();
     cancelReset();
     curDemo = k;
-    if (selEl.children.length) selEl.value = String(k);
+    syncSelValue();
     var demo = CHAP[curChap].demos[k];
     noteEl.innerHTML = demo.note || '';
     showTypes(CHAP[curChap].id);   /* 链表/二叉树/图 三章各显示一份结构体定义 */
@@ -4763,7 +4800,10 @@ CH('sort').demos.push({
   document.getElementById('next').onclick = function () { stop(); go(1); };
   playBtn.onclick = play;
   rangeEl.oninput = function () { stop(); cancelReset(); step = +rangeEl.value; showStep(); };
-  selEl.onchange = function () { load(+selEl.value); };
+  selEl.onchange = function () {
+    var h = pickList[+selEl.value];
+    if (h) goto(h.c, h.d);
+  };
   speedEl.oninput = function () {
     syncSpeed();
     if (timer) { stop(); play(); }   /* 正在播就按新速度重开定时器 */
@@ -4822,7 +4862,6 @@ CH('sort').demos.push({
     if (s.speed) { speedEl.value = String(s.speed); syncSpeed(); }
     switchChapter(s.chapter);
     var di = Math.min(Math.max(0, s.demo | 0), CHAP[s.chapter].demos.length - 1);
-    selEl.value = String(di);
     load(di, s.caseIdx == null ? null : s.caseIdx);
     if (s.step > 0) { step = Math.min(s.step, frames.length - 1); showStep(); }
     return true;
@@ -4842,7 +4881,6 @@ CH('sort').demos.push({
     demoQuery = '';
     if (filterEl) filterEl.value = '';
     switchChapter(ci);
-    selEl.value = String(di);
     load(di, parts[3] != null ? +parts[3] : null);   /* #章@模板@步@案例 */
     if (parts[2] != null) { step = Math.min(+parts[2], frames.length - 1); showStep(); }
   }
@@ -4871,7 +4909,6 @@ CH('sort').demos.push({
     },
     select: function (chapter, demo, caseIdx) {
       switchChapter(chapter);
-      selEl.value = String(demo);
       load(demo, caseIdx == null ? null : caseIdx);
       return frames.length;
     },

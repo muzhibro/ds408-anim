@@ -1,4 +1,4 @@
-/* 链表 · 2.11 链表重排 a1,an,a2,an-1…（三步法） */
+/* 2.11 链表重排 a1,an,a2,an-1…（三步法） */
 (function (NS) {
   'use strict';
 
@@ -51,16 +51,16 @@ CH('list').demos.push({
         if (q) a.push({ name: 'q', node: q });
         return a;
       };
-      /* 第一阶段：整条表 + slow/fast */
+      /* 一阶段：整表 + slow/fast */
       var rowAll = function () { return [{ label: 'L（整条）', head: L }]; };
-      /* 第二阶段：前半段（含已逆置的部分） + 还没逆置的剩余（从 q） */
+      /* 二阶段：前半段 + 还没逆置的剩余（从 q） */
       var rowRev = function () {
         var out = [{ label: 'L（前半段 + 已逆置）', head: L }];
         if (q) out.push({ label: '还没逆置的（从 q）', head: q });
         if (p) out.push({ label: 'p（正在摘的）', head: p, cut: p, cutNote: '' });
         return out;
       };
-      /* 第三阶段：已接好的前缀（画到 h）+ 前半段剩余（从 q）+ 后半段剩余（从 b） */
+      /* 三阶段：接好的前缀（到 h）+ 前半段（从 q）+ 后半段（从 b） */
       var rowZip = function () {
         return [
           { label: '已接好（画到 h）', head: L, cut: h, cutNote: h ? 'h 之后还没接' : '还没开始' },

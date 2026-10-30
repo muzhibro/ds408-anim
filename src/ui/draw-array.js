@@ -1,10 +1,10 @@
-/* ui · 数组：格子 / 区间底色 / 交换弧 / 比较标签 */
+/* 数组绘制：格子、区间底色、交换弧、比较标签 */
 (function (NS) {
   'use strict';
 
   var el = NS.el, txt = NS.txt, rrect = NS.rrect, arrowHead = NS.arrowHead, line = NS.line, textW = NS.textW;
 
-  /* ---------------------------------------------------------------- 布局：数组 */
+  /* ---------- 布局：数组 ---------- */
   var CELL_W = 44, CELL_H = 32, CELL_GAP = 7, ARR_X0 = 46, ARR_Y0 = 92;
 
   function cellX(k) { return ARR_X0 + k * (CELL_W + CELL_GAP); }
@@ -13,7 +13,7 @@
     var g = el('g'), n = f.arr.length, i;
     var cw = CELL_W, gx = CELL_GAP;
     if (n > 16) { cw = Math.max(26, Math.floor(760 / n) - 4); gx = 4; }
-    /* 和变量比且变量画在左边时，整排数组往右让位，别让药丸被画到画布外面 */
+    /* 变量在左边时整排右移，别把药丸画到画布外 */
     var pillWL = 0, pillWR = 0;
     if (f.cmp && f.cmp.b < 0 && f.cmp.vtext) {
       var pw = Math.max(58, f.cmp.vtext.length * 8 + 16);
@@ -21,7 +21,7 @@
     }
     var X0 = ARR_X0 + pillWL;
     var W = X0 + ARR_X0 + n * (cw + gx) + pillWR;
-    /* 有比较标签时整排数组下移，给"值 关系 值"那一行留出空间 */
+    /* 有比较标签时整排下移，给标签留空间 */
     var dz = 60;   /* 每帧都留出放标签的顶栏，翻页时数组不会上下跳 */
     var Y0 = ARR_Y0 + dz;
     var H = 250 + dz;
@@ -37,7 +37,7 @@
       if (s.label) g.appendChild(txt((x1 + x2) / 2, Y0 - CELL_H / 2 - 18, s.label, 'lbl sm'));
     });
 
-    /* 交换 / 搬动：两个格子加琥珀描边 + 上方双向弧 + 顶点标注 */
+    /* 交换/搬动：琥珀描边 + 双向弧 + 顶点标注 */
     var swapSet = {};
     if (f.swap) { swapSet[f.swap[0]] = 1; swapSet[f.swap[1]] = 1; }
     if (f.jump) { swapSet[f.jump.from] = 1; swapSet[f.jump.to] = 1; }
@@ -73,7 +73,7 @@
       g.appendChild(txt(lx0 + tw / 2, labY + 3, labTxt, 'ptr')).setAttribute('fill', '#fcd34d');
     }
 
-    /* 比较：两个格子加紫色描边 + 上方弧线 + 结论标签；b = -1 表示和右侧的"关键字"比 */
+    /* 比较：紫色描边 + 弧线 + 结论标签；b = -1 表示跟右边关键字比 */
     var cmpSet = {};
     if (f.cmp) {
       if (f.cmp.a >= 0) cmpSet[f.cmp.a] = 1;
@@ -88,7 +88,7 @@
       var rx = C.b >= 0 ? cxp(C.b) : null;
       var pillX = null, pillW = 0;
 
-      /* 和"变量"比（key / pivot / t）：在数组一侧画一个药丸，虚线与被比较的格子相连 */
+      /* 跟变量比（key/pivot/t）：旁边画药丸，虚线连到被比的格子 */
       if (C.b < 0 && lx != null && C.vtext) {
         pillW = Math.max(58, C.vtext.length * 8 + 16);
         var onLeft = C.side === 'left';
@@ -104,7 +104,7 @@
         g.appendChild(el('path', { d: dd, fill: 'none', stroke: '#a78bfa', 'stroke-width': 1.6, 'stroke-dasharray': '5 4' }));
       }
 
-      /* 两格之间的紫色弧（同一帧还有交换弧时，抬高一层免得两张标签叠在一起） */
+      /* 两格之间的紫弧；同帧有交换弧就抬高一层 */
       var cmpLift = Math.min(58, 26 + Math.abs((rx == null ? lx : rx) - lx) * 0.2);
       if (f.swap || f.jump) cmpLift += 40;
       if (lx != null && rx != null && lx !== rx && !(f.swap || f.jump)) {
@@ -115,16 +115,16 @@
         g.appendChild(el('path', { d: 'M' + rx + ',' + (yT - 4) + ' l5,4 l-5,4 z', fill: '#a78bfa' }));
       }
 
-      /* 结论标签：97 > 13 ✓ / A[3]=16 < 43 → 往右（格子已经高亮，前缀 A[k]= 省掉更短） */
+      /* 结论标签。格子已高亮，前缀 A[k]= 省掉 */
       var strip = function (t) { return String(t == null ? '' : t).replace(/^[AH]\[\d+\]\s*=\s*/, ''); };
       var tTxt = strip(C.left) + ' ' + (C.op || '') + ' ' + strip(C.right);
       if (C.res) tTxt += '  ' + C.res;
       var cxMid = (lx != null && rx != null) ? (lx + rx) / 2 : (lx != null ? lx : (pillX || 0));
       var twoCells = (lx != null && rx != null);
       var cyMid = twoCells ? (yT - 4 - cmpLift - 2) : (yT - 18);
-      /* 和变量比（key/pivot/t）且同一帧还有交换/搬动标签时，再抬一层，别两张标签叠在一起 */
+      /* 跟变量比且同帧有交换标签时再抬一层 */
       if (f.swap || f.jump) {
-        /* 琥珀标签的顶边在 yT-11-lift-12，比较标签要整个落在它上面 */
+        /* 琥珀标签顶边在 yT-11-lift-12，比较标签得整个落在上面 */
         var amberTop = yT - 11 - liftUsed - 12;
         cyMid = Math.min(cyMid, amberTop - 12 - 8);
       }
@@ -145,7 +145,7 @@
       var v = f.arr[i];
       var isSorted = f.sorted[i];
       var rect = rrect(x, Y0, cw, CELL_H, 6);
-      /* 比较/交换>已排序：正在参与比较的格子必须让出来，否则被绿色盖掉看不见 */
+      /* 已排序的绿色要让位，否则盖掉比较格子 */
       rect.setAttribute('fill', cmpSet[i] ? '#2a1f45' : (swapSet[i] ? '#3a2a08' : (isSorted ? '#12301f' : '#17223b')));
       rect.setAttribute('stroke', cmpSet[i] ? '#a78bfa' : (swapSet[i] ? '#f59e0b' : (isSorted ? '#2f7f4f' : '#2f4066')));
       if (swapSet[i] || cmpSet[i]) rect.setAttribute('stroke-width', 2.2);

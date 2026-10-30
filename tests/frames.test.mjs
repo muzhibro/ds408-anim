@@ -1,8 +1,4 @@
-/* 帧数据本身的体检：行号、说明、用例、末态断言。
- *
- * 这一层不需要 DOM——帧是纯数据，先在这里把"说到的那行代码"和"最后长什么样"钉死，
- * 界面上看到的动画才值得相信。
- */
+/* 帧数据体检：行号、说明、用例、末态。不需要 DOM。 */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

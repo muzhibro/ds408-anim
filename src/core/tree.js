@@ -1,10 +1,10 @@
-/* core · 二叉树：结点构造 + 树帧 */
+/* 二叉树：结点构造 + 树帧 */
 (function (NS) {
   'use strict';
 
   var nextId = NS.nextId, cp = NS.cp, stackOf = NS.stackOf;
 
-  /* ---------------------------------------------------------------- 通用：二叉树 */
+  /* ---------- 通用：二叉树 ---------- */
   function T(val, l, r) { return { id: nextId(), val: String(val), l: l || null, r: r || null }; }
 
   function cloneTree(n, map) {
@@ -22,8 +22,7 @@
     var f = { mode: 'tree', line: line, desc: desc, root: cloneTree(root) };
     f.mark = opt.mark ? opt.mark.id : null;
     f.ptrs = (opt.ptrs || []).map(function (p) { return { name: p.name, id: p.node ? p.node.id : null }; });
-    /* 必须拷贝：tags / stack 是 generator 里被反复修改的活对象，
-       如果直接存引用，所有历史帧都会显示"最终状态"（和链表帧同类 bug）。 */
+    /* 必须拷：tags / stack 是 generator 里反复改的活对象，存引用会让历史帧全变成最终状态。 */
     f.tags = cp(opt.tags);
     f.stack = stackOf(opt);
     f.swapPair = opt.swapPair ? opt.swapPair.slice() : null;   /* 树里"交换两个孩子"：[idA,idB] */

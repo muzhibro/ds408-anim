@@ -1,12 +1,5 @@
-/* 一个只够这个页面用的 DOM 替身。
- *
- * 目的：让 tests/ui-smoke.test.mjs 能在 node 里把 38 个模板、69 个用例的每一帧
- * 都真的渲染一遍，而不需要 jsdom（项目坚持零依赖、可离线构建）。
- *
- * 支持的接口正是 src/ui 里实际用到的那些：createElement / createElementNS /
- * createTextNode / getElementById / appendChild（返回子节点）/ setAttribute /
- * classList / dataset / style / textContent / innerHTML / querySelector(All)。
- * 不支持的接口会被 Proxy 兜住并记录，测试结束时报出来，避免"假通过"。
+/* 只够这个页面用的 DOM 替身，不引 jsdom。
+ * 接口按 src/ui 的实际用法来；没实现的会被 Proxy 记下来，测试结束时报出。
  */
 
 export class TextNode {
@@ -43,7 +36,7 @@ export class El {
     this.onclick = null;
     this.oninput = null;
     this.onchange = null;
-    /* 布局相关的属性一律给 0：绘制与滚动逻辑读到它们不会崩，也不会真的滚动 */
+    /* 布局属性一律 0，读到不会崩，也不会真的滚动 */
     this.offsetTop = 0;
     this.offsetLeft = 0;
     this.offsetParent = null;
@@ -165,7 +158,7 @@ export class El {
   scrollIntoView() {}
 }
 
-/* 页面启动后要能按 id 拿到同一批元素，所以 getElementById 需要缓存 */
+/* getElementById 要缓存，不然每次拿到新元素 */
 export function createDocument() {
   const doc = {
     _byId: new Map(),

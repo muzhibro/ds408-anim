@@ -1,9 +1,4 @@
-/* 界面冒烟：用 tests/support/dom.mjs 里的 DOM 替身，把每个模板、每个用例的
- * 每一帧都真的渲染一遍。
- *
- * 这一层测的不是"好不好看"，而是"会不会白屏 / 抛异常 / 高亮错行"——
- * 38 个模板共 1949 帧，人眼是看不完的，但这几十毫秒能跑完。
- */
+/* 界面冒烟：每个模板、每个用例、每一帧都渲染一遍，查白屏、异常、高亮错行。 */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadPage } from './support/harness.mjs';
@@ -50,7 +45,7 @@ test('每个模板的每个用例都能加载并逐帧渲染', () => {
     });
   });
 
-  /* 期望帧数从数据里算，不再写死：加帧是常态，硬编码的数字只会变成"每次都要改测试"。 */
+  /* 帧数从数据算，别写死 */
   const expected = NS.CHAPTERS.reduce((sum, ch) => sum + ch.demos.reduce((s, demo) => {
     const cs = demo.cases && demo.cases.length ? demo.cases : [null];
     return s + cs.reduce((n, c) => { let k = 0; for (const _ of demo.run(c)) k++; return n + k; }, 0);

@@ -1,10 +1,10 @@
-/* ui · 链表：布局（按行排结点）+ 绘制 */
+/* 链表：布局（按行排结点）+ 绘制 */
 (function (NS) {
   'use strict';
 
   var el = NS.el, txt = NS.txt, rrect = NS.rrect, arrowHead = NS.arrowHead, line = NS.line, quad = NS.quad, textW = NS.textW;
 
-  /* ---------------------------------------------------------------- 布局：链表行 */
+  /* ---------- 布局：链表行 ---------- */
   var NODE_W = 74, NODE_H = 44, STEP = 100, X0 = 158, ROW0 = 104, ROWGAP = 126;
 
   function layoutList(f) {
@@ -54,7 +54,7 @@
               g.appendChild(line(nd.x + NODE_W / 2, nd.y, np.x - NODE_W / 2, np.y, 'edge'));
               g.appendChild(arrowHead(np.x - NODE_W / 2 - 1, np.y, 0));
             } else if (!r.hideCross) {
-              /* 跨行的 next（结点已被搬到别的行里）：cut 行不画，免得把"旧值"当成真链接 */
+              /* 跨行 next：cut 行不画，免得把旧值当真链接 */
               g.appendChild(quad(nd.x + NODE_W / 2 - 6, nd.y + NODE_H / 2 - 6, np.x + 8, np.y + NODE_H / 2 - 6, 34));
               g.appendChild(arrowHead(np.x + 8, np.y + NODE_H / 2 - 5, -Math.PI / 2, '#6f5bb5'));
             }
@@ -92,8 +92,8 @@
       }
     }
 
-    /* 即将接上的那条边：从 from 的右下角画一条紫色虚线到 to，旁边写 r->next = p */
-    /* 目标为空（把 next 改成 NULL）时，只画一小截虚线 + 标签 */
+    /* 即将接上的边：from 右下角到 to 的紫虚线，旁边写 r->next = p */
+    /* 目标是 NULL 时只画一小截虚线和标签 */
     if (f.link && f.link.from && !f.link.to) {
       var ln0 = L.placed[f.link.from.id];
       if (ln0) {
@@ -122,7 +122,7 @@
         if (f.link.text) {
           var tw = textW(f.link.text) + 14;
           var lt = (x1 + x2) / 2 + bend + 12, ly = (y1 + y2) / 2;
-          /* 两个结点上下对齐时把标签摆到弧线右侧，别压在结点上 */
+          /* 两结点上下对齐时标签摆到弧线右侧 */
           if (Math.abs(x2 - x1) < 70) { lt = Math.max(x1, x2) + tw / 2 + 16; ly = (y1 + y2) / 2 + 2; }
           else { lt = (x1 + x2) / 2; ly = (y1 + y2) / 2 + bend + 12; }
           var bx = rrect(lt, ly, tw, 19, 5);
@@ -132,7 +132,7 @@
         }
       }
     }
-    /* 指针标签：按名字长度定宽度，再按"互不重叠"分层放置（相邻结点的 slow / p / fast 不再打架） */
+    /* 指针标签：按名字长度定宽，重叠时分层放 */
     var lab = [], placedRects = [];
     for (i = 0; i < L.ptrs.length; i++) {
       var q = L.ptrs[i];

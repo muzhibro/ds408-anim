@@ -1,11 +1,5 @@
-/* 构建：把 src/ 下的模块按 manifest 的顺序拼成一个双击即开的单文件页面 index.html。
- *
- * 为什么不用打包器：整个项目零依赖、离线可用，file:// 双击直接打开。
- * 命名空间模块之间只通过 window.DSANIM 传值，拼接顺序就是加载顺序，
- * 所以“构建”本质上就是一次带校验的字符串拼接。
- *
- * 输出放在根目录而不是 dist/：用户拿到项目双击 index.html 就能看，
- * 不需要先跑命令。
+/* 按 manifest 顺序把 src/ 的模块拼成单文件 index.html。
+ * 输出放根目录，拿到项目双击就能看。零依赖，file:// 可用。
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -41,7 +35,7 @@ const parts = modules.map((rel) => {
 });
 const script = parts.join('\n');
 
-/* 语法检查：拼出来的脚本必须能被解析，否则直接报错，不留下一份坏页面 */
+/* 语法检查，拼坏了就别写文件 */
 try {
   new vm.Script(script, { filename: 'dist/index.html <script>' });
 } catch (e) {

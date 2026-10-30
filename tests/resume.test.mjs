@@ -1,8 +1,4 @@
-/* 进度记忆（localStorage）的三条底线：
- *  1. 没存过 → 老老实实从第 1 章第 1 个模板开始；
- *  2. 存过 → 打开就回到上次那一帧，不用自己找；
- *  3. 存储被禁用 / 写满 / 抛异常 → 页面照常能用，不能因为"记不住"就白屏。
- */
+/* 进度记忆：没存过从头开始、存过回到原位、存储不可用也不白屏。 */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadPage } from './support/harness.mjs';

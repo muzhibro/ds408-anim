@@ -1,4 +1,4 @@
-/* 查找 · 5.4 哈希表 · 线性探测 */
+/* 5.4 哈希表 · 线性探测 */
 (function (NS) {
   'use strict';
 
@@ -43,7 +43,7 @@ CH('search').demos.push({
       }
       yield FA(4, '插入完毕：' + view().join(' ') + '。查找成功 ASL = (' + total + ')/' + keys.length + ' ≈ ' + (total / keys.length).toFixed(2) + '。',
         view(), { labels: idxLabel(), side: ['ASL<sub>成功</sub> <b>' + (total / keys.length).toFixed(2) + '</b>'] });
-      /* 查找 46：一次命中 */
+      /* 46：一次命中 */
       var q = 46, j = q % M, c = 1;
       yield FA(6, '进入 Search(H, 46)：查找过程和插入用的是同一条探测链。', view(), { labels: idxLabel() });
       yield FA(7, 'int i = 46 % 13 = ' + j + '，cnt = 1：从哈希位置出发，比较次数先记 1。', view(),
@@ -63,7 +63,7 @@ CH('search').demos.push({
           { labels: idxLabel(), marks: [{ name: 'i', at: (j + 1) % M, color: '#f472b6' }], side: ['比较 <b>' + c + '</b> 次'] });
         j = (j + 1) % M; c++;
       }
-      /* 查找 40：沿探测链走到空位，失败 */
+      /* 40：沿探测链走到空位，失败 */
       var q2 = 40, j2 = q2 % M, c2 = 1;
       yield FA(6, '再查找 40：它没有插进表里，看看会走多远。', view(), { labels: idxLabel() });
       yield FA(7, 'int i = 40 % 13 = ' + j2 + '，cnt = 1。', view(), { labels: idxLabel(), marks: [{ name: 'i', at: j2 }] });

@@ -1,8 +1,4 @@
-/* 播放器的两条约定：
- *  1. 播放中按钮是「暂停」，颜色也要跟「播放」不一样（靠 .playing 类）；
- *  2. 播到最后一帧后自己停下，并在一小段延时后回到第 1 帧，
- *     这样再点播放是从头再来，而不是卡在结尾。
- */
+/* 播放器：暂停态用 .playing 换色；播完停在末帧，延时后回第 1 帧。 */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadPage } from './support/harness.mjs';

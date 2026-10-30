@@ -1,9 +1,4 @@
-/* 结构自检：源码目录和 manifest 必须互相对得上。
- *
- * 这三条是重构最容易退化的地方——加了一个模块忘了登记（页面白屏），
- * 或者登记了一个不存在的文件（构建报错），或者 demo 文件名和 id 对不上
- * （顺序错乱、深链接失效）。用测试钉死，比靠记性可靠。
- */
+/* 目录和 manifest 必须对得上：漏登记会白屏，登记错会构建失败，文件名和 id 错位会乱序。 */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

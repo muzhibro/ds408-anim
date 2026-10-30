@@ -1,8 +1,5 @@
-/* 帧指纹：把全部模板 / 用例 / 帧序列化成 sha256。
- *
- * 用途：改动 demo 或帧工厂之后跑一次，一眼看出"哪几个用例的帧变了"。
- *   node scripts/frame-digest.mjs            # 打印当前指纹
- *   node scripts/frame-digest.mjs --write    # 更新 tests/fixtures/frames.golden.json
+/* 全部帧的 sha256 指纹，用来发现哪些用例的帧变了。
+ *   node scripts/frame-digest.mjs [--write]
  */
 import fs from 'node:fs';
 import path from 'node:path';

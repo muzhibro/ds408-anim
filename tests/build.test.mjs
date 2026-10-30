@@ -1,8 +1,4 @@
-/* 构建产物自检：index.html 必须是"能直接双击打开"的那份单文件页面。
- *
- * 分三层验：构建能跑通 → 产物形状正确（无占位符、脚本可解析）→
- * 产物里的帧数据和源码完全一致（防止"源码改了忘构建"或"构建漏文件"）。
- */
+/* 构建产物自检：能跑通、形状正确、帧数据和源码一致。 */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

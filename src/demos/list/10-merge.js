@@ -1,4 +1,4 @@
-/* 链表 · 2.9 就地合并两个有序链表 */
+/* 2.9 就地合并两个有序链表 */
 (function (NS) {
   'use strict';
 
@@ -27,7 +27,7 @@ CH('list').demos.push({
       var A = mkHead('C'), B = mkHead('B');
       A.next = an[0]; B.next = bn[0];
       var p = A.next, q = B.next, r = A;
-      /* 三条行同屏：C 只画到 r 为止（r 之后还没接上）；A、B 各从 p / q 往后画 */
+      /* 三行同屏：C 画到 r，A/B 从 p、q 往后画 */
       var rows = function (done) {
         return [
           { label: 'C（结果，r=尾）', head: A, cut: done ? null : r,

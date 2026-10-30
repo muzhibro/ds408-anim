@@ -1,10 +1,10 @@
-/* core · 数组帧（排序 / 查找用） */
+/* 数组帧：排序和查找共用 */
 (function (NS) {
   'use strict';
 
   var cp = NS.cp, stackOf = NS.stackOf;
 
-  /* ---------------------------------------------------------------- 帧：数组 */
+  /* ---------- 帧：数组 ---------- */
   function FA(line, desc, arr, opt) {
     opt = opt || {};
     return {

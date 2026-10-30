@@ -1,4 +1,4 @@
-/* 界面装配：章节 / 模板 / 帧的加载、播放控制、URL 同步 */
+/* 界面装配：加载、播放控制、URL 同步 */
 (function (NS) {
   'use strict';
 
@@ -47,8 +47,7 @@
   var curChap = 0, curDemo = 0, frames = [], step = 0, timer = null, resetTimer = null;
   var maxDepth = 0, BLK = 33, BLK_H = 29;   /* 递归栈：本模板最大栈深（决定桶高）、单块占高（29 + gap 4） */
 
-  /* 速度：5 档，滑块越往右越快。数组存的是"每帧停多少毫秒"，
-     所以必须是从大到小——左端慢、右端快。 */
+  /* 5 档速度。数组是每帧毫秒数，递减 = 滑块右移变快。 */
   var SPEED_STEPS = [1600, 1100, 760, 480, 280];
   var SPEED_NAMES = ['很慢', '慢', '正常', '快', '很快'];
 
@@ -58,7 +57,7 @@
     return Math.min(SPEED_STEPS.length, Math.max(1, v));
   }
   function speedDelay() { return SPEED_STEPS[speedLevel() - 1]; }
-  /* 档位一变，就把"慢/快"的读数、无障碍文本、正在跑的定时器一起同步 */
+  /* 档位改了：读数、aria、还在跑的定时器一起更新 */
   function syncSpeed() {
     var lv = speedLevel();
     if (+speedEl.value !== lv) speedEl.value = String(lv);
@@ -68,10 +67,9 @@
     speedEl.setAttribute('title', '播放速度：' + txt);
   }
 
-  /* ------------------------------------------------------- 模板搜索（输入框）
-     38 个模板分散在 5 章，只按当前章过滤没多大用（一章最多 14 个，下拉翻得动）。
-     所以这里是**全站搜索**：名字、id、章名都能命中，结果跨章，选中就跳过去。
-     下拉里的每一项都记在 pickList 里，因为搜索结果的序号和"第几个模板"不是一回事。 */
+  /* ---------- 模板搜索 ----------
+     全站搜：名字、id、章名都能命中，结果跨章。按章过滤没意义，一章最多 14 个。
+     pickList 记着下拉每项对应的 (章, 模板)，搜索时下拉序号和模板下标不是一回事。 */
   var demoQuery = '';
   var filterTimer = null;
   var pickList = [];          /* [{c: 章下标, d: 模板下标}]，与下拉项一一对应 */
@@ -92,8 +90,7 @@
     return out;
   }
 
-  /* 重建下拉。返回下拉里的第一项（{c,d}），一项都没有时返回 null。
-     没有搜索词时就是"当前章的全部模板"，行为与以前一致。 */
+  /* 重建下拉，返回第一项 {c,d}；没命中返回 null。 */
   function rebuildDemoOptions() {
     selEl.innerHTML = '';
     pickList = [];
@@ -107,7 +104,7 @@
       hits.forEach(function (h, i) {
         var o = document.createElement('option');
         o.value = String(i);
-        /* 跨章结果必须带章名，否则"拓扑排序"和"直接插入排序"看不出区别 */
+        /* 带章名，不然拓扑排序和直接插入排序分不清 */
         o.textContent = CHAP[h.c].name + ' · ' + CHAP[h.c].demos[h.d].name;
         selEl.appendChild(o);
         pickList.push(h);
@@ -129,7 +126,7 @@
     return all.length ? { c: curChap, d: 0 } : null;
   }
 
-  /* 下拉的选中项 = 当前正在看的那个模板（搜索时序号要对上 pickList） */
+  /* 选中项跟当前模板走；搜索时序号按 pickList 算 */
   function syncSelValue() {
     if (!selEl.children.length) return;
     for (var i = 0; i < pickList.length; i++) {
@@ -142,7 +139,7 @@
     if (filterEl.value !== demoQuery && document.activeElement !== filterEl) filterEl.value = demoQuery;
     var first = rebuildDemoOptions();
     if (!first) return;
-    /* 边打字边看第一个结果最省事：跨章就顺手把章也切过去 */
+    /* 边打字边跳到第一个结果，跨章就连章一起切 */
     goto(first.c, first.d);
   }
 
@@ -249,7 +246,7 @@
     if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
       return navigator.clipboard.writeText(txt);
     }
-    /* 老浏览器 / 非 https 的兜底：塞一个隐藏 textarea 里选中复制 */
+    /* clipboard 不可用时走 execCommand，塞隐藏 textarea */
     try {
       var ta = document.createElement('textarea');
       ta.value = txt;
@@ -309,7 +306,7 @@
     });
   }
 
-  /* 跳到"第 c 章的 d 号模板"。搜索结果是跨章的，所以切章与载入必须一起做 */
+  /* 跳到第 c 章第 d 个模板。跨章搜索下切章和载入得一起做 */
   function goto(c, d, ci) {
     if (c !== curChap) { curChap = c; paintTabs(); showTypes(CHAP[c].id); }
     load(d, ci);
@@ -318,7 +315,7 @@
   function switchChapter(i) {
     curChap = i;
     paintTabs();
-    /* 点章标签 = 明确想按章浏览，顺手把搜索词清掉，否则下拉里还是别的章的结果 */
+    /* 点章标签就是按章浏览，清掉搜索词 */
     if (demoQuery) {
       demoQuery = '';
       if (filterEl) filterEl.value = '';
@@ -327,7 +324,7 @@
     if (first) load(first.d); else load(0);
   }
 
-  /* 把当前行 if/while 的判定条件单独包一层 .cond（括号配对扫描，取第一对完整括号） */
+  /* 取该行第一对完整括号，包成 .cond */
   function condRange(s) {
     var m = /(?:^|[^\w])(if|while)\s*\(/.exec(s);
     if (!m) return null;
@@ -357,7 +354,7 @@
     paintRow(row, +row.dataset.i, null);      /* 重绘成没有 .cond 的样子 */
   }
 
-  /* 结构体定义文本统一放在 ui/types.js（TYPE_MAP / TYPE_NAME），这里不再重复一份 */
+  /* 结构体文本在 ui/types.js，这里不再存一份 */
 
   function showTypes(chapId) {
     var txt = TYPE_MAP[chapId] || null;
@@ -366,7 +363,7 @@
     document.getElementById('tdhead').textContent =
       '结构体定义（' + TYPE_NAME[chapId] + '这一章用到的）· 可上下滚动';
     if (tdBody.dataset.chap !== chapId) {
-      /* 结构体定义也走同一套上色：先去掉文本里的 <b>，结构体名本来就靠类型色区分 */
+      /* 结构体定义也上色，文本里的 <b> 先去掉 */
       var lines = txt.replace(/<\/?b>/g, '').split('\n');
       var rows = highlight(lines);
       tdBody.textContent = '';
@@ -378,7 +375,7 @@
     }
   }
 
-  /* 当前模板每一行的词元；重新上色（比如取消判定高亮）时复用，不重新切词 */
+  /* 当前模板每行的词元，重绘时复用 */
   var LINE_TOKENS = [];
 
   function tokNode(t) {
@@ -389,7 +386,7 @@
     return sp;
   }
 
-  /* 按词元重绘一行；cond = {start,end} 时把这几个字符单独包进 .cond，其余保持上色 */
+  /* 重绘一行；cond 给区间时把那段包进 .cond */
   function paintRow(row, i, cond) {
     var body = row.lastChild;
     if (!body) return;
@@ -447,7 +444,7 @@
     showTypes(CHAP[curChap].id);   /* 链表/二叉树/图 三章各显示一份结构体定义 */
     renderCode(demo);
     frames = [];
-    /* 案例：同一段代码换不同输入数据看，入口在 #caseSel */
+    /* 用例：换一组输入，入口 #caseSel */
     var cs = demo.cases || null;
     if (cs) {
       caseEl.style.display = '';
@@ -463,9 +460,7 @@
     }
     var pick = cs ? cs[Math.min(ci == null ? 0 : parseInt(ci, 10), cs.length - 1)] : null;
     if (cs && ci != null) caseEl.value = String(ci);
-    /* 生成器是手写编排的，写错了会抛异常。没有这层兜底的话，
-       页面会停在"上一帧"的画面上，看起来像卡死——所以这里接住，
-       把它变成一句能读懂的提示。 */
+    /* 生成器是手写的，抛异常会让画面停在上一帧，看着像卡死。接住，转成提示。 */
     var err = null;
     try {
       var it = demo.run(pick);
@@ -489,12 +484,12 @@
       if (m.h > vbH) vbH = m.h;
     });
     stage.setAttribute('viewBox', '0 0 ' + vbW + ' ' + vbH);
-    /* 递归栈的桶高按整个模板的最大栈深定，逐帧不变，避免跳来跳去 */
+    /* 桶高按整模板最大栈深定死，别逐帧跳 */
     maxDepth = 0;
     frames.forEach(function (f) { if (f.stack && f.stack.length > maxDepth) maxDepth = f.stack.length; });
     prevDepth = null;
     stackTitle.textContent = demo.stackTitle || '递归栈';
-    /* 让 1 个 viewBox 单位 ≈ 1px：内容不被放大到失真，窄屏再等比缩小 */
+    /* 1 viewBox 单位 ≈ 1px，窄屏再等比缩 */
     var up = frames[0].mode === 'array' ? 1.0 : (frames[0].mode === 'graph' ? 1.65 : 1.3);
     stage.style.maxWidth = Math.round(vbW * up) + 'px';
     rangeEl.max = String(frames.length - 1);
@@ -509,7 +504,7 @@
     stage.innerHTML = '';
     stage.appendChild(m.g);
     descEl.innerHTML = f.desc || '';
-    /* 代码高亮：整行 + 这一行里的判定条件 */
+    /* 高亮行 + 行内判定条件 */
     var prev = codeEl.querySelector('.cline.hl');
     if (prev) { prev.classList.remove('hl'); unmarkCond(prev); }
     Array.prototype.forEach.call(codeEl.querySelectorAll('.cline'), function (r) { unmarkCond(r); });
@@ -517,7 +512,7 @@
     if (row) {
       row.classList.add('hl');
       markCond(row);
-      /* 当前行没有 if/while（是语句体）时，把上面那层的条件也用淡样式点出来 */
+      /* 语句体行：外层条件用淡色带一下 */
       if (!row.querySelector('.cond')) {
         for (var b = f.line - 1; b >= Math.max(0, f.line - 4); b--) {
           var up = codeEl.querySelector('.cline[data-i="' + b + '"]');
@@ -537,17 +532,17 @@
       d.innerHTML = s;
       extraEl.appendChild(d);
     });
-    /* 递归调用栈：竖桶，栈底在下、栈顶在上 */
+    /* 递归栈：竖桶，栈底在下 */
     renderStack(f.stack);
-    /* 图：把邻接表画在右边，和画面里的边一一对应 */
+    /* 邻接表，和画面里的边对应 */
     renderAdj(f);
-    /* 入度表：拓扑排序用，逐帧显示 indegree[] 的值和"正在看谁" */
+    /* 拓扑用的入度表 */
     renderInd(f);
-    /* 卡片都没内容时，整列收起，别白占宽度 */
+    /* 卡片全空就收起 */
     sideCol.style.display = (stackPanel.classList.contains('on') || dsPanel.classList.contains('on') || indPanel.classList.contains('on')) ? 'flex' : 'none';
     rangeEl.value = String(step);
     progEl.textContent = (step + 1) + ' / ' + frames.length;
-    /* 读屏软件拿不到 SVG 画面，把这一帧的说明和进度同步成可读文本 */
+    /* 读屏拿不到 SVG，说明和进度另写文本 */
     rangeEl.setAttribute('aria-valuenow', String(step));
     rangeEl.setAttribute('aria-valuemax', String(frames.length - 1));
     rangeEl.setAttribute('aria-valuetext', '第 ' + (step + 1) + ' 帧，共 ' + frames.length + ' 帧');
@@ -556,10 +551,10 @@
     syncHash();   /* 地址栏跟着走：这样"把第 12 帧发给同学"就只是复制一下地址 */
   }
 
-  /* 上一帧的栈深度，用来判断这一帧是"进栈"还是"出栈" */
+  /* 上一帧栈深，判断进栈还是出栈 */
   var prevDepth = null;
 
-  /* 入度表：indegree[] 的每一格 + 一个"当前正在处理谁"的游标 */
+  /* 入度表：每格一个数 + 游标 */
   function renderInd(f) {
     if (!f.ind) { indPanel.classList.remove('on'); return; }
     indPanel.classList.add('on');
@@ -579,7 +574,7 @@
     indFoot.innerHTML = f.ind.note || '入度为 0 的点才能进栈';
   }
 
-  /* 邻接表：把 vertices[i].firstarc 那条单链表画成一行行箭头 */
+  /* firstarc 单链表画成箭头行 */
   function renderAdj(f) {
     if (!f.g) { dsPanel.classList.remove('on'); return; }
     dsPanel.classList.add('on');
@@ -665,12 +660,12 @@
       d.className = 'sp-b' + (k === n - 1 ? ' top' : '');
       d.textContent = s;
       d.title = s;
-      /* 只有"刚压进去的那个"才播进入动画，否则每翻一页全场都在闪 */
+      /* 只有刚压进去的那个播动画，否则整页闪 */
       if (k === n - 1 && prevDepth != null && n > prevDepth) d.classList.add('pushed');
       stackBody.appendChild(d);
     });
 
-    /* 栈顶 / 栈底 标注，跟着内容走 */
+    /* 栈顶/栈底标注跟着内容 */
     if (n) {
       var groupH = n * BLK_H + (n - 1) * 4;          /* 块总高 */
       var freeTop = (H - 15) - groupH;               /* 上方空出来的高度（padding 7+6 + 底边框 2 = 15） */
@@ -713,7 +708,7 @@
   function play() {
     if (timer) { stop(); return; }
     cancelReset();
-    /* 已经停在最后一帧时再点播放：从第 1 帧重新开始，而不是立刻又"播完" */
+    /* 停在最后一帧时再点播放，从第 1 帧开始 */
     if (step >= frames.length - 1) { step = 0; showStep(); }
     playBtn.textContent = '暂停';
     playBtn.setAttribute('aria-label', '暂停');
@@ -723,7 +718,7 @@
       step++; showStep();
     }, speedDelay());
   }
-  /* 播完：先停在最后一帧让人看清结果，过一会儿再回到开头 */
+  /* 播完停在最后一帧，歇一会儿再回开头 */
   function finish() {
     stop();
     resetTimer = setTimeout(function () {
@@ -743,7 +738,7 @@
     playBtn.classList.remove('playing');
   }
 
-  /* ---------------------------------------------------------------- 事件 */
+  /* ---------- 事件 ---------- */
   document.getElementById('prev').onclick = function () { stop(); go(-1); };
   document.getElementById('next').onclick = function () { stop(); go(1); };
   playBtn.onclick = play;
@@ -766,7 +761,7 @@
   document.addEventListener('keydown', function (e) {
     var tag = (e.target && e.target.tagName) || '';
     var typing = tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA';
-    /* "/" 跳到筛选框：38 个模板翻下拉太慢，这是最常用的入口 */
+    /* / 跳搜索框 */
     if (e.key === '/' && !typing) { e.preventDefault(); if (filterEl) filterEl.focus(); return; }
     if (e.key === 'Escape' && filterEl && document.activeElement === filterEl) {
       e.preventDefault(); filterEl.value = ''; setFilter(''); return;
@@ -777,14 +772,13 @@
     else if (e.code === 'Space') { e.preventDefault(); play(); }
   });
 
-  /* ------------------------------------------------- 进度记忆（localStorage）
-     隐私模式、sandbox、被禁用的存储都会抛异常，所以先探一次能力，之后静默跳过。 */
+  /* ---------- 进度记忆 ----------
+     隐私模式、sandbox、禁用存储都会抛，先探一次能力，之后静默跳过。 */
   var STORE_KEY = 'ds408-anim:progress';
   var canStore = (function () {
     try { return typeof localStorage !== 'undefined' && !!localStorage; } catch (e) { return false; }
   })();
-  /* 首屏装配期间禁止写存储：装配会先 switchChapter(0) 渲染一次，
-     那一帧的 saveState 会把"上次看到哪"覆盖成第 1 章第 1 帧。 */
+  /* 装配期间不写存储：先 switchChapter(0) 渲染的那一帧会把进度冲成第 1 章第 1 帧。 */
   var booting = true;
 
   function saveState() {
@@ -803,7 +797,7 @@
     try { return JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) { return null; }
   }
 
-  /* 打开页面时接着上次的位置：章节 → 模板 → 用例 → 帧 */
+  /* 没带 hash 时接着上次的位置（章 → 模板 → 用例 → 帧） */
   function restoreLast() {
     var s = readState();
     if (!s || typeof s.chapter !== 'number' || !CHAP[s.chapter]) return false;
@@ -825,7 +819,7 @@
       if (c.id === cid) { ci = i; di = Math.max(0, c.demos.findIndex(function (d) { return d.id === did; })); }
     });
     if (ci < 0) return;
-    /* 深链接永远优先：就算筛选框里还留着上次的关键字，也要能跳到链接指定的模板 */
+    /* hash 优先，残留的搜索词不能挡住跳转 */
     demoQuery = '';
     if (filterEl) filterEl.value = '';
     switchChapter(ci);
@@ -839,18 +833,16 @@
   restoreSplit();   /* 上次拖出来的代码区宽度 */
   bindSplitter();
   if (CHAP[0].demos.length) switchChapter(0);
-  /* 地址栏的 #章@模板@步@案例 优先；没有就接着上次看的地方 */
+  /* 有 hash 按 hash 走，没有就恢复上次 */
   var hasHash = typeof location !== 'undefined' && location.hash.length > 1;
   if (!hasHash) restoreLast();
   fromHash();
-  booting = false;   /* 首屏定位完成，之后每次翻页都可以记进度了 */
-  /* 用 #章节@模板@帧 直接进来的人也要记一笔：否则分享出去的链接打开后，
-     下次刷新又会回到自己上一次的位置，链接看起来"没记住" */
+  booting = false;   /* 首屏定位完，之后翻页都能记了 */
+  /* 从深链接进来也存一次，否则刷新会退回自己上次的位置。 */
   saveState();
 
 
-  /* 测试钩子：node --test 里的冒烟用例靠它把每个模板、每个用例都渲染一遍。
-     页面本身不依赖它，删掉也不影响使用。 */
+  /* 测试钩子，页面不用 */
   NS.app = {
     chapters: function () {
       return CHAP.map(function (c) { return { id: c.id, name: c.name, demos: c.demos.map(function (d) { return d.id; }) }; });
@@ -863,19 +855,19 @@
     stepTo: function (i) { step = Math.max(0, Math.min(i, frames.length - 1)); showStep(); return step; },
     frames: function () { return frames; },
     state: function () { return { chapter: curChap, demo: curDemo, step: step, frames: frames.length }; },
-    /* 速度档位：给测试用，断言"5 档、越往右越快" */
+    /* 速度档位，给测试用 */
     speed: function () {
       return { level: speedLevel(), delay: speedDelay(), steps: SPEED_STEPS.slice(), names: SPEED_NAMES.slice() };
     },
     setSpeed: function (lv) { speedEl.value = String(lv); syncSpeed(); return speedDelay(); },
-    /* 播放器：给测试用，验证"播完回开头"和按钮状态 */
+    /* 播放器，给测试用 */
     play: function () { play(); return !!timer; },
     stop: function () { stop(); return !!timer; },
     playing: function () { return !!timer; },
     playState: function () {
       return { playing: !!timer, label: playBtn.textContent, cls: playBtn.className };
     },
-    /* 外壳：筛选、地址栏同步、拖动条 —— 都是"界面行为"，值得有测试盯着 */
+    /* 外壳行为：搜索、地址栏、拖动条 */
     setFilter: function (q) { if (filterEl) filterEl.value = q; setFilter(q); return selEl.children.length; },
     options: function () {
       return Array.prototype.map.call(selEl.children, function (o) { return { value: o.value, text: o.textContent }; });

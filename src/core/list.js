@@ -1,10 +1,10 @@
-/* core · 链表：结点构造 + 链表帧 */
+/* 链表：结点构造 + 链表帧 */
 (function (NS) {
   'use strict';
 
   var nextId = NS.nextId;
 
-  /* ---------------------------------------------------------------- 通用：链表结点 */
+  /* ---------- 通用：链表结点 ---------- */
   function mk(val, extra) {
     var n = { id: nextId(), val: String(val), isHead: false, next: null, prior: null };
     if (extra) for (var k in extra) n[k] = extra[k];
@@ -31,7 +31,7 @@
     return out;
   }
 
-  /* ---------------------------------------------------------------- 帧：链表 */
+  /* ---------- 帧：链表 ---------- */
   function F(line, desc, rows, ptrs, mark, extra) {
     rows = rows || []; ptrs = ptrs || [];
     var map = {}, pairs = [];

@@ -1,4 +1,4 @@
-/* 图 · 4.4 拓扑排序（AOV 网） */
+/* 4.4 拓扑排序（AOV 网） */
 (function (NS) {
   'use strict';
 
@@ -55,7 +55,7 @@ CH('graph').demos.push({
       yield FG(1, '准备：indegree[0..5] 全部清零。它记录的是"每个顶点还有几个前驱没被删除"。', G,
         { state: state(null), labels: lab(), ind: ind(null, '6 个计数器，现在都是 0') });
 
-      /* ① 数入度：扫每个顶点的出边表，把终点的入度 +1 */
+      /* ① 数入度 */
       for (var u = 0; u < N; u++) {
         var list = outs[u] || [];
         yield FG(2, '① 外层循环 i = ' + u + '：准备数 V' + u + ' 的所有出边。', G,
@@ -74,7 +74,7 @@ CH('graph').demos.push({
       yield FG(4, '统计完毕：indegree = [' + indeg.join(' ') + ']。每条边只被扫一次，所以这一步是 O(V+E)。', G,
         { state: state(null), labels: lab(), ind: ind(null, '最终入度：' + indeg.join(' ')) });
 
-      /* ② 从头扫一遍，把入度为 0 的压栈 */
+      /* ② 入度为 0 的压栈 */
       yield FG(5, '② 再从头扫一遍顶点，把入度为 0 的（没有前驱、现在就能做）压进栈。', G,
         { state: state(null), labels: lab(), ind: ind(null, '找入度为 0 的点') });
       for (var i = 0; i < N; i++) {

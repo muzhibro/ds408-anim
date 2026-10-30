@@ -1,11 +1,10 @@
-/* ui · C 代码上色
+/* C 代码上色。
  *
- * 把 demo.code 的一行 C 代码切成词元，交给 app 渲染成带 class 的 <span>。
- * 输出的是词元数组而不是 HTML 字符串：这样测试可以断言"拼回去等于原文"，
- * 渲染全程走 textContent，不需要担心转义，也不会把代码当标签解析。
+ * 切词结果给 app 渲染成带 class 的 span。
+ * 返回词元数组而不是 HTML 字符串：测试能断言"拼回去等于原文"，渲染走 textContent 不用转义。
  *
- * 只认这个项目用得到的 C 子集：关键字、标准类型、自定义结构体名、宏常量、
- * 函数名、-> 与 . 后面的字段、数字、字符串、字符、行注释、块注释、# 预处理行。
+ * 只覆盖项目里用到的 C 子集：关键字、类型、自定义结构体名、宏、函数名、
+ * -> 和 . 后面的字段、数字、字符串、字符、注释、# 预处理行。
  */
 (function (NS) {
   'use strict';
@@ -18,7 +17,7 @@
   var CUSTOM = set('LNode LinkList DNode DLinkList BiTree BiTNode ThreadNode ThreadTree SqList '
     + 'ArcNode VNode ALGraph MGraph Edge Stack Queue Visited ElemType Status WeightType VertexType');
 
-  /* 顺序有意义：注释与字符串要在运算符之前，-> 要在单个 - 之前 */
+  /* 顺序有讲究：注释和字符串要在运算符前，-> 要在单个 - 前 */
   var RE = /(\s+)|(\/\*[\s\S]*?\*\/)|(\/\/[^\n]*)|(L?"(?:[^"\\]|\\.)*")|('(?:[^'\\]|\\.)*')|(->|\.\.\.)|(==|!=|<=|>=|&&|\|\||\+\+|--|[=+\-*\/%<>!&|^~?:;,.()\[\]{}])|([0-9][0-9A-Za-z_.]*)|([A-Za-z_][A-Za-z0-9_]*)/g;
 
   function tokens(line) {
@@ -46,7 +45,7 @@
     return out;
   }
 
-  /* 返回"这一行从哪里开始是没闭合的块注释"，没有则 -1 */
+  /* 这一行没闭合的块注释从哪开始；没有返回 -1 */
   function openComment(s) {
     var i = 0;
     for (;;) {
@@ -58,7 +57,7 @@
     }
   }
 
-  /* 整段代码：跨行的块注释要让下一行继承状态，所以按顺序走，不能单行独立着色 */
+  /* 块注释会跨行，得按顺序走，不能单行独立着色 */
   function highlight(code) {
     var inBlock = false;
     return code.map(function (line) {

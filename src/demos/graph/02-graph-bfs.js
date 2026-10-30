@@ -1,4 +1,4 @@
-/* 图 · 4.1 广度优先遍历 BFS */
+/* 4.1 广度优先遍历 BFS */
 (function (NS) {
   'use strict';
 

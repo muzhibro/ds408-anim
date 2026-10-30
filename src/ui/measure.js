@@ -1,4 +1,4 @@
-/* ui · 按帧的 mode 分派到对应的绘制函数，返回 { g, w, h } */
+/* 按 mode 分派绘制，返回 { g, w, h } */
 (function (NS) {
   'use strict';
 

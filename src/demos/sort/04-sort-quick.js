@@ -1,4 +1,4 @@
-/* 排序 · 6.5 快速排序（挖坑法 Partition） */
+/* 6.5 快速排序（挖坑法 Partition） */
 (function (NS) {
   'use strict';
 

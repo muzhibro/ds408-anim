@@ -1,8 +1,4 @@
-/* 测试共用的小工具：在 node 里把 src/ 的模块按 manifest 顺序跑起来。
- *
- * 页面本身没有 import/export，模块之间只通过 window.DSANIM 传值，
- * 所以"加载源码"就等于在一个 vm 沙箱里依次执行文件。
- */
+/* 按 manifest 顺序在 vm 沙箱里跑 src/ 的模块。模块之间只通过 window.DSANIM 传值。 */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -26,8 +22,7 @@ function makeContext(withDom, extra) {
   if (withDom) {
     sandbox.document = createDocument();
     sandbox.location = { hash: '' };
-    /* 真实页面用 history.replaceState 同步地址栏；沙箱里给个最小实现，
-       顺便让"链接里带了什么"可以直接断言 */
+    /* 沙箱里的 replaceState，只把 hash 写到 location 上 */
     sandbox.history = {
       replaceState(_s, _t, url) {
         const u = String(url || '');

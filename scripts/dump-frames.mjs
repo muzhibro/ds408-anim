@@ -1,7 +1,5 @@
-/* 打印某个模板的 code 行号与每帧 (line, desc)，用来人工核对"高亮行和说明对不对得上"。
- *
- *   node scripts/dump-frames.mjs tree tree-bst 0
- *   node scripts/dump-frames.mjs sort sort-insert      # 用例下标默认 0
+/* 打印某模板的代码行和每帧 (line, desc)，人工核对高亮行。
+ *   node scripts/dump-frames.mjs <章节> <模板> [用例]
  */
 import { loadData } from '../tests/support/harness.mjs';
 

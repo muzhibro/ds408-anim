@@ -1,8 +1,4 @@
-/* 外壳行为的三条约定：
- *  1. 筛选框只过滤当前章节的模板，按 id / 名字都能匹配；筛没了要给出提示；
- *  2. 地址栏跟着当前帧走（history.replaceState），这样"把第 12 帧发出去"只是复制地址；
- *  3. 代码区宽度可以拖，夹在合法范围内，并且记得住。
- */
+/* 外壳：搜索跨章、地址栏跟着帧走、代码区可拖宽并记住。 */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadPage } from './support/harness.mjs';

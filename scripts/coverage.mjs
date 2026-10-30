@@ -1,15 +1,6 @@
-/* 覆盖率报告：哪些"有实质动作"的代码行，在动画里从来没有被高亮过。
- *
- * 为什么需要它：帧校验能拦住"帧坏了"，但拦不住"这一行根本没讲过"。
- * 递增讲解里最容易被漏掉的是递归调用行、松弛/更新行、循环条件行——
- * 它们不亮，动画看起来仍然是对的，但知识点缺了一块。
- *
- * 用法：
- *   node scripts/coverage.mjs          # 只列需要补的模板（调用 / 赋值 / 分支）
- *   node scripts/coverage.mjs --all    # 把声明行、函数签名行也列出来
- *   node scripts/coverage.mjs tree     # 只看某一章
- *
- * 这是一份报告，不是闸门：永远以 0 退出，不阻塞构建。
+/* 找出哪些有实质动作的代码行从来没被高亮过。
+ *   node scripts/coverage.mjs [--all] [章节]
+ * 只出报告，永远退出 0。
  */
 import { loadData } from '../tests/support/harness.mjs';
 
@@ -33,7 +24,7 @@ function classify(raw) {
   return 'other';
 }
 
-/* 严重度：调用 > 赋值 > 分支 > 其它 > 声明/签名（后两类多数是可忽略的样板） */
+/* 严重度：调用 > 赋值 > 分支 > 其它 > 声明/签名 */
 const SEVERITY = { call: 3, assign: 2, other: 2, branch: 1, decl: 0, signature: 0, brace: 0, comment: 0 };
 const LABEL = {
   call: '调用', assign: '赋值', branch: '分支', other: '其它', decl: '声明', signature: '签名',

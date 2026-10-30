@@ -1,4 +1,4 @@
-/* 二叉树 · 3.11 最近公共祖先（LCA） */
+/* 3.11 最近公共祖先（LCA） */
 (function (NS) {
   'use strict';
 

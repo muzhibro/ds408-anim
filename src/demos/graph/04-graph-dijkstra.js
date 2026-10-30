@@ -1,4 +1,4 @@
-/* 图 · 4.6 Dijkstra 单源最短路 */
+/* 4.6 Dijkstra 单源最短路 */
 (function (NS) {
   'use strict';
 

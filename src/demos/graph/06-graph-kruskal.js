@@ -1,4 +1,4 @@
-/* 图 · 4.8 Kruskal 最小生成树 */
+/* 4.8 Kruskal 最小生成树 */
 (function (NS) {
   'use strict';
 

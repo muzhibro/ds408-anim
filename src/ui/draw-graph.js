@@ -1,10 +1,10 @@
-/* ui · 图：顶点 / 边 / 权值 / 状态配色 */
+/* 图：顶点 / 边 / 权值 / 状态配色 */
 (function (NS) {
   'use strict';
 
   var el = NS.el, txt = NS.txt, line = NS.line, arrowHead = NS.arrowHead;
 
-  /* ---------------------------------------------------------------- 布局：图 */
+  /* ---------- 布局：图 ---------- */
   var VR = 21;
 
   function drawGraph(f) {

@@ -1,4 +1,4 @@
-/* 链表 · 2.2 单链表就地逆置（断头＋头插） */
+/* 2.2 单链表就地逆置（断头＋头插） */
 (function (NS) {
   'use strict';
 
@@ -27,7 +27,7 @@ CH('list').demos.push({
       var rows = function (withQ) {
         var out = [{ label: 'L（新表）', head: L }];
         if (p) out.push({ label: 'p（旧链剩余）', head: p });
-        /* q 被摘下来之后不再是 p 的后继，单独画一行，否则指针图例只能显示"未挂链" */
+        /* q 摘下来后单独画一行，否则图例上显示成未挂链 */
         if (withQ && q && q !== p) out.push({ label: 'q（刚摘下的那段）', head: q });
         return out;
       };

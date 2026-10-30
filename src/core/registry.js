@@ -1,12 +1,12 @@
-/* core · 章节表与 id 生成器 */
+/* 章节表和 id 生成器 */
 (function (NS) {
   'use strict';
 
-  /* 全局唯一 id：链表结点、树结点都用它，跨帧比较时靠 id 认人 */
+  /* 全局自增 id。帧里靠它认结点，不靠对象引用 */
   var uid = 0;
   function nextId() { return ++uid; }
 
-  /* ---------------------------------------------------------------- 章节与 demo 容器 */
+  /* ---------- 章节与 demo 容器 ---------- */
   var CHAPTERS = [
     { id: 'list', name: '链表', demos: [] },
     { id: 'tree', name: '二叉树', demos: [] },

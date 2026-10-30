@@ -1,10 +1,10 @@
-/* ui · 二叉树：中序布局 + 绘制 */
+/* 二叉树：中序布局 + 绘制 */
 (function (NS) {
   'use strict';
 
   var el = NS.el, txt = NS.txt, rrect = NS.rrect, arrowHead = NS.arrowHead, line = NS.line;
 
-  /* ---------------------------------------------------------------- 布局：二叉树 */
+  /* ---------- 布局：二叉树 ---------- */
   var TREE_DX = 82, TREE_DY = 74, TREE_W = 54, TREE_H = 36;
 
   function layoutTree(root) {
@@ -64,7 +64,7 @@
       if (!p) return;
       g.appendChild(txt(p.x, p.y - TREE_H / 2 - 10, q.name, 'ptr', 'middle')).setAttribute('fill', '#f9a8d4');
     });
-    /* 交换左右孩子：两个子结点之间画一条琥珀色双向弧 */
+    /* 交换左右孩子：两子结点之间画琥珀双向弧 */
     if (f.swapPair && f.swapPair[0] != null && f.swapPair[1] != null) {
       var pa = L.pos[f.swapPair[0]], pb = L.pos[f.swapPair[1]];
       if (pa && pb) {
@@ -78,7 +78,7 @@
         g.appendChild(txt((pa.x + pb.x) / 2, midY + 14, '互换', 'ptr')).setAttribute('fill', '#fcd34d');
       }
     }
-    /* 与 key 的比较结论：画一棵树顶上方的紫色药丸 */
+    /* 与 key 的比较结论，画在树上方 */
     if (f.cmpTag) {
       var ctTxt = f.cmpTag.text;
       var ctW = ctTxt.length * 7.8 + 20;
@@ -91,7 +91,7 @@
       g.appendChild(txt(ctX, ctY + 4, ctTxt, 'ptr')).setAttribute('fill',
         f.cmpTag.ok === true ? '#bbf7d0' : (f.cmpTag.ok === false ? '#fecaca' : '#ddd6fe'));
     }
-    /* 递归栈改为在上方 HTML 条里显示，这里不再画 */
+    /* 递归栈在上方 HTML 条里，这里不画 */
     var W = 120 + Math.max(0, L.n - 1) * TREE_DX + 80;
     var H = 96 + Math.max(0, L.depth) * TREE_DY + 60;
     return { g: g, w: Math.max(W, 520), h: Math.max(H, 200) };

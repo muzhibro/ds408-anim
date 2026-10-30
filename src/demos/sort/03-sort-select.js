@@ -22,8 +22,12 @@ CH('sort').demos.push({
       yield FA(0, '准备：' + A.join(' ') + '。', A, {});
       for (i = 0; i < n - 1; i++) {
         mn = i;
-        yield FA(2, '第 ' + (i + 1) + ' 趟：从 ' + i + ' 开始找最小值，先假设 min = ' + i + '（' + A[i] + '）。',
+        yield FA(1, 'for (int i = 0; i < ' + (n - 1) + '; i++)：第 ' + (i + 1) + ' 趟，给位置 ' + i + ' 挑一个最小的。', A,
+          { marks: [{ name: 'i', at: i }], sorted: sortedSet(i) });
+        yield FA(2, 'int min = ' + i + '：先假设当前位置就是最小值（' + A[i] + '）。',
           A, { marks: [{ name: 'i/min', at: i }], sorted: sortedSet(i) });
+        yield FA(3, 'for (int j = ' + (i + 1) + '; j < ' + n + '; j++)：从它后面一路扫到末尾，比出最小的。', A,
+          { marks: [{ name: 'i', at: i }, { name: 'j', at: i + 1 }], sorted: sortedSet(i) });
         for (j = i + 1; j < n; j++) {
           if (A[j] < A[mn]) {
             var oldMin = mn;                       /* 先记住旧 min，不然标签会写成 A[min] 跟 A[j] 比 */

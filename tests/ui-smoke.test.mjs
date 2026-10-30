@@ -50,7 +50,13 @@ test('每个模板的每个用例都能加载并逐帧渲染', () => {
     });
   });
 
-  assert.equal(rendered, 1949, '渲染的帧数和帧数据对不上（数据层改了而基准没更新？）');
+  /* 期望帧数从数据里算，不再写死：加帧是常态，硬编码的数字只会变成"每次都要改测试"。 */
+  const expected = NS.CHAPTERS.reduce((sum, ch) => sum + ch.demos.reduce((s, demo) => {
+    const cs = demo.cases && demo.cases.length ? demo.cases : [null];
+    return s + cs.reduce((n, c) => { let k = 0; for (const _ of demo.run(c)) k++; return n + k; }, 0);
+  }, 0), 0);
+  assert.ok(expected > 2000, '数据层帧数异常：' + expected);
+  assert.equal(rendered, expected, '渲染的帧数和帧数据对不上（有模板没渲染全？）');
 });
 
 test('多用例模板的每个用例都能切换', () => {
@@ -65,5 +71,7 @@ test('多用例模板的每个用例都能切换', () => {
       }
     });
   });
-  assert.equal(switched, 39, '带用例的模板一共应有 39 个用例');
+  const total = NS.CHAPTERS.reduce((s, ch) => s + ch.demos.reduce((n, d) => n + ((d.cases || []).length), 0), 0);
+  assert.ok(total > 30, '带用例的用例总数异常：' + total);
+  assert.equal(switched, total, '带用例的模板一共应有 ' + total + ' 个用例');
 });

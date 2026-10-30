@@ -26,11 +26,14 @@ CH('tree').demos.push({
       function* chk(n) {
         if (!n) { yield FT(1, '空子树高度 0（平衡）。', root, { tags: tags }); return 0; }
         cs.push('CheckBalanced(' + n.val + ')');
-        yield FT(2, '进入 ' + n.val + '：先算左子树。', root, { mark: n, tags: tags });
+        yield FT(2, '进入 ' + n.val + '：先算左子树，拿到它的高度（或 −1）。', root, { mark: n, tags: tags });
         var hl = yield* chk(n.l);
-        if (hl === -1) { yield FT(3, '左子树已失衡 → 直接 return −1，右子树<b>不再计算</b>。', root, { mark: n, tags: tags }); cs.pop(); return -1; }
+        yield FT(3, 'if (hL == -1)：左子树返回 ' + (hl === -1 ? '−1 → 失衡，直接上报，右子树不必再算' : hl + ' → 只表示高度，继续算右子树') + '。', root, { mark: n, tags: tags });
+        if (hl === -1) { cs.pop(); return -1; }
+        yield FT(4, 'int hR = CheckBalanced(T->rchild)：现在去算右子树。', root, { mark: n, tags: tags });
         var hr = yield* chk(n.r);
-        if (hr === -1) { yield FT(5, '右子树已失衡 → 直接 return −1。', root, { mark: n, tags: tags }); cs.pop(); return -1; }
+        yield FT(5, 'if (hR == -1)：右子树返回 ' + (hr === -1 ? '−1 → 失衡，直接上报' : hr + ' → 正常，继续判差值') + '。', root, { mark: n, tags: tags });
+        if (hr === -1) { cs.pop(); return -1; }
         if (Math.abs(hl - hr) > 1) {
           yield FT(6, n.val + '：左 ' + hl + '、右 ' + hr + '，差 ' + Math.abs(hl - hr) + ' > 1 → <b>失衡</b>，上报 −1。', root, { mark: n, tags: tags });
           cs.pop();

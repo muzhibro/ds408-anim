@@ -37,6 +37,8 @@ CH('sort').demos.push({
       for (k = Math.floor(n / 2); k >= 1; k--) {
         yield FA(10, '处理结点 ' + k + '（值 ' + H[k] + '）：让它往下沉到合适位置。', view(), mkK(k, n));
         kk = k; tv = H[k];
+        yield FA(1, 'int t = A[' + kk + '] = ' + tv + '：先把待下沉的值存到 t，它的位置马上就空出来了。', view(), mkK(kk, n));
+        yield FA(2, 'for (int i = 2 * k; i <= n; i = 2 * k)：从它的左孩子 k=' + kk + ' → i=' + (2 * kk) + ' 开始往下比。', view(), mkK(kk, n));
         for (i = 2 * kk; i <= n; i = 2 * kk) {
           if (i < n && H[i + 1] > H[i]) {
             i++;
@@ -67,6 +69,8 @@ CH('sort').demos.push({
 
       var sorted = {};
       for (i = n; i > 1; i--) {
+        yield FA(11, 'for (int i = n; i > 1; i--)：堆还剩 ' + i + ' 个元素，取堆顶、放末尾、再缩小堆。', view(),
+          { marks: [{ name: 'i', at: i }], sorted: sorted, spans: [{ from: 1, to: i, label: '堆' }] });
         yield FA(12, '堆顶 A[1]=' + H[1] + ' 与末尾 A[' + i + ']=' + H[i] + ' 交换 → 最大值归位。', view(),
           { marks: [{ name: 'i', at: i }, { name: '堆顶', at: 1, color: '#22c55e' }], sorted: sorted, spans: [{ from: 1, to: i - 1, label: '堆' }], swap: [1, i] });
         t = H[1]; H[1] = H[i]; H[i] = t;

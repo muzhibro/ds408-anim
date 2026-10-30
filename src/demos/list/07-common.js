@@ -33,8 +33,11 @@ CH('list').demos.push({
       var rows = [{ label: 'A', head: A }, { label: 'B', head: B }];
       var ptr = function () { return [{ name: 'p', node: p }, { name: 'q', node: q }]; };
       yield F(0, '准备：A = 1→2→7→8→9（长 5），B = 4→5→6→7→8→9（长 6）。7、8、9 是两个表共用的同一批结点（Y 形）。', rows, [{ name: 'p', node: p }, { name: 'q', node: q }], null);
+      yield F(1, '① int n = 0：长度计数器从 0 开始。', rows, ptr(), null);
       yield F(2, '① 求 A 的长度：沿 A 走一遍，la = 5。', rows, ptr(), null);
       yield F(2, '① 求 B 的长度：沿 B 走一遍，lb = 6。', rows, ptr(), null);
+      yield F(3, 'return n：ListLen 把数出来的长度交回去（A 得 5、B 得 6）。', rows, ptr(), null);
+      yield F(5, 'LNode *CommonNode(A, B)：有了两个长度，就可以开始"对齐后同步走"。', rows, ptr(), null);
       yield F(6, '② la = 5，lb = 6。长表比短表长 1 步。', rows, ptr(), null);
       yield F(7, '③ p = A->next（1），q = B->next（4）。', rows, ptr(), p);
       while (lb > la) {
@@ -43,8 +46,9 @@ CH('list').demos.push({
       }
       yield F(8, 'la == lb，不需要再对齐 A 了。', rows, ptr(), null);
       while (p && q && p !== q) {
+        yield F(10, 'while (p && q && p != q)：两个指针都没到头、也还没撞在一起，就一起往前走。', rows, ptr(), null);
         p = p.next; q = q.next;
-        yield F(11, '⑤ 同步走：p → ' + (p ? p.val : 'NULL') + '，q → ' + (q ? q.val : 'NULL') + '，地址不同，继续。', rows, ptr(), null);
+        yield F(10, '⑤ 同步走：p → ' + (p ? p.val : 'NULL') + '，q → ' + (q ? q.val : 'NULL') + '，地址不同，继续。', rows, ptr(), null);
       }
       yield F(11, '⑥ p == q == ' + (p ? p.val : 'NULL') + '：两个指针指向<b>同一个结点</b>，这就是第一个公共结点。', rows, ptr(), p);
       yield F(12, '返回 ' + (p ? p.val : 'NULL') + '。时间 O(m+n)，空间 O(1)。', rows, ptr(), p);

@@ -37,6 +37,7 @@ CH('list').demos.push({
       yield F(2, '② L->next = NULL：先把头结点摘干净，新表为空。原链还挂在 p 上，一点没丢。', rows(), [{ name: 'L', node: L }, { name: 'p', node: p }], L);
       while (p) {
         q = p.next;
+        yield F(3, 'while (p)：旧链上还有个头没搬，就接着"摘一个、插一个"。', rows(), [{ name: 'L', node: L }, { name: 'p', node: p }], p);
         yield F(4, 'p = ' + p.val + '：③ q 保存后继 ' + (q ? q.val : 'NULL') + '（摘下来之前先记路，否则断链）。', rows(), [{ name: 'L', node: L }, { name: 'p', node: p }, { name: 'q', node: q }], q);
         var oldHead = L.next;
         yield F(5, '④ p->next = L->next：把 p 的 next 改指新表首元 ' + (oldHead ? oldHead.val : 'NULL') + '（这就是"头插"那一下）。',

@@ -50,13 +50,17 @@ CH('graph').demos.push({
       var outs = {};
       G.edges.forEach(function (e) { (outs[e[0]] = outs[e[0]] || []).push(e[1]); });
 
+      yield FG(0, 'TopologicalSort 进入：AOV 网里顶点是活动，边 i→j 表示 i 必须排在 j 前面。目标是给出一个合法先后顺序。', G,
+        { state: state(null), labels: lab(), ind: ind(null, '还没开始数入度') });
       yield FG(1, '准备：indegree[0..5] 全部清零。它记录的是"每个顶点还有几个前驱没被删除"。', G,
         { state: state(null), labels: lab(), ind: ind(null, '6 个计数器，现在都是 0') });
 
       /* ① 数入度：扫每个顶点的出边表，把终点的入度 +1 */
       for (var u = 0; u < N; u++) {
         var list = outs[u] || [];
-        yield FG(3, '① 开始扫顶点 ' + u + ' 的邻接表，数它的出边（当前 indegree = [' + indeg.join(' ') + ']）。', G,
+        yield FG(2, '① 外层循环 i = ' + u + '：准备数 V' + u + ' 的所有出边。', G,
+          { state: state(null), scan: { v: u, w: null }, labels: lab(), ind: ind(u, '正在处理 V' + u) });
+        yield FG(3, '内层 p 走 V' + u + ' 的邻接表（当前 indegree = [' + indeg.join(' ') + ']）。', G,
           { state: state(null), scan: { v: u, w: null }, labels: lab(), ind: ind(u, '正在扫 V' + u + ' 的出边') });
         for (var t = 0; t < list.length; t++) {
           var w = list[t];
@@ -71,6 +75,8 @@ CH('graph').demos.push({
         { state: state(null), labels: lab(), ind: ind(null, '最终入度：' + indeg.join(' ')) });
 
       /* ② 从头扫一遍，把入度为 0 的压栈 */
+      yield FG(5, '② 再从头扫一遍顶点，把入度为 0 的（没有前驱、现在就能做）压进栈。', G,
+        { state: state(null), labels: lab(), ind: ind(null, '找入度为 0 的点') });
       for (var i = 0; i < N; i++) {
         var zero = (indeg[i] === 0);
         if (zero) { st.push(i); syncSt(); }
@@ -88,9 +94,17 @@ CH('graph').demos.push({
         var v = st.pop();
         topo.push(v);
         syncSt();
-        yield FG(8, '出栈 ' + v + ' → 输出到 topo[' + (topo.length - 1) + ']。接下来把它"删掉"：每条出边都让终点入度减 1。', G,
+        yield FG(8, '出栈 ' + v + '（stack[top--]）。', G,
           { state: state(v), cur: v, scan: { v: v, w: null }, labels: lab(),
-            ind: ind(v, 'V' + v + ' 已输出，开始删它的出边'),
+            ind: ind(v, 'V' + v + ' 出栈'),
+            side: ['栈 <b>' + (st.join(' ') || '空') + '</b>'] });
+        yield FG(9, 'topo[count++] = ' + v + '：把它写进拓扑序列（第 ' + topo.length + ' 个），同样也是"输出/删掉"这一步。', G,
+          { state: state(v), cur: v, scan: { v: v, w: null }, labels: lab(),
+            ind: ind(v, 'V' + v + ' 已输出'),
+            side: ['拓扑序 <b>' + topo.join(' ') + '</b>', '栈 <b>' + (st.join(' ') || '空') + '</b>'] });
+        yield FG(10, '接着"删掉"它：沿着 V' + v + ' 的出边表，把每个终点的入度减 1。', G,
+          { state: state(v), cur: v, scan: { v: v, w: null }, labels: lab(),
+            ind: ind(v, '删 V' + v + ' 的出边'),
             side: ['拓扑序 <b>' + topo.join(' ') + '</b>', '栈 <b>' + (st.join(' ') || '空') + '</b>'] });
         var es = outs[v] || [];
         for (var k = 0; k < es.length; k++) {

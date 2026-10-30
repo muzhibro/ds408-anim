@@ -31,6 +31,7 @@ CH('sort').demos.push({
       var T = A.slice();
       var st = []; setStack(st);          /* 递归调用栈 */
       yield FA(0, '准备：' + A.join(' ') + '。归并排序是"分治"：递归对半分，回来时合并两个有序段。', A, {});
+      yield FA(10, 'MergeSort(A, 0, ' + (n - 1) + ', T)：入口，整个数组先交给它。', A, {});
       function* ms(lo, hi, depth) {
         if (lo >= hi) {
           yield FA(11, '区间 [' + lo + ',' + hi + '] 只有一个元素，天然有序，直接返回。', A, { marks: [{ name: 'lo=hi', at: lo }], side: ['递归深度 <b>' + depth + '</b>'] });
@@ -40,10 +41,19 @@ CH('sort').demos.push({
         var mid = (lo + hi) >> 1;
         yield FA(12, '对半劈：[' + lo + ',' + mid + '] 和 [' + (mid + 1) + ',' + hi + ']。',
           A, { spans: [{ from: lo, to: mid, label: '左' }, { from: mid + 1, to: hi, label: '右', color: 'rgba(56,189,248,.12)' }], side: ['递归深度 <b>' + depth + '</b>'] });
+        yield FA(13, 'MergeSort(A, ' + lo + ', ' + mid + ', T)：先把<b>左半</b>排好（递归进去）。', A,
+          { spans: [{ from: lo, to: mid, label: '左' }], side: ['递归深度 <b>' + depth + '</b>'] });
         yield* ms(lo, mid, depth + 1);
+        yield FA(14, 'MergeSort(A, ' + (mid + 1) + ', ' + hi + ', T)：左半回来了，再把<b>右半</b>排好。', A,
+          { spans: [{ from: mid + 1, to: hi, label: '右', color: 'rgba(56,189,248,.12)' }], side: ['递归深度 <b>' + depth + '</b>'] });
         yield* ms(mid + 1, hi, depth + 1);
+        yield FA(15, 'Merge(A, ' + lo + ', ' + mid + ', ' + hi + ', T)：两半各自有序了，现在合并成一个有序段。', A,
+          { spans: [{ from: lo, to: mid, label: '左（有序）' }, { from: mid + 1, to: hi, label: '右（有序）', color: 'rgba(56,189,248,.12)' }] });
         var i = lo, j = mid + 1, k = lo;
-        yield FA(2, '合并 [' + lo + ',' + mid + '] 与 [' + (mid + 1) + ',' + hi + ']：i=' + i + '，j=' + j + '，先比 A[i] 与 A[j]。',
+        yield FA(1, 'int i = ' + lo + ', j = ' + (mid + 1) + ', k = ' + lo + '：i 指左段、j 指右段、k 指辅助数组 T 的写入位置。', A,
+          { marks: [{ name: 'i', at: i, color: '#38bdf8' }, { name: 'j', at: j, color: '#f472b6' }, { name: 'k', at: k, color: '#22c55e' }],
+            spans: [{ from: lo, to: mid }, { from: mid + 1, to: hi, color: 'rgba(56,189,248,.12)' }] });
+        yield FA(2, '合并 [' + lo + ',' + mid + '] 与 [' + (mid + 1) + ',' + hi + ']：先比 A[i] 与 A[j]。',
           A, { marks: [{ name: 'i', at: i, color: '#38bdf8' }, { name: 'j', at: j, color: '#f472b6' }], spans: [{ from: lo, to: mid }, { from: mid + 1, to: hi, color: 'rgba(56,189,248,.12)' }] });
         while (i <= mid && j <= hi) {
           if (A[i] <= A[j]) {
@@ -58,7 +68,15 @@ CH('sort').demos.push({
             j++; k++;
           }
         }
+        if (i <= mid) {
+          yield FA(6, 'while (i <= mid) T[k++] = A[i++]：右段先空了，左段还剩 ' + (mid - i + 1) + ' 个，它们都更大，<b>整段搬</b>过去。', A,
+            { marks: [{ name: 'i', at: i }, { name: 'k', at: k, color: '#22c55e' }], spans: [{ from: lo, to: mid }] });
+        }
         while (i <= mid) { T[k++] = A[i++]; }
+        if (j <= hi) {
+          yield FA(7, 'while (j <= hi) T[k++] = A[j++]：左段先空了，右段还剩 ' + (hi - j + 1) + ' 个，整段搬过去。', A,
+            { marks: [{ name: 'j', at: j, color: '#f472b6' }, { name: 'k', at: k, color: '#22c55e' }], spans: [{ from: mid + 1, to: hi, color: 'rgba(56,189,248,.12)' }] });
+        }
         while (j <= hi) { T[k++] = A[j++]; }
         for (k = lo; k <= hi; k++) A[k] = T[k];
         yield FA(8, '两段并完，拷回原数组：[' + lo + '..' + hi + '] = ' + A.slice(lo, hi + 1).join(' ') + '。',

@@ -25,7 +25,9 @@ CH('sort').demos.push({
       for (i = 1; i < n; i++) {
         key = A[i]; j = i - 1;
         s = sortedSet(i);
-        yield FA(2, '第 ' + i + ' 轮：key = A[' + i + '] = ' + key + '，左边 0..' + (i - 1) + ' 已有序。',
+        yield FA(1, 'for (int i = 1; i < ' + n + '; i++)：第 ' + i + ' 轮，把 A[' + i + '] 插进左边的有序区。', A,
+          { marks: [{ name: 'i', at: i }], sorted: s, spans: [{ from: 0, to: i - 1 }] });
+        yield FA(2, 'int key = A[' + i + '] = ' + key + '，j = ' + j + '：key 先存起来，左边的 0..' + (i - 1) + ' 已有序。',
           A, { marks: [{ name: 'i', at: i }], sorted: s, spans: [{ from: 0, to: i - 1 }] });
         while (j >= 0 && A[j] > key) {
           yield FA(3, 'A[' + j + '] = ' + A[j] + ' > key(' + key + ') → 把它往后挪一格，腾出前面的位置。',
@@ -34,6 +36,8 @@ CH('sort').demos.push({
           A[j + 1] = A[j];
           yield FA(4, 'A[' + (j + 1) + '] ← ' + A[j] + '（key=' + key + ' 先寄存在变量里，不占数组位置）。',
             A, { marks: [{ name: 'j', at: j }, { name: 'i', at: i }], sorted: s, spans: [{ from: 0, to: i - 1 }] });
+          yield FA(5, 'j--：游标左移一格，接着比前一个。', A,
+            { marks: [{ name: 'j', at: Math.max(0, j - 1) }, { name: 'i', at: i }], sorted: s, spans: [{ from: 0, to: i - 1 }] });
           j--;
         }
         if (j >= 0) {

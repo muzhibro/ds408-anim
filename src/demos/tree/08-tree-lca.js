@@ -33,6 +33,9 @@ CH('tree').demos.push({
         yield FT(2, '在 ' + n.val + '：先问左子树有没有。', root, { mark: n, ptrs: [{ name: 'p', node: p }, { name: 'q', node: q }] });
         cs.push('LCA(' + n.val + ')');
         var L = yield* lca(n.l, depth + 1);
+        yield FT(3, 'BiTree R = LCA(T->rchild, p, q)：左边搜完了，再问右子树（左边拿到的 L 先攥在手里）。', root,
+          { mark: n, ptrs: [{ name: 'p', node: p }, { name: 'q', node: q }],
+            side: ['L = <b>' + (L ? L.val : 'NULL') + '</b>', 'R 待求'] });
         var R = yield* lca(n.r, depth + 1);
         if (L && R) {
           res.v = n;

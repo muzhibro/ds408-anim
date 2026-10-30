@@ -41,32 +41,64 @@ CH('graph').demos.push({
       dist[s] = 0; done[s] = 1;
       var lab = function () { var o = {}; for (var i = 0; i < N; i++) o[i] = dist[i] === INF ? '∞' : dist[i]; return o; };
       var state = function (cur) { var o = {}; Object.keys(done).forEach(function (k) { o[k] = 'done'; }); if (cur != null) o[cur] = 'cur'; return o; };
-      yield FG(0, '准备：源点 0。dist 初始就是 0 到各点的直接边权（无边则 ∞）。边上数字是权重。', G,
-        { state: state(0), labels: lab(), side: ['dist <b>[' + [0, 1, 2, 3, 4, 5].map(function (i2) { return dist[i2] === INF ? '∞' : dist[i2]; }).join(', ') + ']</b>'] });
-      yield FG(3, '起点 0 定死：done[0]=1，dist[0]=0。', G, { state: state(0), labels: lab(), side: ['已确定 <b>0</b>'] });
+      var showDist = function () { return [0, 1, 2, 3, 4, 5].map(function (i2) { return dist[i2] === INF ? '∞' : dist[i2]; }).join(', '); };
+      yield FG(0, 'Dijkstra 从一个源点出发，逐步把"最短路已确定"的点收进 done 集合。', G,
+        { state: state(0), labels: lab(), side: ['源点 <b>0</b>', 'dist <b>[' + showDist() + ']</b>'] });
+      yield FG(1, 'int done[MAXV] = {0}：一开始谁都没定死。', G,
+        { state: {}, labels: lab(), side: ['done 全 0'] });
+      yield FG(2, '初始化：dist[i] ← 源点到 i 的<b>直接边权</b>（没边就是 ∞），dist[0] 置 0；path[i] ← 源点。', G,
+        { state: {}, labels: lab(), side: ['dist <b>[' + showDist() + ']</b>'] });
+      yield FG(3, '源点自己定死：done[0]=1，dist[0]=0。', G, { state: state(0), labels: lab(), side: ['已确定 <b>0</b>'] });
       for (var k = 1; k < N; k++) {
         var u = -1, best = INF;
+        yield FG(4, '第 ' + k + ' 轮：k=' + k + ' < ' + N + '，还要再定死一个点。', G,
+          { state: state(null), labels: lab(), side: ['dist <b>[' + showDist() + ']</b>'] });
+        yield FG(5, 'int u = -1, best = INF：准备在未确定的点里找 dist 最小的那个。', G,
+          { state: state(null), labels: lab() });
+        yield FG(6, '扫一遍所有点（① 找最小）：ds[] 里 dist 还未定的点才有资格竞争。', G,
+          { state: state(null), labels: lab() });
         for (var j = 0; j < N; j++) if (!done[j] && dist[j] < best) { best = dist[j]; u = j; }
-        if (u === -1) break;
-        yield FG(6, '第 ' + k + ' 轮：未确定的点里 dist 最小的是 ' + u + '（' + best + '）→ 把它定死。', G,
-          { state: state(u), scan: { v: u, w: null }, labels: lab(), side: ['dist[' + u + '] = <b>' + best + '</b>'] });
+        if (k === 1) {
+          yield FG(7, 'if (!done[i] && dist[i] < best)：边扫边更新 best/u，扫完 best = ' + (best === INF ? '∞' : best) + '，u = ' + u + '。', G,
+            { state: state(null), labels: lab(), side: ['当前最小 <b>' + (best === INF ? '∞' : best) + '</b> @ ' + u] });
+        }
+        if (u === -1) {
+          yield FG(8, 'u == -1：剩下的点都不可达 → break，结束。', G, { state: state(null), labels: lab() });
+          break;
+        }
+        if (k === 1) {
+          yield FG(8, 'u = ' + u + ' ≠ -1 → 不退出，继续定死它。', G, { state: state(u), labels: lab() });
+        }
+        yield FG(9, '② 定死 u = ' + u + '：done[' + u + '] = 1。它的最短路从此不会再变。', G,
+          { state: state(u), scan: { v: u, w: null }, labels: lab(), side: ['dist[' + u + '] = <b>' + best + '</b> 确定'] });
         done[u] = 1;
-        yield FG(8, 'done[' + u + '] = 1。现在用它去松弛所有邻居。', G, { state: state(u), scan: { v: u, w: null }, labels: lab() });
+        yield FG(10, '③ 用 u = ' + u + ' 去松弛：看它的每个邻居 v，能不能让 dist[v] 变小。', G,
+          { state: state(u), scan: { v: u, w: null }, labels: lab() });
         for (var v = 0; v < N; v++) {
           var ww = w(u, v);
           if (done[v] || ww === INF) continue;
           if (dist[u] + ww < dist[v]) {
-            dist[v] = dist[u] + ww; path[v] = u;
-            yield FG(11, '松弛成功：dist[' + v + '] ← ' + dist[u] + ' + ' + ww + ' = ' + dist[v] + '（经过 ' + u + '）。', G,
-              { state: state(u), scan: { v: u, w: v }, labels: lab(), edgeOn: (function (o) { o[u + '-' + v] = 1; return o; })({}), side: ['dist[' + v + '] = <b>' + dist[v] + '</b>', 'path[' + v + '] = ' + u] });
+            yield FG(11, dist[u] + ' + ' + ww + ' = ' + (dist[u] + ww) + ' < dist[' + v + ']=' + (dist[v] === INF ? '∞' : dist[v]) + ' → 松弛成功。', G,
+              { state: state(u), scan: { v: u, w: v }, labels: lab(),
+                edgeOn: (function (o) { o[u + '-' + v] = 1; return o; })({}),
+                side: ['dist[' + v + '] 要从 <b>' + (dist[v] === INF ? '∞' : dist[v]) + '</b> 改小'] });
+            dist[v] = dist[u] + ww;
+            yield FG(12, 'dist[' + v + '] ← ' + dist[u] + ' + ' + ww + ' = ' + dist[v] + '：更短的路找到了。', G,
+              { state: state(u), scan: { v: u, w: v }, labels: lab(),
+                edgeOn: (function (o) { o[u + '-' + v] = 1; return o; })({}),
+                side: ['dist[' + v + '] = <b>' + dist[v] + '</b>'] });
+            path[v] = u;
+            yield FG(13, 'path[' + v + '] ← ' + u + '：记住 v 是从 u 走过来的，最后靠它倒推出路径。', G,
+              { state: state(u), scan: { v: u, w: v }, labels: lab(),
+                side: ['path[' + v + '] = ' + u] });
           } else {
-            yield FG(11, '不算更短：' + dist[u] + '+' + ww + ' ≥ dist[' + v + ']=' + dist[v] + '，不改。', G,
-              { state: state(u), scan: { v: u, w: v }, labels: lab(), side: ['dist[' + v + '] 保持 <b>' + dist[v] + '</b>'] });
+            yield FG(11, '不算更短：' + dist[u] + '+' + ww + ' ≥ dist[' + v + ']=' + (dist[v] === INF ? '∞' : dist[v]) + '，不改。', G,
+              { state: state(u), scan: { v: u, w: v }, labels: lab(), side: ['dist[' + v + '] 保持 <b>' + (dist[v] === INF ? '∞' : dist[v]) + '</b>'] });
           }
         }
       }
-      yield FG(15, '全部定死。dist = [' + [0, 1, 2, 3, 4, 5].map(function (i2) { return dist[i2]; }).join(', ') + ']。',
-        G, { state: (function () { var o = {}; for (var i2 = 0; i2 < N; i2++) o[i2] = 'done'; return o; })(), labels: lab(), side: ['答案 <b>' + dist.join(', ') + '</b>'] });
+      yield FG(15, '全部定死。dist = [' + showDist() + ']。', G,
+        { state: (function () { var o = {}; for (var i2 = 0; i2 < N; i2++) o[i2] = 'done'; return o; })(), labels: lab(), side: ['答案 <b>[' + showDist() + ']</b>'] });
     }
   });
 })(window.DSANIM = window.DSANIM || {});

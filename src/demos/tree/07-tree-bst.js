@@ -44,6 +44,8 @@ CH('tree').demos.push({
         pre = +n.val; seq.push(pre); tags[n.id] = seq.length;
         yield FT(4, '中序访问 ' + n.val + '，比 ' + (seq.length > 1 ? '上一个值' : '−∞') + ' 大 → 合法，pre 更新为 ' + pre + '。',
           root, { mark: n, tags: tags, side: ['pre = <b>' + pre + '</b>', '中序已扫 <b>' + seq.join(' ') + '</b>'] });
+        yield FT(5, 'return IsBST(T->rchild, pre)：本结点验完，把更新后的 pre 带进右子树继续验（中序的顺序：左 → 根 → 右）。', root,
+          { mark: n, tags: tags, side: ['pre = <b>' + pre + '</b>', '中序已扫 <b>' + seq.join(' ') + '</b>'] });
         var r = yield* isbst(n.r);
         cs.pop();
         return r;

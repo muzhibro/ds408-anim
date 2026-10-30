@@ -51,6 +51,7 @@ CH('list').demos.push({
       yield F(4, '④ i = 1，从第 1 个结点开始数。', rows(), ptr(), null);
       while (p) {
         var q = p.next;
+        yield F(5, 'while (p)：源表还有结点，就把它搬到 A 或 B 的尾部。', rows(), ptr(), p);
         yield F(6, '⑤ q = p->next 先记路：p 马上要被挂到别的表上。', rows(), ptr(), q);
         if (i % 2 === 1) {
           yield F(7, 'i = ' + i + ' 是奇数：把 ' + p.val + ' 挂到 A 的尾部 —— 先改 ra->next，这是"从源表摘、往 A 接"的那一笔。',
@@ -66,11 +67,14 @@ CH('list').demos.push({
           yield F(8, '接好了：B 尾部变成 ' + p.val + '，rb 前移指向它。', rows(), ptr(), rb);
         }
         p = q;
+        yield F(9, 'p = q：跟上刚才记下的下一个结点。', rows(), ptr(), p);
         i++;
-        yield F(9, 'p = q，i++ → 下一个是第 ' + i + ' 个。', rows(), ptr(), p);
+        yield F(10, 'i++ → 下一个结点是第 ' + i + ' 个（奇数进 A、偶数进 B）。', rows(), ptr(), p);
       }
       ra.next = null; rb.next = null;
-      yield F(13, '⑥ 两个新表都要收尾：ra->next = rb->next = NULL。漏一个就是野指针。',
+      yield F(12, '⑥ 收尾第一笔：ra->next = NULL —— A 的末尾必须封口，否则会拖着一串野指针。',
+        [{ label: 'A（奇）', head: A }, { label: 'B（偶）', head: B }], [{ name: 'ra', node: ra }, { name: 'rb', node: rb }], null);
+      yield F(13, '⑥ 收尾第二笔：rb->next = NULL —— B 同理。两个表都封口才安全。',
         [{ label: 'A（奇）', head: A }, { label: 'B（偶）', head: B }], [{ name: 'ra', node: ra }, { name: 'rb', node: rb }], null);
       yield F(14, '完成：A = 1→3→5，B = 2→4→6。源表 L 的结点已被全部"搬"走，两个新表各自收尾。', [{ label: 'A（奇）', head: A }, { label: 'B（偶）', head: B }], [{ name: 'ra', node: ra }, { name: 'rb', node: rb }], null);
     }

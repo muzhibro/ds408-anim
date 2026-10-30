@@ -18,7 +18,7 @@
 └─────────────────────────────────────────────┘
 ```
 
-分界线的判据只有一句：**数据层能在没有 `document` 的环境里跑完**。`tests/support/harness.mjs` 的 `loadData()` 就是这么做的——加载 `manifest.data` 里所有模块，一个 DOM 对象都不给，照样能拿到全部 1949 帧。
+分界线的判据只有一句：**数据层能在没有 `document` 的环境里跑完**。`tests/support/harness.mjs` 的 `loadData()` 就是这么做的——加载 `manifest.data` 里所有模块，一个 DOM 对象都不给，照样能拿到全部 2932 帧。
 
 这条线带来三个好处：
 
@@ -114,7 +114,7 @@
 | 文件 | 依赖 | 覆盖 |
 | --- | --- | --- |
 | `tests/frames.test.mjs` | 无 DOM | 帧指纹、帧结构性约束（`line` 越界 / 空说明）、链表 `expect` 末态、章节清单快照 |
-| `tests/ui-smoke.test.mjs` | `tests/support/dom.mjs` | 1949 帧逐帧渲染：画面非空、说明非空、进度文本、高亮行与 `frame.line` 一致 |
+| `tests/ui-smoke.test.mjs` | `tests/support/dom.mjs` | 2932 帧逐帧渲染：画面非空、说明非空、进度文本、高亮行与 `frame.line` 一致 |
 | `tests/structure.test.mjs` | 文件系统 | manifest ↔ 源文件、demo 文件名 ↔ 模板 id ↔ 注册顺序 |
 | `tests/build.test.mjs` | 子进程 + 产物 | 构建可跑、无占位符/外链、产物帧指纹 = 源码帧指纹 |
 

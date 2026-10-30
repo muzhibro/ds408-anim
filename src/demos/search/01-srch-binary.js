@@ -27,6 +27,8 @@ CH('search').demos.push({
       while (low <= high) {
         mid = (low + high) >> 1;
         cnt++;
+        yield FA(2, 'while (low <= high)：区间 [' + low + ',' + high + '] 还没空，就还有得找（用 <= 不是 <，否则单元素区间会被漏掉）。', A,
+          { marks: [{ name: 'low', at: low }, { name: 'high', at: high }], spans: [{ from: low, to: high }], side: ['比较次数 <b>' + cnt + '</b>'] });
         yield FA(3, '第 ' + cnt + ' 次比较：mid = (' + low + '+' + high + ')/2 = ' + mid + '（向下取整）。',
           A, { marks: [{ name: 'low', at: low }, { name: 'mid', at: mid, color: '#f59e0b' }, { name: 'high', at: high }], spans: [{ from: low, to: high }], side: ['比较次数 <b>' + cnt + '</b>'] });
         if (A[mid] === key) {

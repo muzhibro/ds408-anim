@@ -633,6 +633,8 @@ CH('list').demos.push({
       for (var i = 0; i < a.length; i++) {
         var s = mk(a[i]);
         var pending = [{ label: 's（新）', head: s }];
+        yield F(3, 'for (int i = 0; i < ' + a.length + '; i++)：第 ' + (i + 1) + ' 个元素 a[' + i + '] = ' + a[i] + '，为它造一个结点。',
+          rows(), [{ name: 'L', node: L }], L);
         yield F(4, 'i = ' + i + '：③ 申请新结点 s。', rows(pending), [{ name: 'L', node: L }, { name: 's', node: s }], s);
         yield F(5, '④ s->data = a[' + i + '] = ' + a[i] + '。', rows(pending), [{ name: 'L', node: L }, { name: 's', node: s }], s);
         var old = L.next;
@@ -682,6 +684,8 @@ CH('list').demos.push({
       for (var i = 0; i < a.length; i++) {
         var s = mk(a[i]);
         var pending = [{ label: 's（新）', head: s }];
+        yield F(4, 'for (int i = 0; i < ' + a.length + '; i++)：第 ' + (i + 1) + ' 个元素 a[' + i + '] = ' + a[i] + '，为它造结点并挂到表尾。',
+          rows(), [{ name: 'r', node: r }], r);
         yield F(5, 'i = ' + i + '：④ 申请新结点 s。', rows(pending), [{ name: 'r', node: r }, { name: 's', node: s }], s);
         yield F(6, '⑤ s->data = a[' + i + '] = ' + a[i] + '。', rows(pending), [{ name: 'r', node: r }, { name: 's', node: s }], s);
         r.next = s;
@@ -735,6 +739,7 @@ CH('list').demos.push({
       yield F(2, '② L->next = NULL：先把头结点摘干净，新表为空。原链还挂在 p 上，一点没丢。', rows(), [{ name: 'L', node: L }, { name: 'p', node: p }], L);
       while (p) {
         q = p.next;
+        yield F(3, 'while (p)：旧链上还有个头没搬，就接着"摘一个、插一个"。', rows(), [{ name: 'L', node: L }, { name: 'p', node: p }], p);
         yield F(4, 'p = ' + p.val + '：③ q 保存后继 ' + (q ? q.val : 'NULL') + '（摘下来之前先记路，否则断链）。', rows(), [{ name: 'L', node: L }, { name: 'p', node: p }, { name: 'q', node: q }], q);
         var oldHead = L.next;
         yield F(5, '④ p->next = L->next：把 p 的 next 改指新表首元 ' + (oldHead ? oldHead.val : 'NULL') + '（这就是"头插"那一下）。',
@@ -943,8 +948,11 @@ CH('list').demos.push({
       var rows = [{ label: 'A', head: A }, { label: 'B', head: B }];
       var ptr = function () { return [{ name: 'p', node: p }, { name: 'q', node: q }]; };
       yield F(0, '准备：A = 1→2→7→8→9（长 5），B = 4→5→6→7→8→9（长 6）。7、8、9 是两个表共用的同一批结点（Y 形）。', rows, [{ name: 'p', node: p }, { name: 'q', node: q }], null);
+      yield F(1, '① int n = 0：长度计数器从 0 开始。', rows, ptr(), null);
       yield F(2, '① 求 A 的长度：沿 A 走一遍，la = 5。', rows, ptr(), null);
       yield F(2, '① 求 B 的长度：沿 B 走一遍，lb = 6。', rows, ptr(), null);
+      yield F(3, 'return n：ListLen 把数出来的长度交回去（A 得 5、B 得 6）。', rows, ptr(), null);
+      yield F(5, 'LNode *CommonNode(A, B)：有了两个长度，就可以开始"对齐后同步走"。', rows, ptr(), null);
       yield F(6, '② la = 5，lb = 6。长表比短表长 1 步。', rows, ptr(), null);
       yield F(7, '③ p = A->next（1），q = B->next（4）。', rows, ptr(), p);
       while (lb > la) {
@@ -953,8 +961,9 @@ CH('list').demos.push({
       }
       yield F(8, 'la == lb，不需要再对齐 A 了。', rows, ptr(), null);
       while (p && q && p !== q) {
+        yield F(10, 'while (p && q && p != q)：两个指针都没到头、也还没撞在一起，就一起往前走。', rows, ptr(), null);
         p = p.next; q = q.next;
-        yield F(11, '⑤ 同步走：p → ' + (p ? p.val : 'NULL') + '，q → ' + (q ? q.val : 'NULL') + '，地址不同，继续。', rows, ptr(), null);
+        yield F(10, '⑤ 同步走：p → ' + (p ? p.val : 'NULL') + '，q → ' + (q ? q.val : 'NULL') + '，地址不同，继续。', rows, ptr(), null);
       }
       yield F(11, '⑥ p == q == ' + (p ? p.val : 'NULL') + '：两个指针指向<b>同一个结点</b>，这就是第一个公共结点。', rows, ptr(), p);
       yield F(12, '返回 ' + (p ? p.val : 'NULL') + '。时间 O(m+n)，空间 O(1)。', rows, ptr(), p);
@@ -1005,8 +1014,10 @@ CH('list').demos.push({
       yield F(2, '② p 指向首元，pre 指向头结点（pre 是 p 的前驱）。', rows, ptr(), p, { seen: seenTxt() });
       while (p) {
         var v = Math.abs(parseInt(p.val, 10));
+        yield F(3, 'while (p)：p 还没走到表尾，就继续检查当前结点。', rows, ptr(), p, { seen: seenTxt() });
         yield F(4, '③ 取绝对值 v = |' + p.val + '| = ' + v + '。', rows, ptr(), p, { seen: seenTxt() });
         if (seen[v]) {
+          yield F(5, 'if (seen[' + v + '])：' + v + ' 已经登记过 → 走"删掉"这一支。', rows, ptr(), p, { seen: seenTxt() });
           pre.next = p.next;
           yield F(6, '④ seen[' + v + '] 已经是 1 → 这个值出现过，让 pre 跨过 p：pre->next = p->next。', rows, ptr(), p, { seen: seenTxt() });
           var freed = p;
@@ -1014,12 +1025,13 @@ CH('list').demos.push({
           p = pre.next;
           yield F(8, '⑥ p = pre->next，pre 不动（因为它后面换了人）。', rows, ptr(), p, { seen: seenTxt() });
         } else {
+          yield F(5, 'if (seen[' + v + '])：' + v + ' 从没登记过 → 走"保留"这一支。', rows, ptr(), p, { seen: seenTxt() });
           seen[v] = 1;
-          yield F(11, '④ 没见过 → seen[' + v + '] = 1。' + seenTxt(), rows, ptr(), p, { seen: seenTxt() });
+          yield F(10, '④ seen[' + v + '] = 1：把绝对值登记下来，下次再遇到就删。' + seenTxt(), rows, ptr(), p, { seen: seenTxt() });
           pre = p;
-          yield F(12, '⑤ pre 前进到 ' + pre.val + '。', rows, ptr(), pre, { seen: seenTxt() });
+          yield F(11, '⑤ pre 前进到 ' + pre.val + '。', rows, ptr(), pre, { seen: seenTxt() });
           p = p.next;
-          yield F(13, '⑥ p 前进到 ' + (p ? p.val : 'NULL') + '。', rows, ptr(), p, { seen: seenTxt() });
+          yield F(12, '⑥ p 前进到 ' + (p ? p.val : 'NULL') + '。', rows, ptr(), p, { seen: seenTxt() });
         }
       }
       yield F(15, '完成：21 → -15 → 7。重复的 -15 和 7 被删掉了；15 也没了 —— 因为 |−15| = 15 早就登记过。', rows, [{ name: 'L', node: L }], null, { seen: seenTxt() });
@@ -1149,6 +1161,8 @@ CH('list').demos.push({
       yield F(8, 'r->next = ' + (p ? 'p' : 'q') + '：一个赋值接完整段剩余（千万别写成 while 一颗颗接）。', rows(true), ptr(), r);
       yield F(9, 'free(B)：B 的头结点已经没用了；B 里的结点此刻全在 C 里，一个都不能 free。',
         [{ label: 'C（合并结果）', head: A }], [{ name: 'r', node: r }], null);
+      yield F(10, 'return C：把 C 的头结点交回去 —— 调用者拿到的就是 "1→2→3→4→5→6→7" 这条链。',
+        [{ label: 'C（合并结果）', head: A }], [{ name: 'r', node: r }], null);
     }
   });
 })(window.DSANIM = window.DSANIM || {});
@@ -1207,6 +1221,7 @@ CH('list').demos.push({
       yield F(4, '④ i = 1，从第 1 个结点开始数。', rows(), ptr(), null);
       while (p) {
         var q = p.next;
+        yield F(5, 'while (p)：源表还有结点，就把它搬到 A 或 B 的尾部。', rows(), ptr(), p);
         yield F(6, '⑤ q = p->next 先记路：p 马上要被挂到别的表上。', rows(), ptr(), q);
         if (i % 2 === 1) {
           yield F(7, 'i = ' + i + ' 是奇数：把 ' + p.val + ' 挂到 A 的尾部 —— 先改 ra->next，这是"从源表摘、往 A 接"的那一笔。',
@@ -1222,11 +1237,14 @@ CH('list').demos.push({
           yield F(8, '接好了：B 尾部变成 ' + p.val + '，rb 前移指向它。', rows(), ptr(), rb);
         }
         p = q;
+        yield F(9, 'p = q：跟上刚才记下的下一个结点。', rows(), ptr(), p);
         i++;
-        yield F(9, 'p = q，i++ → 下一个是第 ' + i + ' 个。', rows(), ptr(), p);
+        yield F(10, 'i++ → 下一个结点是第 ' + i + ' 个（奇数进 A、偶数进 B）。', rows(), ptr(), p);
       }
       ra.next = null; rb.next = null;
-      yield F(13, '⑥ 两个新表都要收尾：ra->next = rb->next = NULL。漏一个就是野指针。',
+      yield F(12, '⑥ 收尾第一笔：ra->next = NULL —— A 的末尾必须封口，否则会拖着一串野指针。',
+        [{ label: 'A（奇）', head: A }, { label: 'B（偶）', head: B }], [{ name: 'ra', node: ra }, { name: 'rb', node: rb }], null);
+      yield F(13, '⑥ 收尾第二笔：rb->next = NULL —— B 同理。两个表都封口才安全。',
         [{ label: 'A（奇）', head: A }, { label: 'B（偶）', head: B }], [{ name: 'ra', node: ra }, { name: 'rb', node: rb }], null);
       yield F(14, '完成：A = 1→3→5，B = 2→4→6。源表 L 的结点已被全部"搬"走，两个新表各自收尾。', [{ label: 'A（奇）', head: A }, { label: 'B（偶）', head: B }], [{ name: 'ra', node: ra }, { name: 'rb', node: rb }], null);
     }
@@ -1325,6 +1343,7 @@ CH('list').demos.push({
       /* ---- ⑤ 头插逆置后半段 ---- */
       while (p) {
         var nxt = p.next;
+        yield F(9, 'while (p)：后半段还有结点没搬完，就继续头插逆置。', rowRev(), ptr(), p);
         yield F(10, '⑤ 逆置：q = p->next，先把 ' + p.val + ' 的后继 ' + (nxt ? nxt.val : 'NULL') + ' 存下来，不然改完 p->next 就找不回来了。', rowRev(), ptr(), p);
         q = nxt;
         yield F(11, p.val + '->next = slow->next：把 ' + p.val + ' 的 next 改指到当前逆置段的最前面（' + (slow.next ? slow.next.val : 'NULL') + '）。',
@@ -1339,7 +1358,8 @@ CH('list').demos.push({
       yield F(13, '后半段逆置完成：' + slow.val + ' 之后是 ' + slow.next.val + ' → …，原来是 a4→a5→a6，现在成 a6→a5→a4。', rowAll(), [{ name: 'slow', node: slow }], slow);
       /* ---- ⑥ 交替合并 ---- */
       h = L.next; b = slow.next;
-      yield F(15, '⑥ h = L->next（前半段游标 a1），b = slow->next（后半段游标 a6）。两个游标各走一段，交替往里插。', rowAll(), ptr(), h);
+      yield F(15, '⑥ h = L->next：前半段游标，从头开始（a1）。', rowAll(), ptr(), h);
+      yield F(16, 'LNode *b = slow->next：后半段游标，指向逆置后的第一颗（a6）。两个游标各走一段，交替往里插。', rowAll(), ptr(), b);
       yield F(17, 'slow->next = NULL：再断一次，让前半段末尾变成干净的结尾。', rowAll(), ptr(), h);
       slow.next = null;
       q = h.next;
@@ -1410,6 +1430,7 @@ CH('list').demos.push({
       yield F(4, '④ p->next = s：2 的 next 指向 s。四条链全部接好，插入完成。', rows, ptr(), s);
       yield F(4, '现在表是 1 ⇄ 2 ⇄ 3 ⇄ 4。下面演示删除 2 的后继（即 3）。', rows, [{ name: 'p', node: p }], p);
       q = p.next;
+      yield F(6, 'void DDeleteAfter(DNode *p){…}：删除 p 的后继，要动 next 和 prior 两条链，顺序不能反。', rows, [{ name: 'p', node: p }], p);
       yield F(7, '⑤ q = p->next，q 指向待删结点 3。', rows, [{ name: 'p', node: p }, { name: 'q', node: q }], q);
       yield F(8, '⑥ q 非空，可以删。', rows, [{ name: 'p', node: p }, { name: 'q', node: q }], q);
       p.next = q.next;
@@ -1434,6 +1455,10 @@ CH('list').demos.push({
 CH('list').demos.push({
     id: 'sorted', name: '2.13 判断链表是否递增有序', doubly: false,
     note: '只比<b>相邻</b>两个结点：出现一次逆序就不是递增有序。空表和单结点表都算有序。',
+    cases: [
+      { label: '有逆序：2,5,7,6,9', list: [2, 5, 7, 6, 9] },
+      { label: '全有序：2,5,7,9,11', list: [2, 5, 7, 9, 11] }
+    ],
     expect: ['L', '2', '5', '7', '6', '9'],
     code: [
       'int IsSorted(LinkList L) {',
@@ -1442,12 +1467,13 @@ CH('list').demos.push({
       '    return 1;',
       '}'
     ],
-    run: function* () {
-      var ns = build([2, 5, 7, 6, 9]);
+    run: function* (c) {
+      var vals = (c && c.list) || [2, 5, 7, 6, 9];
+      var ns = build(vals);
       var L = mkHead('L'); L.next = ns[0];
       var p = L.next;
       var rows = [{ label: 'L', head: L }];
-      yield F(0, '准备：2 → 5 → 7 → 6 → 9。问它是不是递增有序。', rows, [{ name: 'L', node: L }], L);
+      yield F(0, '准备：' + vals.join(' → ') + '。问它是不是递增有序。', rows, [{ name: 'L', node: L }], L);
       var round = 0;
       while (p && p.next) {
         round++;
@@ -1455,14 +1481,14 @@ CH('list').demos.push({
         yield F(1, '第 ' + round + ' 次比较：p = ' + p.val + '，p->next = ' + p.next.val + '。', rows, [{ name: 'p', node: p }], p);
         if (!ok) {
           yield F(2, '★ ' + p.val + ' > ' + p.next.val + '：出现逆序 → 立即 return 0，后面的不用看了。', rows, [{ name: 'p', node: p }], p.next);
-          yield F(2, '结论：不是递增有序。注意 2,5,7 都是有序的，但 7 > 6 就足够了。', rows, [{ name: 'p', node: p }], null);
+          yield F(2, '结论：不是递增有序。注意前面的 2,5,7 都是有序的，但 ' + p.val + ' > ' + p.next.val + ' 就足够了。', rows, [{ name: 'p', node: p }], null);
           return;
         }
         yield F(2, p.val + ' ≤ ' + p.next.val + '，这一对没问题，继续。', rows, [{ name: 'p', node: p }], null);
         p = p.next;
-        yield F(1, 'p 前进到 ' + p.val + '。', rows, [{ name: 'p', node: p }], p);
+        if (p) yield F(1, 'p 前进到 ' + p.val + '。', rows, [{ name: 'p', node: p }], p);
       }
-      yield F(3, '走完全程没发现逆序 → return 1，递增有序。', rows, [{ name: 'p', node: p }], null);
+      yield F(3, '走完全程没发现逆序 → return 1，递增有序。时间是 O(n)，只用了 p 一个指针。', rows, [{ name: 'p', node: p }], null);
     }
   });
 })(window.DSANIM = window.DSANIM || {});
@@ -1555,8 +1581,12 @@ CH('tree').demos.push({
     run: function* () {
       var root = mkTree1(), st = [], p = root, tags = {}, order = [];
       var sv = function () { return st.map(function (x) { return x.val; }); };
-      yield FT(0, '准备：同一棵树。中序 = 左 → 根 → 右。递归换成"自己拿栈模拟"。', root, {});
+      yield FT(0, '准备：同一棵树。中序 = 左 → 根 → 右；递归版本由系统栈帮忙，这里自己拿数组当栈。', root, {});
+      yield FT(1, 'BiTree stack[MAXSIZE], p = T：一个数组当栈，指针 p 从根出发。', root, { mark: root, ptrs: [{ name: 'p', node: root }], stack: [], tags: tags });
+      yield FT(2, 'int top = -1：top 指向栈顶，−1 表示空栈。', root, { ptrs: [{ name: 'p', node: root }], stack: [], tags: tags });
       while (p || st.length) {
+        yield FT(3, 'while (p || top >= 0)：<b>指针没走到空</b>或者<b>栈里还有货</b>，就得继续——两个条件缺一不可。', root,
+          { ptrs: p ? [{ name: 'p', node: p }] : [], stack: sv(), tags: tags });
         while (p) {
           st.push(p);
           yield FT(4, 'p = ' + p.val + '：一路向左，压栈。', root, { mark: p, ptrs: [{ name: 'p', node: p }], stack: sv(), tags: tags });
@@ -1569,7 +1599,7 @@ CH('tree').demos.push({
         p = p.r;
         yield FT(7, '转向右子树' + (p ? '：' + p.val : '（空，准备弹下一个）') + '。', root, { mark: p || root, stack: sv(), tags: tags });
       }
-      yield FT(7, '中序序列：<b>' + order.join(' ') + '</b>。每个结点进栈一次、出栈一次 → O(n)。', root, { tags: tags, side: ['中序 <b>' + order.join(' ') + '</b>'] });
+      yield FT(8, '中序序列：<b>' + order.join(' ') + '</b>。每个结点进栈一次、出栈一次 → O(n)。', root, { tags: tags, side: ['中序 <b>' + order.join(' ') + '</b>'] });
     }
   });
 })(window.DSANIM = window.DSANIM || {});
@@ -1601,16 +1631,21 @@ CH('tree').demos.push({
     run: function* () {
       var root = mkTree1(), Q = [root], tags = {}, order = [];
       var qv = function () { return Q.map(function (x) { return x.val; }); };
-      yield FT(0, '准备：层序 = 一层一层、从左到右。', root, {});
+      yield FT(0, '层序遍历 = 一层一层、从左到右。它不靠递归，靠一个队列。', root, {});
+      yield FT(1, 'if (!T) return：空树直接返回，什么也不输出。', root, {});
+      yield FT(2, 'BiTree Q[MAXSIZE]：队列里的元素是<b>结点指针</b>。', root, {});
+      yield FT(3, 'front = 0, rear = 0：front 负责出队，rear 负责入队。', root, {});
       yield FT(4, '根 ' + root.val + ' 入队。', root, { mark: root, side: ['队列 <b>' + qv().join(' ') + '</b>'] });
       while (Q.length) {
+        yield FT(5, 'while (front < rear)：队列不空就还有结点要处理。', root, { side: ['队列 <b>' + (qv().join(' ') || '空') + '</b>'] });
         var p = Q.shift();
         order.push(p.val); tags[p.id] = order.length;
-        yield FT(6, '出队 ' + p.val + '，访问（第 ' + order.length + ' 个）。', root, { mark: p, tags: tags, side: ['队列 <b>' + (qv().join(' ') || '空') + '</b>'] });
+        yield FT(6, '出队 ' + p.val + '（Q[front++]）。', root, { mark: p, tags: tags, side: ['队列 <b>' + (qv().join(' ') || '空') + '</b>'] });
+        yield FT(7, 'visit(' + p.val + ')：访问它，这是第 ' + order.length + ' 个输出的结点。', root, { mark: p, tags: tags, side: ['层序 <b>' + order.join(' ') + '</b>'] });
         if (p.l) { Q.push(p.l); yield FT(8, '左孩子 ' + p.l.val + ' 入队。', root, { mark: p, tags: tags, side: ['队列 <b>' + qv().join(' ') + '</b>'] }); }
         if (p.r) { Q.push(p.r); yield FT(9, '右孩子 ' + p.r.val + ' 入队。', root, { mark: p, tags: tags, side: ['队列 <b>' + qv().join(' ') + '</b>'] }); }
       }
-      yield FT(9, '队列空 → 结束。层序：<b>' + order.join(' ') + '</b>。', root, { tags: tags, side: ['层序 <b>' + order.join(' ') + '</b>'] });
+      yield FT(10, '队列空 → 结束。层序：<b>' + order.join(' ') + '</b>。', root, { tags: tags, side: ['层序 <b>' + order.join(' ') + '</b>'] });
     }
   });
 })(window.DSANIM = window.DSANIM || {});
@@ -1685,8 +1720,13 @@ CH('tree').demos.push({
       var good = mkTree2(), bad = T('A', T('B', T('D'), T('E')), T('C', null, T('G')));
       function* walkOne(root, label) {
         var Q = [root], seenNull = 0, cnt = 0, tags = {};
-        yield FT(0, label + '：队列里放结点指针（空也要放）。', root, { side: ['队列 <b>' + root.val + '</b>'] });
+        yield FT(0, label + '：IsComplete 进入，从根开始。', root, { side: ['队列 <b>' + root.val + '</b>'] });
+        yield FT(1, 'if (!T) return 1：空树 / 空子树也算完全二叉树，先挡住这个边界。', root, {});
+        yield FT(2, 'BiTree Q[MAXSIZE]：层序遍历需要一个队列，元素是<b>结点指针</b>（空指针也要放）。', root, {});
+        yield FT(3, 'front = 0, rear = 0，seenNull = 0 —— seenNull 是"队列里已经出现过空孩子"的开关。', root, { side: ['seenNull = <b>0</b>'] });
+        yield FT(4, 'Q[rear++] = T：根入队。', root, { side: ['队列 <b>' + root.val + '</b>'] });
         while (Q.length) {
+          yield FT(5, 'while (front < rear)：队列里还有指针（含空指针）→ 继续。', root, { side: ['seenNull = <b>' + seenNull + '</b>'] });
           var p = Q.shift();
           if (!p) {
             if (!seenNull) yield FT(7, '第一次遇到空孩子 → 打开"见过空"开关。', root, { side: ['seenNull = <b>1</b>'] });
@@ -1699,7 +1739,12 @@ CH('tree').demos.push({
           }
           cnt++; tags[p.id] = cnt;
           yield FT(6, '出队 ' + p.val + '（编号 ' + cnt + '），把两个孩子都入队（空也入）。', root, { mark: p, tags: tags, side: ['编号 <b>' + cnt + '</b>'] });
-          Q.push(p.l); Q.push(p.r);
+          Q.push(p.l);
+          yield FT(9, 'Q[rear++] = p->lchild：左孩子入队。' + (p.l ? '（' + p.l.val + '）' : '左孩子是空，<b>空指针也要入队</b>，否则后面的空位就看不出来了。'), root,
+            { mark: p, tags: tags, side: ['队列长度 <b>' + Q.length + '</b>'] });
+          Q.push(p.r);
+          yield FT(10, 'Q[rear++] = p->rchild：右孩子入队' + (p.r ? '（' + p.r.val + '）。' : '（空指针）。'), root,
+            { mark: p, tags: tags, side: ['队列长度 <b>' + Q.length + '</b>'] });
         }
         yield FT(12, '队列清空且没触发返回 0 → <b>是完全二叉树</b>。', root, { tags: tags, side: ['结果 <b>1</b>'] });
         return true;
@@ -1739,11 +1784,14 @@ CH('tree').demos.push({
       function* chk(n) {
         if (!n) { yield FT(1, '空子树高度 0（平衡）。', root, { tags: tags }); return 0; }
         cs.push('CheckBalanced(' + n.val + ')');
-        yield FT(2, '进入 ' + n.val + '：先算左子树。', root, { mark: n, tags: tags });
+        yield FT(2, '进入 ' + n.val + '：先算左子树，拿到它的高度（或 −1）。', root, { mark: n, tags: tags });
         var hl = yield* chk(n.l);
-        if (hl === -1) { yield FT(3, '左子树已失衡 → 直接 return −1，右子树<b>不再计算</b>。', root, { mark: n, tags: tags }); cs.pop(); return -1; }
+        yield FT(3, 'if (hL == -1)：左子树返回 ' + (hl === -1 ? '−1 → 失衡，直接上报，右子树不必再算' : hl + ' → 只表示高度，继续算右子树') + '。', root, { mark: n, tags: tags });
+        if (hl === -1) { cs.pop(); return -1; }
+        yield FT(4, 'int hR = CheckBalanced(T->rchild)：现在去算右子树。', root, { mark: n, tags: tags });
         var hr = yield* chk(n.r);
-        if (hr === -1) { yield FT(5, '右子树已失衡 → 直接 return −1。', root, { mark: n, tags: tags }); cs.pop(); return -1; }
+        yield FT(5, 'if (hR == -1)：右子树返回 ' + (hr === -1 ? '−1 → 失衡，直接上报' : hr + ' → 正常，继续判差值') + '。', root, { mark: n, tags: tags });
+        if (hr === -1) { cs.pop(); return -1; }
         if (Math.abs(hl - hr) > 1) {
           yield FT(6, n.val + '：左 ' + hl + '、右 ' + hr + '，差 ' + Math.abs(hl - hr) + ' > 1 → <b>失衡</b>，上报 −1。', root, { mark: n, tags: tags });
           cs.pop();
@@ -1809,6 +1857,8 @@ CH('tree').demos.push({
         pre = +n.val; seq.push(pre); tags[n.id] = seq.length;
         yield FT(4, '中序访问 ' + n.val + '，比 ' + (seq.length > 1 ? '上一个值' : '−∞') + ' 大 → 合法，pre 更新为 ' + pre + '。',
           root, { mark: n, tags: tags, side: ['pre = <b>' + pre + '</b>', '中序已扫 <b>' + seq.join(' ') + '</b>'] });
+        yield FT(5, 'return IsBST(T->rchild, pre)：本结点验完，把更新后的 pre 带进右子树继续验（中序的顺序：左 → 根 → 右）。', root,
+          { mark: n, tags: tags, side: ['pre = <b>' + pre + '</b>', '中序已扫 <b>' + seq.join(' ') + '</b>'] });
         var r = yield* isbst(n.r);
         cs.pop();
         return r;
@@ -1858,6 +1908,9 @@ CH('tree').demos.push({
         yield FT(2, '在 ' + n.val + '：先问左子树有没有。', root, { mark: n, ptrs: [{ name: 'p', node: p }, { name: 'q', node: q }] });
         cs.push('LCA(' + n.val + ')');
         var L = yield* lca(n.l, depth + 1);
+        yield FT(3, 'BiTree R = LCA(T->rchild, p, q)：左边搜完了，再问右子树（左边拿到的 L 先攥在手里）。', root,
+          { mark: n, ptrs: [{ name: 'p', node: p }, { name: 'q', node: q }],
+            side: ['L = <b>' + (L ? L.val : 'NULL') + '</b>', 'R 待求'] });
         var R = yield* lca(n.r, depth + 1);
         if (L && R) {
           res.v = n;
@@ -1906,21 +1959,28 @@ CH('tree').demos.push({
       function* sw(n) {
         if (!n) return;
         stack.push('SwapLR(' + n.val + ')');
-        yield FT(1, '进入 ' + n.val + '，先处理左子树。', root, { mark: n, stack: stack.slice() });
+        yield FT(1, '进入 ' + n.val + '：先挡掉空结点（if (!T) return），然后从最深层往上收工。', root, { mark: n, stack: stack.slice() });
+        yield FT(2, 'SwapLR(T->lchild)：先把<b>左边整棵</b>递归交换完。', root, { mark: n, stack: stack.slice() });
         yield* sw(n.l);
+        yield FT(3, 'SwapLR(T->rchild)：左边处理干净了，再处理右边。', root, { mark: n, stack: stack.slice() });
         yield* sw(n.r);
         var a = n.l, b = n.r;                        /* 交换前先记住两个孩子 */
-        var t = n.l; n.l = n.r; n.r = t;
+        yield FT(4, 'BiTree t = T->lchild：交换前先把左孩子存到 t，否则一改指针就找不回来了。', root,
+          { mark: n, stack: stack.slice(), swapPair: [a ? a.id : null, b ? b.id : null] });
+        var t = n.l; n.l = n.r;
+        yield FT(5, 'T->lchild = T->rchild：左指针改指原来的右孩子' + (b ? ' ' + b.val : '（NULL）') + '。', root,
+          { mark: n, stack: stack.slice(), swapPair: [a ? a.id : null, b ? b.id : null] });
+        n.r = t;
         stack.pop();
         if (!a && !b) {
-          yield FT(5, n.val + ' 是叶子：两个指针都是空，交换等于没变（代码照样做了两次赋值）。', root, { mark: n, stack: stack.slice() });
+          yield FT(6, n.val + ' 是叶子：两个指针都是空，交换等于没变（代码照样做了两次赋值）。', root, { mark: n, stack: stack.slice() });
         } else {
-          yield FT(5, n.val + ' 的左右指针已对调：' + (a ? a.val : 'NULL') + ' 换到右边，' + (b ? b.val : 'NULL') + ' 换到左边。', root,
+          yield FT(6, 'T->rchild = t：右指针改指存下来的原左孩子' + (a ? ' ' + a.val : '（NULL）') + ' → 这一层的左右对调完成。', root,
             { mark: n, stack: stack.slice(), swapPair: [a ? a.id : null, b ? b.id : null] });
         }
       }
       yield* sw(root);
-      yield FT(7, '镜像完成：原来最左边的 D 现在跑到了最右边。', root, {});
+      yield FT(7, '镜像完成：原来最左边的 D 现在跑到了最右边。只动指针，没搬数据。', root, {});
     }
   });
 })(window.DSANIM = window.DSANIM || {});
@@ -1973,14 +2033,25 @@ CH('graph').demos.push({
         st.push(v);
         cs.push('DFS(' + v + ')');
         var state = {}; st.forEach(function (x) { state[x] = 'cur'; }); order.forEach(function (x) { state[x] = 'done'; }); state[v] = 'cur';
-        yield FG(1, '① 标记 visited[' + v + '] = 1，② 访问它（第 ' + order.length + ' 个）。', G_DFS,
+        yield FG(1, '① 进来先标记：visited[' + v + '] = 1。', G_DFS,
+          { state: state, cur: v, scan: { v: v, w: null }, side: ['DFS 序 <b>' + order.join(' ') + '</b>'] });
+        yield FG(2, '② Visit(' + v + ')：输出它，这是第 ' + order.length + ' 个被访问的顶点。', G_DFS,
           { state: state, cur: v, scan: { v: v, w: null }, side: ['DFS 序 <b>' + order.join(' ') + '</b>'] });
         var nb = ADJ[v];
+        if (nb.length) {
+          yield FG(3, '③ 沿 V' + v + ' 的邻接表往后走，逐个看邻居：' + nb.join('、') + '。', G_DFS,
+            { state: state, cur: v, scan: { v: v, w: null }, side: ['DFS 序 <b>' + order.join(' ') + '</b>'] });
+        }
         for (var i = 0; i < nb.length; i++) {
           var w = nb[i];
           yield FG(4, '看邻居 ' + w + '：' + (visited[w] ? '已访问过，跳过。' : '没访问过 → 立刻递归进去。'), G_DFS,
             { state: state, cur: v, scan: { v: v, w: w }, edgeOn: (function (o) { o[v + '-' + w] = 1; return o; })({}), side: ['邻居 ' + w + ' <b>' + (visited[w] ? '去过' : '没去过') + '</b>'] });
-          if (!visited[w]) yield* dfs(w);
+          if (!visited[w]) {
+            yield FG(5, 'if (!visited[' + w + ']) DFS(G, ' + w + ')：一条路走到黑，先钻进去，回来再继续看下一个邻居。', G_DFS,
+              { state: state, cur: v, scan: { v: v, w: w }, edgeOn: (function (o) { o[v + '-' + w] = 1; return o; })({}),
+                side: ['递归进 V' + w, 'DFS 序 <b>' + order.join(' ') + '</b>'] });
+            yield* dfs(w);
+          }
         }
         st.pop();
         cs.pop();
@@ -1989,7 +2060,7 @@ CH('graph').demos.push({
       yield* dfs(0);
       setStack(null);
       var state = {}; order.forEach(function (x) { state[x] = 'done'; });
-      yield FG(5, 'DFS 序列：<b>' + order.join(' ') + '</b>。时间 O(V+E)，空间 O(V)（visited）+ O(h)（递归栈）。', G_DFS,
+      yield FG(6, 'DFS 序列：<b>' + order.join(' ') + '</b>。时间 O(V+E)，空间 O(V)（visited）+ O(h)（递归栈）。', G_DFS,
         { state: state, side: ['DFS 序 <b>' + order.join(' ') + '</b>'] });
     }
   });
@@ -2030,20 +2101,38 @@ CH('graph').demos.push({
         if (cur != null) s[cur] = 'cur';
         return s;
       };
-      yield FG(0, '准备：从 0 出发。visited、队列都在下面实时显示。', G_DFS, { state: state(0), side: ['队列 <b>0</b>'] });
-      yield FG(3, '起点 0：标记、访问、入队。', G_DFS, { state: state(0), cur: 0, side: ['队列 <b>' + qv() + '</b>'] });
+      yield FG(0, 'BFS 从起点 0 出发，用队列一层一层往外扩。', G_DFS, { state: state(0), side: ['队列 <b>0</b>'] });
+      yield FG(1, 'int Q[MAXSIZE], front = 0, rear = 0：队列用数组加头尾指针表示，front 出队、rear 入队。', G_DFS,
+        { state: {}, side: ['队列空'] });
+      yield FG(2, '起点 0：visited[0]=1、Visit(0)、Q[rear++]=0。注意<b>入队时就标记</b>，不等出队再标。', G_DFS,
+        { state: state(0), cur: 0, side: ['队列 <b>' + qv() + '</b>'] });
       while (Q.length) {
         var u = Q.shift();
-        yield FG(5, '出队 ' + u + '，开始扫描它的所有邻居。', G_DFS, { state: state(u), cur: u, scan: { v: u, w: null }, side: ['队列 <b>' + (qv() || '空') + '</b>', '距起点 <b>' + dist[u] + '</b> 条边'] });
+        yield FG(3, 'while (front < rear)：队列不空 → 继续。', G_DFS, { state: state(null), side: ['队列 <b>' + (qv() || '空') + '</b>'] });
+        yield FG(4, 'Q[front++]：出队 ' + u + '，开始扫它的所有邻居。', G_DFS, { state: state(u), cur: u, scan: { v: u, w: null }, side: ['队列 <b>' + (qv() || '空') + '</b>', '距起点 <b>' + dist[u] + '</b> 条边'] });
         var nb = ADJ[u];
+        if (nb.length) {
+          yield FG(5, '沿 V' + u + ' 的邻接表往后走：p 依次指向 ' + nb.join('、') + ' 这些邻居。', G_DFS,
+            { state: state(u), cur: u, scan: { v: u, w: null }, side: ['队列 <b>' + (qv() || '空') + '</b>'] });
+        }
         for (var i = 0; i < nb.length; i++) {
           var w = nb[i];
+          yield FG(6, 'int w = p->adjvex：这一条边的邻居是 ' + w + '。', G_DFS,
+            { state: state(u), cur: u, scan: { v: u, w: w }, edgeOn: (function (o) { o[u + '-' + w] = 1; return o; })({}),
+              side: ['队列 <b>' + (qv() || '空') + '</b>'] });
           if (!visited[w]) {
-            visited[w] = 1; order.push(w); Q.push(w); dist[w] = dist[u] + 1;
-            yield FG(10, '邻居 ' + w + ' 没去过 → 标记 + 访问 + <b>入队</b>（三者一起做）。', G_DFS,
-              { state: state(u), cur: u, scan: { v: u, w: w }, edgeOn: (function (o) { o[u + '-' + w] = 1; return o; })({}), side: ['队列 <b>' + qv() + '</b>', 'dist[' + w + '] = <b>' + dist[w] + '</b>'] });
+            yield FG(7, 'if (!visited[' + w + '])：没去过 → 进去（已去过就跳过）。', G_DFS,
+              { state: state(u), cur: u, scan: { v: u, w: w }, side: ['队列 <b>' + (qv() || '空') + '</b>'] });
+            visited[w] = 1; order.push(w); dist[w] = dist[u] + 1;
+            yield FG(8, 'visited[' + w + '] = 1：<b>先标记</b>，这样别的邻居再来找它时就能直接跳过。', G_DFS,
+              { state: state(u), cur: u, scan: { v: u, w: w }, edgeOn: (function (o) { o[u + '-' + w] = 1; return o; })({}),
+                side: ['队列 <b>' + (qv() || '空') + '</b>', 'dist[' + w + '] = <b>' + dist[w] + '</b>'] });
+            Q.push(w);
+            yield FG(9, 'Visit(' + w + ') 打出来，Q[rear++] = ' + w + ' 入队 —— 标记、访问、入队三者一起做。', G_DFS,
+              { state: state(u), cur: u, scan: { v: u, w: w }, edgeOn: (function (o) { o[u + '-' + w] = 1; return o; })({}),
+                side: ['队列 <b>' + qv() + '</b>', 'dist[' + w + '] = <b>' + dist[w] + '</b>'] });
           } else {
-            yield FG(8, '邻居 ' + w + ' 已访问 → 跳过（这就是"入队即标记"省下的重复劳动）。', G_DFS,
+            yield FG(7, '邻居 ' + w + ' 已访问 → 跳过（这就是"入队即标记"省下的重复劳动）。', G_DFS,
               { state: state(u), cur: u, scan: { v: u, w: w }, side: ['队列 <b>' + (qv() || '空') + '</b>'] });
           }
         }
@@ -2108,13 +2197,17 @@ CH('graph').demos.push({
       var outs = {};
       G.edges.forEach(function (e) { (outs[e[0]] = outs[e[0]] || []).push(e[1]); });
 
+      yield FG(0, 'TopologicalSort 进入：AOV 网里顶点是活动，边 i→j 表示 i 必须排在 j 前面。目标是给出一个合法先后顺序。', G,
+        { state: state(null), labels: lab(), ind: ind(null, '还没开始数入度') });
       yield FG(1, '准备：indegree[0..5] 全部清零。它记录的是"每个顶点还有几个前驱没被删除"。', G,
         { state: state(null), labels: lab(), ind: ind(null, '6 个计数器，现在都是 0') });
 
       /* ① 数入度：扫每个顶点的出边表，把终点的入度 +1 */
       for (var u = 0; u < N; u++) {
         var list = outs[u] || [];
-        yield FG(3, '① 开始扫顶点 ' + u + ' 的邻接表，数它的出边（当前 indegree = [' + indeg.join(' ') + ']）。', G,
+        yield FG(2, '① 外层循环 i = ' + u + '：准备数 V' + u + ' 的所有出边。', G,
+          { state: state(null), scan: { v: u, w: null }, labels: lab(), ind: ind(u, '正在处理 V' + u) });
+        yield FG(3, '内层 p 走 V' + u + ' 的邻接表（当前 indegree = [' + indeg.join(' ') + ']）。', G,
           { state: state(null), scan: { v: u, w: null }, labels: lab(), ind: ind(u, '正在扫 V' + u + ' 的出边') });
         for (var t = 0; t < list.length; t++) {
           var w = list[t];
@@ -2129,6 +2222,8 @@ CH('graph').demos.push({
         { state: state(null), labels: lab(), ind: ind(null, '最终入度：' + indeg.join(' ')) });
 
       /* ② 从头扫一遍，把入度为 0 的压栈 */
+      yield FG(5, '② 再从头扫一遍顶点，把入度为 0 的（没有前驱、现在就能做）压进栈。', G,
+        { state: state(null), labels: lab(), ind: ind(null, '找入度为 0 的点') });
       for (var i = 0; i < N; i++) {
         var zero = (indeg[i] === 0);
         if (zero) { st.push(i); syncSt(); }
@@ -2146,9 +2241,17 @@ CH('graph').demos.push({
         var v = st.pop();
         topo.push(v);
         syncSt();
-        yield FG(8, '出栈 ' + v + ' → 输出到 topo[' + (topo.length - 1) + ']。接下来把它"删掉"：每条出边都让终点入度减 1。', G,
+        yield FG(8, '出栈 ' + v + '（stack[top--]）。', G,
           { state: state(v), cur: v, scan: { v: v, w: null }, labels: lab(),
-            ind: ind(v, 'V' + v + ' 已输出，开始删它的出边'),
+            ind: ind(v, 'V' + v + ' 出栈'),
+            side: ['栈 <b>' + (st.join(' ') || '空') + '</b>'] });
+        yield FG(9, 'topo[count++] = ' + v + '：把它写进拓扑序列（第 ' + topo.length + ' 个），同样也是"输出/删掉"这一步。', G,
+          { state: state(v), cur: v, scan: { v: v, w: null }, labels: lab(),
+            ind: ind(v, 'V' + v + ' 已输出'),
+            side: ['拓扑序 <b>' + topo.join(' ') + '</b>', '栈 <b>' + (st.join(' ') || '空') + '</b>'] });
+        yield FG(10, '接着"删掉"它：沿着 V' + v + ' 的出边表，把每个终点的入度减 1。', G,
+          { state: state(v), cur: v, scan: { v: v, w: null }, labels: lab(),
+            ind: ind(v, '删 V' + v + ' 的出边'),
             side: ['拓扑序 <b>' + topo.join(' ') + '</b>', '栈 <b>' + (st.join(' ') || '空') + '</b>'] });
         var es = outs[v] || [];
         for (var k = 0; k < es.length; k++) {
@@ -2217,32 +2320,64 @@ CH('graph').demos.push({
       dist[s] = 0; done[s] = 1;
       var lab = function () { var o = {}; for (var i = 0; i < N; i++) o[i] = dist[i] === INF ? '∞' : dist[i]; return o; };
       var state = function (cur) { var o = {}; Object.keys(done).forEach(function (k) { o[k] = 'done'; }); if (cur != null) o[cur] = 'cur'; return o; };
-      yield FG(0, '准备：源点 0。dist 初始就是 0 到各点的直接边权（无边则 ∞）。边上数字是权重。', G,
-        { state: state(0), labels: lab(), side: ['dist <b>[' + [0, 1, 2, 3, 4, 5].map(function (i2) { return dist[i2] === INF ? '∞' : dist[i2]; }).join(', ') + ']</b>'] });
-      yield FG(3, '起点 0 定死：done[0]=1，dist[0]=0。', G, { state: state(0), labels: lab(), side: ['已确定 <b>0</b>'] });
+      var showDist = function () { return [0, 1, 2, 3, 4, 5].map(function (i2) { return dist[i2] === INF ? '∞' : dist[i2]; }).join(', '); };
+      yield FG(0, 'Dijkstra 从一个源点出发，逐步把"最短路已确定"的点收进 done 集合。', G,
+        { state: state(0), labels: lab(), side: ['源点 <b>0</b>', 'dist <b>[' + showDist() + ']</b>'] });
+      yield FG(1, 'int done[MAXV] = {0}：一开始谁都没定死。', G,
+        { state: {}, labels: lab(), side: ['done 全 0'] });
+      yield FG(2, '初始化：dist[i] ← 源点到 i 的<b>直接边权</b>（没边就是 ∞），dist[0] 置 0；path[i] ← 源点。', G,
+        { state: {}, labels: lab(), side: ['dist <b>[' + showDist() + ']</b>'] });
+      yield FG(3, '源点自己定死：done[0]=1，dist[0]=0。', G, { state: state(0), labels: lab(), side: ['已确定 <b>0</b>'] });
       for (var k = 1; k < N; k++) {
         var u = -1, best = INF;
+        yield FG(4, '第 ' + k + ' 轮：k=' + k + ' < ' + N + '，还要再定死一个点。', G,
+          { state: state(null), labels: lab(), side: ['dist <b>[' + showDist() + ']</b>'] });
+        yield FG(5, 'int u = -1, best = INF：准备在未确定的点里找 dist 最小的那个。', G,
+          { state: state(null), labels: lab() });
+        yield FG(6, '扫一遍所有点（① 找最小）：ds[] 里 dist 还未定的点才有资格竞争。', G,
+          { state: state(null), labels: lab() });
         for (var j = 0; j < N; j++) if (!done[j] && dist[j] < best) { best = dist[j]; u = j; }
-        if (u === -1) break;
-        yield FG(6, '第 ' + k + ' 轮：未确定的点里 dist 最小的是 ' + u + '（' + best + '）→ 把它定死。', G,
-          { state: state(u), scan: { v: u, w: null }, labels: lab(), side: ['dist[' + u + '] = <b>' + best + '</b>'] });
+        if (k === 1) {
+          yield FG(7, 'if (!done[i] && dist[i] < best)：边扫边更新 best/u，扫完 best = ' + (best === INF ? '∞' : best) + '，u = ' + u + '。', G,
+            { state: state(null), labels: lab(), side: ['当前最小 <b>' + (best === INF ? '∞' : best) + '</b> @ ' + u] });
+        }
+        if (u === -1) {
+          yield FG(8, 'u == -1：剩下的点都不可达 → break，结束。', G, { state: state(null), labels: lab() });
+          break;
+        }
+        if (k === 1) {
+          yield FG(8, 'u = ' + u + ' ≠ -1 → 不退出，继续定死它。', G, { state: state(u), labels: lab() });
+        }
+        yield FG(9, '② 定死 u = ' + u + '：done[' + u + '] = 1。它的最短路从此不会再变。', G,
+          { state: state(u), scan: { v: u, w: null }, labels: lab(), side: ['dist[' + u + '] = <b>' + best + '</b> 确定'] });
         done[u] = 1;
-        yield FG(8, 'done[' + u + '] = 1。现在用它去松弛所有邻居。', G, { state: state(u), scan: { v: u, w: null }, labels: lab() });
+        yield FG(10, '③ 用 u = ' + u + ' 去松弛：看它的每个邻居 v，能不能让 dist[v] 变小。', G,
+          { state: state(u), scan: { v: u, w: null }, labels: lab() });
         for (var v = 0; v < N; v++) {
           var ww = w(u, v);
           if (done[v] || ww === INF) continue;
           if (dist[u] + ww < dist[v]) {
-            dist[v] = dist[u] + ww; path[v] = u;
-            yield FG(11, '松弛成功：dist[' + v + '] ← ' + dist[u] + ' + ' + ww + ' = ' + dist[v] + '（经过 ' + u + '）。', G,
-              { state: state(u), scan: { v: u, w: v }, labels: lab(), edgeOn: (function (o) { o[u + '-' + v] = 1; return o; })({}), side: ['dist[' + v + '] = <b>' + dist[v] + '</b>', 'path[' + v + '] = ' + u] });
+            yield FG(11, dist[u] + ' + ' + ww + ' = ' + (dist[u] + ww) + ' < dist[' + v + ']=' + (dist[v] === INF ? '∞' : dist[v]) + ' → 松弛成功。', G,
+              { state: state(u), scan: { v: u, w: v }, labels: lab(),
+                edgeOn: (function (o) { o[u + '-' + v] = 1; return o; })({}),
+                side: ['dist[' + v + '] 要从 <b>' + (dist[v] === INF ? '∞' : dist[v]) + '</b> 改小'] });
+            dist[v] = dist[u] + ww;
+            yield FG(12, 'dist[' + v + '] ← ' + dist[u] + ' + ' + ww + ' = ' + dist[v] + '：更短的路找到了。', G,
+              { state: state(u), scan: { v: u, w: v }, labels: lab(),
+                edgeOn: (function (o) { o[u + '-' + v] = 1; return o; })({}),
+                side: ['dist[' + v + '] = <b>' + dist[v] + '</b>'] });
+            path[v] = u;
+            yield FG(13, 'path[' + v + '] ← ' + u + '：记住 v 是从 u 走过来的，最后靠它倒推出路径。', G,
+              { state: state(u), scan: { v: u, w: v }, labels: lab(),
+                side: ['path[' + v + '] = ' + u] });
           } else {
-            yield FG(11, '不算更短：' + dist[u] + '+' + ww + ' ≥ dist[' + v + ']=' + dist[v] + '，不改。', G,
-              { state: state(u), scan: { v: u, w: v }, labels: lab(), side: ['dist[' + v + '] 保持 <b>' + dist[v] + '</b>'] });
+            yield FG(11, '不算更短：' + dist[u] + '+' + ww + ' ≥ dist[' + v + ']=' + (dist[v] === INF ? '∞' : dist[v]) + '，不改。', G,
+              { state: state(u), scan: { v: u, w: v }, labels: lab(), side: ['dist[' + v + '] 保持 <b>' + (dist[v] === INF ? '∞' : dist[v]) + '</b>'] });
           }
         }
       }
-      yield FG(15, '全部定死。dist = [' + [0, 1, 2, 3, 4, 5].map(function (i2) { return dist[i2]; }).join(', ') + ']。',
-        G, { state: (function () { var o = {}; for (var i2 = 0; i2 < N; i2++) o[i2] = 'done'; return o; })(), labels: lab(), side: ['答案 <b>' + dist.join(', ') + '</b>'] });
+      yield FG(15, '全部定死。dist = [' + showDist() + ']。', G,
+        { state: (function () { var o = {}; for (var i2 = 0; i2 < N; i2++) o[i2] = 'done'; return o; })(), labels: lab(), side: ['答案 <b>[' + showDist() + ']</b>'] });
     }
   });
 })(window.DSANIM = window.DSANIM || {});
@@ -2288,24 +2423,50 @@ CH('graph').demos.push({
       low[0] = 0;
       var lab = function () { var o = {}; for (var i = 0; i < N; i++) o[i] = inTree[i] ? '✔' : (low[i] === INF ? '∞' : low[i]); return o; };
       var state = function (cur) { var o = {}; Object.keys(inTree).forEach(function (k) { o[k] = 'done'; }); if (cur != null) o[cur] = 'cur'; return o; };
-      yield FG(0, '准备：从 0 号点开始。lowcost[i] = i 到"当前树"的最小距离，∞ 表示还没边相连。', G,
+      yield FG(0, 'Prim 从一个点开始"滚雪球"：每次挑一条"树内 → 树外"里权最小的边，把对面那个点拉进来。', G,
         { state: state(0), labels: lab(), side: ['已在树内 <b>0</b>'] });
+      yield FG(1, 'int lowcost[MAXV], inTree[MAXV] = {0}：lowcost 记"到当前树的最小距离"，inTree 标记是否已在树里（单独数组，不能拿 0 权当哨兵）。', G,
+        { state: {}, labels: lab(), side: ['lowcost 全 ∞，inTree 全 0'] });
+      yield FG(2, '初始化：lowcost[i] ← v0 到 i 的直接边权（没边就是 ∞）。', G,
+        { state: {}, labels: lab(), side: ['lowcost <b>[' + [0, 1, 2, 3, 4, 5].map(function (i2) { return low[i2] === INF ? '∞' : low[i2]; }).join(', ') + ']</b>'] });
+      yield FG(3, 'inTree[0] = 1：起点 0 进树。', G, { state: state(0), labels: lab(), side: ['已在树内 <b>0</b>'] });
       var total = 0;
       for (var k = 1; k < N; k++) {
         var u = -1, best = INF;
+        yield FG(4, '第 ' + k + ' 轮：还要再拉 ' + (N - k) + ' 个点进树（k=' + k + ' < ' + N + '）。', G,
+          { state: state(null), labels: lab(), side: ['已在树内 ' + Object.keys(inTree).length + ' 个点'] });
+        yield FG(5, 'int u = -1, best = INF：准备在树外找 lowcost 最小的点。', G,
+          { state: state(null), labels: lab() });
+        yield FG(6, '扫一遍所有点（树外最小）：已进树的直接跳过。', G,
+          { state: state(null), labels: lab() });
         for (var j = 0; j < N; j++) if (!inTree[j] && low[j] < best) { best = low[j]; u = j; }
-        if (u === -1) break;
+        if (k === 1) {
+          yield FG(7, 'if (!inTree[i] && lowcost[i] < best)：边扫边更新，扫完 best = ' + (best === INF ? '∞' : best) + '，u = ' + u + '。', G,
+            { state: state(null), labels: lab(), side: ['跨切边最小 <b>' + (best === INF ? '∞' : best) + '</b> @ ' + u] });
+        }
+        if (u === -1) {
+          yield FG(8, 'u == -1：树外的点都不可达 → 图不连通，break。', G, { state: state(null), labels: lab() });
+          break;
+        }
+        if (k === 1) {
+          yield FG(8, 'u = ' + u + ' ≠ -1 → 不退出，准备把它拉进树。', G, { state: state(u), labels: lab() });
+        }
         var from = -1;
         for (var j2 = 0; j2 < N; j2++) if (inTree[j2] && w(j2, u) === best) { from = j2; break; }
+        yield FG(9, '拉进树：inTree[' + u + '] = 1，同时选中跨切边 ' + from + ' — ' + u + '（权 ' + best + '）。', G,
+          { state: state(u), labels: lab(), edgeOn: (function (o) { o[from + '-' + u] = 1; o[u + '-' + from] = 1; return o; })({}),
+            side: ['选中边 <b>' + from + ' — ' + u + '（' + best + '）</b>', '累计权值 <b>' + (total + best) + '</b>'] });
         inTree[u] = 1; total += best;
-        var ek = from + '-' + u;
-        yield FG(9, '树外 lowcost 最小的是 ' + u + '（' + best + '，来自树内结点 ' + from + '）→ 拉进树。', G,
-          { state: state(u), labels: lab(), edgeOn: (function (o) { o[ek] = 1; o[u + '-' + from] = 1; return o; })({}),
-            side: ['选中边 <b>' + from + ' — ' + u + '（' + best + '）</b>', '累计权值 <b>' + total + '</b>'] });
+        yield FG(10, '用新进树的 ' + u + ' 去看看：它到树外各点的边，能不能让 lowcost 更小。', G,
+          { state: state(u), labels: lab(), side: ['累计权值 <b>' + total + '</b>'] });
+        var improved = [];
         for (var v = 0; v < N; v++) {
-          if (!inTree[v] && w(u, v) < low[v]) { low[v] = w(u, v); }
+          if (!inTree[v] && w(u, v) < low[v]) { low[v] = w(u, v); improved.push(v); }
         }
-        yield FG(11, '用 ' + u + ' 更新树外各点的 lowcost。', G, { state: state(u), labels: lab(), side: ['累计权值 <b>' + total + '</b>'] });
+        yield FG(11, improved.length
+            ? 'lowcost[' + improved.join('], lowcost[') + '] 被 ' + u + ' 改小了。'
+            : u + ' 没能改进任何 lowcost，这一轮树外距离不变。', G,
+          { state: state(u), labels: lab(), side: ['累计权值 <b>' + total + '</b>'] });
       }
       yield FG(11, 'MST 边权之和 = <b>' + total + '</b>。Prim 每轮都是"跨切边里最小的那条"→ 一定是最小生成树。', G,
         { state: (function () { var o = {}; for (var i2 = 0; i2 < N; i2++) o[i2] = 'done'; return o; })(), labels: lab(), side: ['MST 总权 <b>' + total + '</b>'] });
@@ -2357,29 +2518,75 @@ CH('graph').demos.push({
       for (var i = 0; i < N; i++) parent[i] = -1;
       function find(x) { while (parent[x] >= 0) x = parent[x]; return x; }
       var lab = function () { var o = {}; for (var i = 0; i < N; i++) o[i] = String(find(i)); return o; };
-      var state = function () { var o = {}; for (var i = 0; i < N; i++) if (find(i) === i && parent[i] < -1) { } return o; };
-      yield FG(0, '准备：10 条边，先按权值升序排好：' + edges.map(function (e) { return e[0] + '-' + e[1] + '(' + e[2] + ')'; }).join('  '), G,
-        { side: ['已排序 <b>' + edges.map(function (e) { return e[2]; }).join(' ') + '</b>'] });
+      var raw = edges.map(function (e) { return e[0] + '-' + e[1] + '(' + e[2] + ')'; });
+      var picked = [];
+      function edgeMap() {
+        var o = {};
+        picked.forEach(function (k) { o[k[0] + '-' + k[1]] = 1; });
+        return o;
+      }
+      yield FG(0, 'Kruskal 的底座是并查集：Find 沿 parent 数组一路往上找到根，顺手把路径上的结点全挂到根上（路径压缩）。', G,
+        { side: ['Find(x)：找根 + 路径压缩'] });
+      yield FG(10, 'Kruskal 进入：图有 ' + N + ' 个顶点，最小生成树要选 V−1 = ' + (N - 1) + ' 条边。', G,
+        { side: ['边表共 <b>' + edges.length + '</b> 条', '目标：选 <b>' + (N - 1) + '</b> 条'] });
+      yield FG(11, 'sort(E, m)：先把边表<b>按权值升序</b>排好。之后只看边表，不再扫邻接表。', G,
+        { side: ['排序后：' + raw.join(' ')] });
+      yield FG(12, 'cnt = 0：一条边都还没收。', G,
+        { side: ['已选 <b>0</b> 条，累计 <b>0</b>'] });
+      var firstFind = true, firstUnion = true, needMergeFrame = false;
       for (var k = 0; k < edges.length && cnt < N - 1; k++) {
         var e = edges[k], a = find(e[0]), b = find(e[1]);
-        yield FG(12, '看边 ' + e[0] + '—' + e[1] + '（权 ' + e[2] + '）：find(' + e[0] + ')=' + a + '，find(' + e[1] + ')=' + b + '。', G,
-          { labels: lab(), dsMark: [e[0], e[1]], dsFoot: 'Kruskal 不扫邻接表，走的是<b>边表</b>：正在检查边 (' + e[0] + ',' + e[1] + ')，权 ' + e[2],
-            edgeOn: (function (o) { o[e[0] + '-' + e[1]] = 1; return o; })({}),
-            side: ['已选 <b>' + cnt + '</b> 条，累计 <b>' + total + '</b>', '并查集根 <b>' + lab() + '</b>'] });
+        yield FG(13, '第 ' + (k + 1) + ' 条边：i=' + k + ' < ' + edges.length + '，且 cnt=' + cnt + ' < ' + (N - 1) + ' → 继续循环。', G,
+          { labels: lab(), side: ['已选 <b>' + cnt + '</b> 条', '累计 <b>' + total + '</b>'] });
+        if (firstFind) {
+          firstFind = false;
+          yield FG(14, '求这条边两端的根：Find(' + e[0] + ') 和 Find(' + e[1] + ')。', G,
+            { labels: lab(), dsMark: [e[0], e[1]], dsFoot: '正在查边 (' + e[0] + ',' + e[1] + ') 两端的集合根' });
+          yield FG(1, 'int r = x：让 r 从 x 出发，准备一路找根。', G,
+            { labels: lab(), dsMark: [e[0], e[1]], dsFoot: 'Find(' + e[0] + ')：r 初始指向顶点 ' + e[0] });
+          yield FG(2, 'while (parent[r] >= 0) r = parent[r]：parent 存负数表示"自己是根，绝对值是集合大小"，非负就继续往上爬。', G,
+            { labels: lab(), dsMark: [e[0], e[1]], dsFoot: 'Find(' + e[0] + ') 爬到根 ' + a });
+          yield FG(3, '路径压缩：把这条链上的结点全都直接挂到根上，以后再查一步到位。', G,
+            { labels: lab(), dsMark: [e[0], e[1]], dsFoot: '压缩后 ' + e[0] + ' 直接指向根 ' + a });
+          yield FG(4, 'return r：根找到了，返回 ' + a + '。', G,
+            { labels: lab(), dsMark: [e[0], e[1]], dsFoot: 'Find(' + e[0] + ') = ' + a + '，Find(' + e[1] + ') = ' + b });
+        } else {
+          yield FG(14, 'find(' + e[0] + ')=' + a + '，find(' + e[1] + ')=' + b + '：两端是不是已经连通？', G,
+            { labels: lab(), dsMark: [e[0], e[1]],
+              dsFoot: '边 (' + e[0] + ',' + e[1] + ') 两端根：' + a + ' / ' + b,
+              side: ['已选 <b>' + cnt + '</b> 条', '累计 <b>' + total + '</b>'] });
+        }
         if (a === b) {
-          yield FG(14, 'a == b → 这两个点已经连通，加这条边就成环 → <b>丢弃</b>。', G,
-            { labels: lab(), dsMark: [e[0], e[1]], dsFoot: '边 (' + e[0] + ',' + e[1] + ') 两端已在同一集合 → 丢掉', side: ['跳过（成环）'] });
+          yield FG(15, 'a == b → 两端本来就连通，再加这条边就成环 → <b>丢弃</b>。', G,
+            { labels: lab(), dsMark: [e[0], e[1]], dsFoot: '边 (' + e[0] + ',' + e[1] + ') 两端在同一集合 → 丢掉',
+              side: ['跳过（成环）'] });
           continue;
+        }
+        if (parent[a] > parent[b]) { var t = a; a = b; b = t; }
+        if (firstUnion) {
+          firstUnion = false;
+          needMergeFrame = true;
+          yield FG(6, 'Union(a, b)：把两个集合合并成一个（并查集的"并"）。', G,
+            { labels: lab(), dsMark: [e[0], e[1]], dsFoot: 'Union：准备把两个集合合并' });
+          yield FG(7, 'if (parent[a] > parent[b]) 交换：负数越小集合越大，交换后保证 a 是更大的那棵树，树高增长才慢。', G,
+            { labels: lab(), dsMark: [e[0], e[1]], dsFoot: '按规模合并：让大集合当新根' });
         }
         if (parent[a] > parent[b]) { var t = a; a = b; b = t; }
         parent[a] += parent[b]; parent[b] = a;
         cnt++; total += e[2];
-        yield FG(15, '合并两个集合 → 收下这条边。已选 ' + cnt + ' 条，累计 ' + total + '。', G,
+        picked.push([e[0], e[1]]);
+        if (needMergeFrame) {
+          needMergeFrame = false;
+          yield FG(8, 'parent[a] += parent[b]; parent[b] = a：小集合并进大集合，根 b 挂到 a 下面，规模累加。', G,
+            { labels: lab(), dsMark: [e[0], e[1]], edgeOn: edgeMap(), dsFoot: '合并完成：根 ' + a + ' 的规模变成 ' + (-parent[a]) });
+        }
+        yield FG(16, 'Union(a, b); cnt++ → 收下这条边。已选 ' + cnt + ' 条，累计 ' + total + '。', G,
           { labels: lab(), dsMark: [e[0], e[1]], dsFoot: '收下边 (' + e[0] + ',' + e[1] + ')：两端集合合并',
-            edgeOn: (function (o) { o[e[0] + '-' + e[1]] = 1; return o; })({}),
+            edgeOn: edgeMap(),
             side: ['已选 <b>' + cnt + '</b> 条', '累计 <b>' + total + '</b>'] });
       }
-      yield FG(15, '选够 ' + (N - 1) + ' 条边 → MST，总权 <b>' + total + '</b>。', G, { labels: lab(), side: ['MST 总权 <b>' + total + '</b>'] });
+      yield FG(13, 'cnt 已经到 ' + (N - 1) + ' → 循环条件不再成立，结束。', G,
+        { labels: lab(), edgeOn: edgeMap(), side: ['MST 总权 <b>' + total + '</b>'] });
     }
   });
 })(window.DSANIM = window.DSANIM || {});
@@ -2414,6 +2621,8 @@ CH('search').demos.push({
       while (low <= high) {
         mid = (low + high) >> 1;
         cnt++;
+        yield FA(2, 'while (low <= high)：区间 [' + low + ',' + high + '] 还没空，就还有得找（用 <= 不是 <，否则单元素区间会被漏掉）。', A,
+          { marks: [{ name: 'low', at: low }, { name: 'high', at: high }], spans: [{ from: low, to: high }], side: ['比较次数 <b>' + cnt + '</b>'] });
         yield FA(3, '第 ' + cnt + ' 次比较：mid = (' + low + '+' + high + ')/2 = ' + mid + '（向下取整）。',
           A, { marks: [{ name: 'low', at: low }, { name: 'mid', at: mid, color: '#f59e0b' }, { name: 'high', at: high }], spans: [{ from: low, to: high }], side: ['比较次数 <b>' + cnt + '</b>'] });
         if (A[mid] === key) {
@@ -2467,7 +2676,9 @@ CH('search').demos.push({
         depth++;
         var goLeft = key < +cur.val;
         path.push(cur.val); pathNodes.push(cur);
-        yield FT(2, '当前结点 ' + cur.val + '：' + key + (goLeft ? ' &lt; ' : ' &gt; ') + cur.val + ' → 往' + (goLeft ? '左' : '右') + '走。',
+        yield FT(1, 'while (T && T->data != key)：结点非空、且还没等于 key → 继续比。', root,
+          { mark: cur, ptrs: [{ name: 'p', node: cur }], side: ['比较次数 <b>' + depth + '</b>', '路径 <b>' + path.join(' → ') + '</b>'] });
+        yield FT(goLeft ? 2 : 3, '当前结点 ' + cur.val + '：' + key + (goLeft ? ' &lt; ' : ' &gt; ') + cur.val + ' → 往' + (goLeft ? '左' : '右') + '走' + (goLeft ? '（T = T->lchild）' : '（T = T->rchild）') + '。',
           root, { mark: cur, ptrs: [{ name: 'p', node: cur }], side: ['比较次数 <b>' + depth + '</b>', '路径 <b>' + path.join(' → ') + '</b>'],
             cmpTag: { text: 'key=' + key + ' ' + (goLeft ? '<' : '>') + ' ' + cur.val + ' → 往' + (goLeft ? '左' : '右'), ok: goLeft } });
         cur = goLeft ? cur.l : cur.r;
@@ -2476,11 +2687,11 @@ CH('search').demos.push({
         var tags = {};
         pathNodes.forEach(function (nd, i) { tags[nd.id] = i + 1; });
         tags[cur.id] = depth + 1;
-        yield FT(3, '命中：结点 ' + cur.val + '，查找成功。共比较 ' + (depth + 1) + ' 次。', root,
+        yield FT(5, '命中：结点 ' + cur.val + '，查找成功 → return T（返回的就是这个结点）。共比较 ' + (depth + 1) + ' 次。', root,
           { mark: cur, tags: tags, side: ['比较次数 <b>' + (depth + 1) + '</b>', '路径 <b>' + path.concat([cur.val]).join(' → ') + '</b>'],
             cmpTag: { text: 'key=' + key + ' == ' + cur.val + ' → 命中', ok: true } });
       } else {
-        yield FT(3, '走到空指针 → 查找失败（说明该 key 不在树里）。', root,
+        yield FT(5, '走到空指针 → return T 就是 return NULL，查找失败（该 key 不在树里）。', root,
           { side: ['比较次数 <b>' + depth + '</b>'], cmpTag: { text: 'key=' + key + ' 不在树里', ok: false } });
       }
     }
@@ -2533,17 +2744,42 @@ CH('search').demos.push({
       }
       yield FA(4, '插入完毕：' + view().join(' ') + '。查找成功 ASL = (' + total + ')/' + keys.length + ' ≈ ' + (total / keys.length).toFixed(2) + '。',
         view(), { labels: idxLabel(), side: ['ASL<sub>成功</sub> <b>' + (total / keys.length).toFixed(2) + '</b>'] });
-      /* 查找 46 */
+      /* 查找 46：一次命中 */
       var q = 46, j = q % M, c = 1;
-      yield FA(6, '查找 46：h = 46 % 13 = ' + j + '。', view(), { labels: idxLabel(), marks: [{ name: 'j', at: j }] });
+      yield FA(6, '进入 Search(H, 46)：查找过程和插入用的是同一条探测链。', view(), { labels: idxLabel() });
+      yield FA(7, 'int i = 46 % 13 = ' + j + '，cnt = 1：从哈希位置出发，比较次数先记 1。', view(),
+        { labels: idxLabel(), marks: [{ name: 'i', at: j }] });
       while (H[j] != null) {
+        yield FA(8, 'while (H[i] != EMPTY)：只要这一格有东西，就要比一比（空位才代表"可以停了"）。', view(),
+          { labels: idxLabel(), marks: [{ name: 'i', at: j, color: '#38bdf8' }] });
+        yield FA(9, '比较 H[' + j + '] = ' + H[j] + ' 与 key = 46。', view(),
+          { labels: idxLabel(), marks: [{ name: 'i', at: j, color: '#38bdf8' }],
+            cmp: { a: j, b: -1, side: 'right', vtext: 'key=46', left: 'H[' + j + ']=' + H[j], right: 'key', op: '==', ok: true, res: '比较中' } });
         if (H[j] === q) {
-          yield FA(8, 'A[' + j + '] = 46 → 找到，比较 ' + c + ' 次。', view(), { labels: idxLabel(), marks: [{ name: 'j', at: j, color: '#22c55e' }], side: ['比较 <b>' + c + '</b> 次'],
+          yield FA(9, 'H[' + j + '] = 46 → 命中，返回下标 ' + j + '，一共比较 ' + c + ' 次。', view(), { labels: idxLabel(), marks: [{ name: 'j', at: j, color: '#22c55e' }], side: ['比较 <b>' + c + '</b> 次'],
             cmp: { a: j, b: -1, side: 'right', vtext: 'key=' + q, left: 'H[' + j + ']=' + H[j], right: 'key', op: '==', ok: true, res: '命中' } });
           break;
         }
+        yield FA(10, '不相等 → i = (' + j + ' + 1) % 13 = ' + ((j + 1) % M) + '，cnt++，顺着探测链看下一格。', view(),
+          { labels: idxLabel(), marks: [{ name: 'i', at: (j + 1) % M, color: '#f472b6' }], side: ['比较 <b>' + c + '</b> 次'] });
         j = (j + 1) % M; c++;
       }
+      /* 查找 40：沿探测链走到空位，失败 */
+      var q2 = 40, j2 = q2 % M, c2 = 1;
+      yield FA(6, '再查找 40：它没有插进表里，看看会走多远。', view(), { labels: idxLabel() });
+      yield FA(7, 'int i = 40 % 13 = ' + j2 + '，cnt = 1。', view(), { labels: idxLabel(), marks: [{ name: 'i', at: j2 }] });
+      while (H[j2] != null) {
+        yield FA(8, 'while (H[i] != EMPTY)：沿着探测链看，遇到空位就说明"这里从来没存过东西"。', view(),
+          { labels: idxLabel(), marks: [{ name: 'i', at: j2, color: '#38bdf8' }] });
+        yield FA(9, '比较 H[' + j2 + '] = ' + H[j2] + ' 与 key = 40 → 不等。', view(),
+          { labels: idxLabel(), marks: [{ name: 'i', at: j2, color: '#38bdf8' }],
+            cmp: { a: j2, b: -1, side: 'right', vtext: 'key=40', left: 'H[' + j2 + ']=' + H[j2], right: 'key', op: '!=', ok: false, res: '继续探' } });
+        yield FA(10, 'i = (' + j2 + ' + 1) % 13 = ' + ((j2 + 1) % M) + '，cnt++。', view(),
+          { labels: idxLabel(), marks: [{ name: 'i', at: (j2 + 1) % M, color: '#f472b6' }], side: ['比较 <b>' + c2 + '</b> 次'] });
+        j2 = (j2 + 1) % M; c2++;
+      }
+      yield FA(12, '探到下标 ' + j2 + ' 是空位 → 说明表里没有 40，return -1。查找失败判断靠的就是"空位"。', view(),
+        { labels: idxLabel(), marks: [{ name: 'i', at: j2, color: '#ef4444' }], side: ['比较 <b>' + c2 + '</b> 次', '结论 <b>失败</b>'] });
     }
   });
 })(window.DSANIM = window.DSANIM || {});
@@ -2576,7 +2812,9 @@ CH('sort').demos.push({
       for (i = 1; i < n; i++) {
         key = A[i]; j = i - 1;
         s = sortedSet(i);
-        yield FA(2, '第 ' + i + ' 轮：key = A[' + i + '] = ' + key + '，左边 0..' + (i - 1) + ' 已有序。',
+        yield FA(1, 'for (int i = 1; i < ' + n + '; i++)：第 ' + i + ' 轮，把 A[' + i + '] 插进左边的有序区。', A,
+          { marks: [{ name: 'i', at: i }], sorted: s, spans: [{ from: 0, to: i - 1 }] });
+        yield FA(2, 'int key = A[' + i + '] = ' + key + '，j = ' + j + '：key 先存起来，左边的 0..' + (i - 1) + ' 已有序。',
           A, { marks: [{ name: 'i', at: i }], sorted: s, spans: [{ from: 0, to: i - 1 }] });
         while (j >= 0 && A[j] > key) {
           yield FA(3, 'A[' + j + '] = ' + A[j] + ' > key(' + key + ') → 把它往后挪一格，腾出前面的位置。',
@@ -2585,6 +2823,8 @@ CH('sort').demos.push({
           A[j + 1] = A[j];
           yield FA(4, 'A[' + (j + 1) + '] ← ' + A[j] + '（key=' + key + ' 先寄存在变量里，不占数组位置）。',
             A, { marks: [{ name: 'j', at: j }, { name: 'i', at: i }], sorted: s, spans: [{ from: 0, to: i - 1 }] });
+          yield FA(5, 'j--：游标左移一格，接着比前一个。', A,
+            { marks: [{ name: 'j', at: Math.max(0, j - 1) }, { name: 'i', at: i }], sorted: s, spans: [{ from: 0, to: i - 1 }] });
           j--;
         }
         if (j >= 0) {
@@ -2631,16 +2871,23 @@ CH('sort').demos.push({
         A, { spans: [{ from: 0, to: n - 1 }] });
       for (i = 0; i < n - 1; i++) {
         sw = 0;
-        yield FA(2, '第 ' + (i + 1) + ' 趟开始，只需比到第 ' + (n - 1 - i) + ' 个位置。',
+        yield FA(1, 'for (int i = 0; i < ' + (n - 1) + '; i++)：第 ' + (i + 1) + ' 趟，最多跑 n−1 趟。', A,
+          { marks: [{ name: '趟', at: i, color: '#f59e0b' }], sorted: sortedSet(n, n - i) });
+        yield FA(2, 'int swapped = 0：本趟还没换过元素（用来判断"是否已经有序"）。',
+          A, { marks: [{ name: '趟', at: i, color: '#f59e0b' }], sorted: sortedSet(n, n - i) });
+        yield FA(3, 'for (int j = 0; j < ' + (n - 1 - i) + '; j++)：这趟只需比到第 ' + (n - 1 - i) + ' 个位置，后面已经定死了。',
           A, { marks: [{ name: '趟', at: i, color: '#f59e0b' }], sorted: sortedSet(n, n - i) });
         for (j = 0; j < n - 1 - i; j++) {
           if (A[j] > A[j + 1]) {
             yield FA(4, 'A[' + j + ']=' + A[j] + ' > A[' + (j + 1) + ']=' + A[j + 1] + ' → 交换。',
               A, { marks: [{ name: 'j', at: j }, { name: 'j+1', at: j + 1, color: '#f472b6' }], sorted: sortedSet(n, n - i), swap: [j, j + 1],
                 cmp: { a: j, b: j + 1, left: 'A[' + j + ']=' + A[j], right: 'A[' + (j + 1) + ']=' + A[j + 1], op: '>', ok: true, res: '交换' } });
-            var t = A[j]; A[j] = A[j + 1]; A[j + 1] = t; sw = 1;
+            var t = A[j]; A[j] = A[j + 1]; A[j + 1] = t;
             yield FA(5, '交换后 A[' + j + ']=' + A[j] + '、A[' + (j + 1) + ']=' + A[j + 1] + '。',
               A, { marks: [{ name: 'j', at: j }, { name: 'j+1', at: j + 1, color: '#f472b6' }], sorted: sortedSet(n, n - i), swap: [j, j + 1] });
+            yield FA(6, 'swapped = 1：记下"这一趟发生过交换"，说明还没完全有序。',
+              A, { marks: [{ name: 'j', at: j }, { name: 'j+1', at: j + 1, color: '#f472b6' }], sorted: sortedSet(n, n - i) });
+            sw = 1;
           } else {
             yield FA(4, 'A[' + j + ']=' + A[j] + ' ≤ ' + A[j + 1] + ' → 不动（相等也不换 → 稳定）。',
               A, { marks: [{ name: 'j', at: j }, { name: 'j+1', at: j + 1, color: '#f472b6' }], sorted: sortedSet(n, n - i),
@@ -2684,8 +2931,12 @@ CH('sort').demos.push({
       yield FA(0, '准备：' + A.join(' ') + '。', A, {});
       for (i = 0; i < n - 1; i++) {
         mn = i;
-        yield FA(2, '第 ' + (i + 1) + ' 趟：从 ' + i + ' 开始找最小值，先假设 min = ' + i + '（' + A[i] + '）。',
+        yield FA(1, 'for (int i = 0; i < ' + (n - 1) + '; i++)：第 ' + (i + 1) + ' 趟，给位置 ' + i + ' 挑一个最小的。', A,
+          { marks: [{ name: 'i', at: i }], sorted: sortedSet(i) });
+        yield FA(2, 'int min = ' + i + '：先假设当前位置就是最小值（' + A[i] + '）。',
           A, { marks: [{ name: 'i/min', at: i }], sorted: sortedSet(i) });
+        yield FA(3, 'for (int j = ' + (i + 1) + '; j < ' + n + '; j++)：从它后面一路扫到末尾，比出最小的。', A,
+          { marks: [{ name: 'i', at: i }, { name: 'j', at: i + 1 }], sorted: sortedSet(i) });
         for (j = i + 1; j < n; j++) {
           if (A[j] < A[mn]) {
             var oldMin = mn;                       /* 先记住旧 min，不然标签会写成 A[min] 跟 A[j] 比 */
@@ -2748,15 +2999,20 @@ CH('sort').demos.push({
       var A = (c && c.arr ? c.arr.slice() : [49, 38, 65, 97, 76, 13, 27, 49]), n = A.length;
       var st = []; setStack(st);          /* 递归调用栈 */
       yield FA(0, '准备：' + A.join(' ') + '。快排 = "划分 + 递归"，划分是灵魂。', A, {});
+      yield FA(11, 'void QuickSort(int A[], int low, int high)：递归函数只干三件事 —— 划分、排左段、排右段。', A, {});
       function* qs(low, high, depth) {
         if (low >= high) {
           if (low === high) yield FA(12, '区间 [' + low + ',' + high + '] 只剩一个元素，天然有序。', A, { marks: [{ name: 'low=high', at: low }] });
           return;
         }
         st.push('QuickSort(' + low + ',' + high + ')');
+        yield FA(13, 'int p = Partition(A, ' + low + ', ' + high + ')：先划分——把 pivot 放到最终位置上，并返回它的下标。', A,
+          { marks: [{ name: 'low', at: low }, { name: 'high', at: high }], side: ['递归深度 <b>' + depth + '</b>'] });
         var pivot = A[low], lo = low, hi = high;
         yield FA(1, '划分 [' + low + ',' + high + ']：pivot = A[' + low + '] = ' + pivot + '，low 位成了"坑"。',
           A, { marks: [{ name: 'low', at: lo }, { name: 'high', at: hi }], side: ['递归深度 <b>' + depth + '</b>'] });
+        yield FA(2, 'while (low < high)：两个指针没相遇，就一左一右来回填坑。', A,
+          { marks: [{ name: 'low', at: lo }, { name: 'high', at: hi }] });
         while (lo < hi) {
           while (lo < hi && A[hi] >= pivot) {
             yield FA(3, 'A[' + hi + ']=' + A[hi] + ' ≥ pivot(' + pivot + ') → high 左移。', A, { marks: [{ name: 'low', at: lo }, { name: 'high', at: hi }],
@@ -2783,7 +3039,13 @@ CH('sort').demos.push({
         }
         A[lo] = pivot;
         yield FA(8, '两指针相遇于 ' + lo + '，pivot(' + pivot + ') 落位。左边 ≤ 它，右边 ≥ 它。', A, { marks: [{ name: 'pivot', at: lo, color: '#22c55e' }] });
+        yield FA(9, 'return low：把枢轴的位置 ' + lo + ' 交回去 —— 它左边全 ≤ 它，右边全 ≥ 它，可以分别递归了。', A,
+          { marks: [{ name: 'pivot', at: lo, color: '#22c55e' }] });
+        yield FA(14, 'QuickSort(A, ' + low + ', ' + (lo - 1) + ')：先递归<b>左段</b>' + (low > lo - 1 ? '（空区间，直接返回）' : '') + '。', A,
+          { spans: [{ from: low, to: Math.max(low, lo - 1), label: '左段' }], marks: [{ name: 'pivot', at: lo, color: '#22c55e' }] });
         yield* qs(low, lo - 1, depth + 1);
+        yield FA(15, 'QuickSort(A, ' + (lo + 1) + ', ' + high + ')：再递归<b>右段</b>' + (lo + 1 > high ? '（空区间，直接返回）' : '') + '。', A,
+          { spans: [{ from: Math.min(lo + 1, high), to: high, label: '右段' }], marks: [{ name: 'pivot', at: lo, color: '#22c55e' }] });
         yield* qs(lo + 1, high, depth + 1);
         st.pop();
       }
@@ -2834,6 +3096,8 @@ CH('sort').demos.push({
       for (k = Math.floor(n / 2); k >= 1; k--) {
         yield FA(10, '处理结点 ' + k + '（值 ' + H[k] + '）：让它往下沉到合适位置。', view(), mkK(k, n));
         kk = k; tv = H[k];
+        yield FA(1, 'int t = A[' + kk + '] = ' + tv + '：先把待下沉的值存到 t，它的位置马上就空出来了。', view(), mkK(kk, n));
+        yield FA(2, 'for (int i = 2 * k; i <= n; i = 2 * k)：从它的左孩子 k=' + kk + ' → i=' + (2 * kk) + ' 开始往下比。', view(), mkK(kk, n));
         for (i = 2 * kk; i <= n; i = 2 * kk) {
           if (i < n && H[i + 1] > H[i]) {
             i++;
@@ -2864,6 +3128,8 @@ CH('sort').demos.push({
 
       var sorted = {};
       for (i = n; i > 1; i--) {
+        yield FA(11, 'for (int i = n; i > 1; i--)：堆还剩 ' + i + ' 个元素，取堆顶、放末尾、再缩小堆。', view(),
+          { marks: [{ name: 'i', at: i }], sorted: sorted, spans: [{ from: 1, to: i, label: '堆' }] });
         yield FA(12, '堆顶 A[1]=' + H[1] + ' 与末尾 A[' + i + ']=' + H[i] + ' 交换 → 最大值归位。', view(),
           { marks: [{ name: 'i', at: i }, { name: '堆顶', at: 1, color: '#22c55e' }], sorted: sorted, spans: [{ from: 1, to: i - 1, label: '堆' }], swap: [1, i] });
         t = H[1]; H[1] = H[i]; H[i] = t;
@@ -2920,6 +3186,7 @@ CH('sort').demos.push({
       var T = A.slice();
       var st = []; setStack(st);          /* 递归调用栈 */
       yield FA(0, '准备：' + A.join(' ') + '。归并排序是"分治"：递归对半分，回来时合并两个有序段。', A, {});
+      yield FA(10, 'MergeSort(A, 0, ' + (n - 1) + ', T)：入口，整个数组先交给它。', A, {});
       function* ms(lo, hi, depth) {
         if (lo >= hi) {
           yield FA(11, '区间 [' + lo + ',' + hi + '] 只有一个元素，天然有序，直接返回。', A, { marks: [{ name: 'lo=hi', at: lo }], side: ['递归深度 <b>' + depth + '</b>'] });
@@ -2929,10 +3196,19 @@ CH('sort').demos.push({
         var mid = (lo + hi) >> 1;
         yield FA(12, '对半劈：[' + lo + ',' + mid + '] 和 [' + (mid + 1) + ',' + hi + ']。',
           A, { spans: [{ from: lo, to: mid, label: '左' }, { from: mid + 1, to: hi, label: '右', color: 'rgba(56,189,248,.12)' }], side: ['递归深度 <b>' + depth + '</b>'] });
+        yield FA(13, 'MergeSort(A, ' + lo + ', ' + mid + ', T)：先把<b>左半</b>排好（递归进去）。', A,
+          { spans: [{ from: lo, to: mid, label: '左' }], side: ['递归深度 <b>' + depth + '</b>'] });
         yield* ms(lo, mid, depth + 1);
+        yield FA(14, 'MergeSort(A, ' + (mid + 1) + ', ' + hi + ', T)：左半回来了，再把<b>右半</b>排好。', A,
+          { spans: [{ from: mid + 1, to: hi, label: '右', color: 'rgba(56,189,248,.12)' }], side: ['递归深度 <b>' + depth + '</b>'] });
         yield* ms(mid + 1, hi, depth + 1);
+        yield FA(15, 'Merge(A, ' + lo + ', ' + mid + ', ' + hi + ', T)：两半各自有序了，现在合并成一个有序段。', A,
+          { spans: [{ from: lo, to: mid, label: '左（有序）' }, { from: mid + 1, to: hi, label: '右（有序）', color: 'rgba(56,189,248,.12)' }] });
         var i = lo, j = mid + 1, k = lo;
-        yield FA(2, '合并 [' + lo + ',' + mid + '] 与 [' + (mid + 1) + ',' + hi + ']：i=' + i + '，j=' + j + '，先比 A[i] 与 A[j]。',
+        yield FA(1, 'int i = ' + lo + ', j = ' + (mid + 1) + ', k = ' + lo + '：i 指左段、j 指右段、k 指辅助数组 T 的写入位置。', A,
+          { marks: [{ name: 'i', at: i, color: '#38bdf8' }, { name: 'j', at: j, color: '#f472b6' }, { name: 'k', at: k, color: '#22c55e' }],
+            spans: [{ from: lo, to: mid }, { from: mid + 1, to: hi, color: 'rgba(56,189,248,.12)' }] });
+        yield FA(2, '合并 [' + lo + ',' + mid + '] 与 [' + (mid + 1) + ',' + hi + ']：先比 A[i] 与 A[j]。',
           A, { marks: [{ name: 'i', at: i, color: '#38bdf8' }, { name: 'j', at: j, color: '#f472b6' }], spans: [{ from: lo, to: mid }, { from: mid + 1, to: hi, color: 'rgba(56,189,248,.12)' }] });
         while (i <= mid && j <= hi) {
           if (A[i] <= A[j]) {
@@ -2947,7 +3223,15 @@ CH('sort').demos.push({
             j++; k++;
           }
         }
+        if (i <= mid) {
+          yield FA(6, 'while (i <= mid) T[k++] = A[i++]：右段先空了，左段还剩 ' + (mid - i + 1) + ' 个，它们都更大，<b>整段搬</b>过去。', A,
+            { marks: [{ name: 'i', at: i }, { name: 'k', at: k, color: '#22c55e' }], spans: [{ from: lo, to: mid }] });
+        }
         while (i <= mid) { T[k++] = A[i++]; }
+        if (j <= hi) {
+          yield FA(7, 'while (j <= hi) T[k++] = A[j++]：左段先空了，右段还剩 ' + (hi - j + 1) + ' 个，整段搬过去。', A,
+            { marks: [{ name: 'j', at: j, color: '#f472b6' }, { name: 'k', at: k, color: '#22c55e' }], spans: [{ from: mid + 1, to: hi, color: 'rgba(56,189,248,.12)' }] });
+        }
         while (j <= hi) { T[k++] = A[j++]; }
         for (k = lo; k <= hi; k++) A[k] = T[k];
         yield FA(8, '两段并完，拷回原数组：[' + lo + '..' + hi + '] = ' + A.slice(lo, hi + 1).join(' ') + '。',

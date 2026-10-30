@@ -89,6 +89,7 @@ CH('list').demos.push({
       /* ---- ⑤ 头插逆置后半段 ---- */
       while (p) {
         var nxt = p.next;
+        yield F(9, 'while (p)：后半段还有结点没搬完，就继续头插逆置。', rowRev(), ptr(), p);
         yield F(10, '⑤ 逆置：q = p->next，先把 ' + p.val + ' 的后继 ' + (nxt ? nxt.val : 'NULL') + ' 存下来，不然改完 p->next 就找不回来了。', rowRev(), ptr(), p);
         q = nxt;
         yield F(11, p.val + '->next = slow->next：把 ' + p.val + ' 的 next 改指到当前逆置段的最前面（' + (slow.next ? slow.next.val : 'NULL') + '）。',
@@ -103,7 +104,8 @@ CH('list').demos.push({
       yield F(13, '后半段逆置完成：' + slow.val + ' 之后是 ' + slow.next.val + ' → …，原来是 a4→a5→a6，现在成 a6→a5→a4。', rowAll(), [{ name: 'slow', node: slow }], slow);
       /* ---- ⑥ 交替合并 ---- */
       h = L.next; b = slow.next;
-      yield F(15, '⑥ h = L->next（前半段游标 a1），b = slow->next（后半段游标 a6）。两个游标各走一段，交替往里插。', rowAll(), ptr(), h);
+      yield F(15, '⑥ h = L->next：前半段游标，从头开始（a1）。', rowAll(), ptr(), h);
+      yield F(16, 'LNode *b = slow->next：后半段游标，指向逆置后的第一颗（a6）。两个游标各走一段，交替往里插。', rowAll(), ptr(), b);
       yield F(17, 'slow->next = NULL：再断一次，让前半段末尾变成干净的结尾。', rowAll(), ptr(), h);
       slow.next = null;
       q = h.next;

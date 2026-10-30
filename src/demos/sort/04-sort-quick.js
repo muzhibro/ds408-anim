@@ -31,15 +31,20 @@ CH('sort').demos.push({
       var A = (c && c.arr ? c.arr.slice() : [49, 38, 65, 97, 76, 13, 27, 49]), n = A.length;
       var st = []; setStack(st);          /* 递归调用栈 */
       yield FA(0, '准备：' + A.join(' ') + '。快排 = "划分 + 递归"，划分是灵魂。', A, {});
+      yield FA(11, 'void QuickSort(int A[], int low, int high)：递归函数只干三件事 —— 划分、排左段、排右段。', A, {});
       function* qs(low, high, depth) {
         if (low >= high) {
           if (low === high) yield FA(12, '区间 [' + low + ',' + high + '] 只剩一个元素，天然有序。', A, { marks: [{ name: 'low=high', at: low }] });
           return;
         }
         st.push('QuickSort(' + low + ',' + high + ')');
+        yield FA(13, 'int p = Partition(A, ' + low + ', ' + high + ')：先划分——把 pivot 放到最终位置上，并返回它的下标。', A,
+          { marks: [{ name: 'low', at: low }, { name: 'high', at: high }], side: ['递归深度 <b>' + depth + '</b>'] });
         var pivot = A[low], lo = low, hi = high;
         yield FA(1, '划分 [' + low + ',' + high + ']：pivot = A[' + low + '] = ' + pivot + '，low 位成了"坑"。',
           A, { marks: [{ name: 'low', at: lo }, { name: 'high', at: hi }], side: ['递归深度 <b>' + depth + '</b>'] });
+        yield FA(2, 'while (low < high)：两个指针没相遇，就一左一右来回填坑。', A,
+          { marks: [{ name: 'low', at: lo }, { name: 'high', at: hi }] });
         while (lo < hi) {
           while (lo < hi && A[hi] >= pivot) {
             yield FA(3, 'A[' + hi + ']=' + A[hi] + ' ≥ pivot(' + pivot + ') → high 左移。', A, { marks: [{ name: 'low', at: lo }, { name: 'high', at: hi }],
@@ -66,7 +71,13 @@ CH('sort').demos.push({
         }
         A[lo] = pivot;
         yield FA(8, '两指针相遇于 ' + lo + '，pivot(' + pivot + ') 落位。左边 ≤ 它，右边 ≥ 它。', A, { marks: [{ name: 'pivot', at: lo, color: '#22c55e' }] });
+        yield FA(9, 'return low：把枢轴的位置 ' + lo + ' 交回去 —— 它左边全 ≤ 它，右边全 ≥ 它，可以分别递归了。', A,
+          { marks: [{ name: 'pivot', at: lo, color: '#22c55e' }] });
+        yield FA(14, 'QuickSort(A, ' + low + ', ' + (lo - 1) + ')：先递归<b>左段</b>' + (low > lo - 1 ? '（空区间，直接返回）' : '') + '。', A,
+          { spans: [{ from: low, to: Math.max(low, lo - 1), label: '左段' }], marks: [{ name: 'pivot', at: lo, color: '#22c55e' }] });
         yield* qs(low, lo - 1, depth + 1);
+        yield FA(15, 'QuickSort(A, ' + (lo + 1) + ', ' + high + ')：再递归<b>右段</b>' + (lo + 1 > high ? '（空区间，直接返回）' : '') + '。', A,
+          { spans: [{ from: Math.min(lo + 1, high), to: high, label: '右段' }], marks: [{ name: 'pivot', at: lo, color: '#22c55e' }] });
         yield* qs(lo + 1, high, depth + 1);
         st.pop();
       }

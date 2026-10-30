@@ -32,20 +32,38 @@ CH('graph').demos.push({
         if (cur != null) s[cur] = 'cur';
         return s;
       };
-      yield FG(0, '准备：从 0 出发。visited、队列都在下面实时显示。', G_DFS, { state: state(0), side: ['队列 <b>0</b>'] });
-      yield FG(3, '起点 0：标记、访问、入队。', G_DFS, { state: state(0), cur: 0, side: ['队列 <b>' + qv() + '</b>'] });
+      yield FG(0, 'BFS 从起点 0 出发，用队列一层一层往外扩。', G_DFS, { state: state(0), side: ['队列 <b>0</b>'] });
+      yield FG(1, 'int Q[MAXSIZE], front = 0, rear = 0：队列用数组加头尾指针表示，front 出队、rear 入队。', G_DFS,
+        { state: {}, side: ['队列空'] });
+      yield FG(2, '起点 0：visited[0]=1、Visit(0)、Q[rear++]=0。注意<b>入队时就标记</b>，不等出队再标。', G_DFS,
+        { state: state(0), cur: 0, side: ['队列 <b>' + qv() + '</b>'] });
       while (Q.length) {
         var u = Q.shift();
-        yield FG(5, '出队 ' + u + '，开始扫描它的所有邻居。', G_DFS, { state: state(u), cur: u, scan: { v: u, w: null }, side: ['队列 <b>' + (qv() || '空') + '</b>', '距起点 <b>' + dist[u] + '</b> 条边'] });
+        yield FG(3, 'while (front < rear)：队列不空 → 继续。', G_DFS, { state: state(null), side: ['队列 <b>' + (qv() || '空') + '</b>'] });
+        yield FG(4, 'Q[front++]：出队 ' + u + '，开始扫它的所有邻居。', G_DFS, { state: state(u), cur: u, scan: { v: u, w: null }, side: ['队列 <b>' + (qv() || '空') + '</b>', '距起点 <b>' + dist[u] + '</b> 条边'] });
         var nb = ADJ[u];
+        if (nb.length) {
+          yield FG(5, '沿 V' + u + ' 的邻接表往后走：p 依次指向 ' + nb.join('、') + ' 这些邻居。', G_DFS,
+            { state: state(u), cur: u, scan: { v: u, w: null }, side: ['队列 <b>' + (qv() || '空') + '</b>'] });
+        }
         for (var i = 0; i < nb.length; i++) {
           var w = nb[i];
+          yield FG(6, 'int w = p->adjvex：这一条边的邻居是 ' + w + '。', G_DFS,
+            { state: state(u), cur: u, scan: { v: u, w: w }, edgeOn: (function (o) { o[u + '-' + w] = 1; return o; })({}),
+              side: ['队列 <b>' + (qv() || '空') + '</b>'] });
           if (!visited[w]) {
-            visited[w] = 1; order.push(w); Q.push(w); dist[w] = dist[u] + 1;
-            yield FG(10, '邻居 ' + w + ' 没去过 → 标记 + 访问 + <b>入队</b>（三者一起做）。', G_DFS,
-              { state: state(u), cur: u, scan: { v: u, w: w }, edgeOn: (function (o) { o[u + '-' + w] = 1; return o; })({}), side: ['队列 <b>' + qv() + '</b>', 'dist[' + w + '] = <b>' + dist[w] + '</b>'] });
+            yield FG(7, 'if (!visited[' + w + '])：没去过 → 进去（已去过就跳过）。', G_DFS,
+              { state: state(u), cur: u, scan: { v: u, w: w }, side: ['队列 <b>' + (qv() || '空') + '</b>'] });
+            visited[w] = 1; order.push(w); dist[w] = dist[u] + 1;
+            yield FG(8, 'visited[' + w + '] = 1：<b>先标记</b>，这样别的邻居再来找它时就能直接跳过。', G_DFS,
+              { state: state(u), cur: u, scan: { v: u, w: w }, edgeOn: (function (o) { o[u + '-' + w] = 1; return o; })({}),
+                side: ['队列 <b>' + (qv() || '空') + '</b>', 'dist[' + w + '] = <b>' + dist[w] + '</b>'] });
+            Q.push(w);
+            yield FG(9, 'Visit(' + w + ') 打出来，Q[rear++] = ' + w + ' 入队 —— 标记、访问、入队三者一起做。', G_DFS,
+              { state: state(u), cur: u, scan: { v: u, w: w }, edgeOn: (function (o) { o[u + '-' + w] = 1; return o; })({}),
+                side: ['队列 <b>' + qv() + '</b>', 'dist[' + w + '] = <b>' + dist[w] + '</b>'] });
           } else {
-            yield FG(8, '邻居 ' + w + ' 已访问 → 跳过（这就是"入队即标记"省下的重复劳动）。', G_DFS,
+            yield FG(7, '邻居 ' + w + ' 已访问 → 跳过（这就是"入队即标记"省下的重复劳动）。', G_DFS,
               { state: state(u), cur: u, scan: { v: u, w: w }, side: ['队列 <b>' + (qv() || '空') + '</b>'] });
           }
         }

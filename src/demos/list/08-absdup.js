@@ -40,8 +40,10 @@ CH('list').demos.push({
       yield F(2, '② p 指向首元，pre 指向头结点（pre 是 p 的前驱）。', rows, ptr(), p, { seen: seenTxt() });
       while (p) {
         var v = Math.abs(parseInt(p.val, 10));
+        yield F(3, 'while (p)：p 还没走到表尾，就继续检查当前结点。', rows, ptr(), p, { seen: seenTxt() });
         yield F(4, '③ 取绝对值 v = |' + p.val + '| = ' + v + '。', rows, ptr(), p, { seen: seenTxt() });
         if (seen[v]) {
+          yield F(5, 'if (seen[' + v + '])：' + v + ' 已经登记过 → 走"删掉"这一支。', rows, ptr(), p, { seen: seenTxt() });
           pre.next = p.next;
           yield F(6, '④ seen[' + v + '] 已经是 1 → 这个值出现过，让 pre 跨过 p：pre->next = p->next。', rows, ptr(), p, { seen: seenTxt() });
           var freed = p;
@@ -49,12 +51,13 @@ CH('list').demos.push({
           p = pre.next;
           yield F(8, '⑥ p = pre->next，pre 不动（因为它后面换了人）。', rows, ptr(), p, { seen: seenTxt() });
         } else {
+          yield F(5, 'if (seen[' + v + '])：' + v + ' 从没登记过 → 走"保留"这一支。', rows, ptr(), p, { seen: seenTxt() });
           seen[v] = 1;
-          yield F(11, '④ 没见过 → seen[' + v + '] = 1。' + seenTxt(), rows, ptr(), p, { seen: seenTxt() });
+          yield F(10, '④ seen[' + v + '] = 1：把绝对值登记下来，下次再遇到就删。' + seenTxt(), rows, ptr(), p, { seen: seenTxt() });
           pre = p;
-          yield F(12, '⑤ pre 前进到 ' + pre.val + '。', rows, ptr(), pre, { seen: seenTxt() });
+          yield F(11, '⑤ pre 前进到 ' + pre.val + '。', rows, ptr(), pre, { seen: seenTxt() });
           p = p.next;
-          yield F(13, '⑥ p 前进到 ' + (p ? p.val : 'NULL') + '。', rows, ptr(), p, { seen: seenTxt() });
+          yield F(12, '⑥ p 前进到 ' + (p ? p.val : 'NULL') + '。', rows, ptr(), p, { seen: seenTxt() });
         }
       }
       yield F(15, '完成：21 → -15 → 7。重复的 -15 和 7 被删掉了；15 也没了 —— 因为 |−15| = 15 早就登记过。', rows, [{ name: 'L', node: L }], null, { seen: seenTxt() });

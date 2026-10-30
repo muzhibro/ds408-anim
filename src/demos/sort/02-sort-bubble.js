@@ -27,16 +27,23 @@ CH('sort').demos.push({
         A, { spans: [{ from: 0, to: n - 1 }] });
       for (i = 0; i < n - 1; i++) {
         sw = 0;
-        yield FA(2, '第 ' + (i + 1) + ' 趟开始，只需比到第 ' + (n - 1 - i) + ' 个位置。',
+        yield FA(1, 'for (int i = 0; i < ' + (n - 1) + '; i++)：第 ' + (i + 1) + ' 趟，最多跑 n−1 趟。', A,
+          { marks: [{ name: '趟', at: i, color: '#f59e0b' }], sorted: sortedSet(n, n - i) });
+        yield FA(2, 'int swapped = 0：本趟还没换过元素（用来判断"是否已经有序"）。',
+          A, { marks: [{ name: '趟', at: i, color: '#f59e0b' }], sorted: sortedSet(n, n - i) });
+        yield FA(3, 'for (int j = 0; j < ' + (n - 1 - i) + '; j++)：这趟只需比到第 ' + (n - 1 - i) + ' 个位置，后面已经定死了。',
           A, { marks: [{ name: '趟', at: i, color: '#f59e0b' }], sorted: sortedSet(n, n - i) });
         for (j = 0; j < n - 1 - i; j++) {
           if (A[j] > A[j + 1]) {
             yield FA(4, 'A[' + j + ']=' + A[j] + ' > A[' + (j + 1) + ']=' + A[j + 1] + ' → 交换。',
               A, { marks: [{ name: 'j', at: j }, { name: 'j+1', at: j + 1, color: '#f472b6' }], sorted: sortedSet(n, n - i), swap: [j, j + 1],
                 cmp: { a: j, b: j + 1, left: 'A[' + j + ']=' + A[j], right: 'A[' + (j + 1) + ']=' + A[j + 1], op: '>', ok: true, res: '交换' } });
-            var t = A[j]; A[j] = A[j + 1]; A[j + 1] = t; sw = 1;
+            var t = A[j]; A[j] = A[j + 1]; A[j + 1] = t;
             yield FA(5, '交换后 A[' + j + ']=' + A[j] + '、A[' + (j + 1) + ']=' + A[j + 1] + '。',
               A, { marks: [{ name: 'j', at: j }, { name: 'j+1', at: j + 1, color: '#f472b6' }], sorted: sortedSet(n, n - i), swap: [j, j + 1] });
+            yield FA(6, 'swapped = 1：记下"这一趟发生过交换"，说明还没完全有序。',
+              A, { marks: [{ name: 'j', at: j }, { name: 'j+1', at: j + 1, color: '#f472b6' }], sorted: sortedSet(n, n - i) });
+            sw = 1;
           } else {
             yield FA(4, 'A[' + j + ']=' + A[j] + ' ≤ ' + A[j + 1] + ' → 不动（相等也不换 → 稳定）。',
               A, { marks: [{ name: 'j', at: j }, { name: 'j+1', at: j + 1, color: '#f472b6' }], sorted: sortedSet(n, n - i),

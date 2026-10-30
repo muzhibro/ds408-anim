@@ -26,14 +26,25 @@ CH('graph').demos.push({
         st.push(v);
         cs.push('DFS(' + v + ')');
         var state = {}; st.forEach(function (x) { state[x] = 'cur'; }); order.forEach(function (x) { state[x] = 'done'; }); state[v] = 'cur';
-        yield FG(1, '① 标记 visited[' + v + '] = 1，② 访问它（第 ' + order.length + ' 个）。', G_DFS,
+        yield FG(1, '① 进来先标记：visited[' + v + '] = 1。', G_DFS,
+          { state: state, cur: v, scan: { v: v, w: null }, side: ['DFS 序 <b>' + order.join(' ') + '</b>'] });
+        yield FG(2, '② Visit(' + v + ')：输出它，这是第 ' + order.length + ' 个被访问的顶点。', G_DFS,
           { state: state, cur: v, scan: { v: v, w: null }, side: ['DFS 序 <b>' + order.join(' ') + '</b>'] });
         var nb = ADJ[v];
+        if (nb.length) {
+          yield FG(3, '③ 沿 V' + v + ' 的邻接表往后走，逐个看邻居：' + nb.join('、') + '。', G_DFS,
+            { state: state, cur: v, scan: { v: v, w: null }, side: ['DFS 序 <b>' + order.join(' ') + '</b>'] });
+        }
         for (var i = 0; i < nb.length; i++) {
           var w = nb[i];
           yield FG(4, '看邻居 ' + w + '：' + (visited[w] ? '已访问过，跳过。' : '没访问过 → 立刻递归进去。'), G_DFS,
             { state: state, cur: v, scan: { v: v, w: w }, edgeOn: (function (o) { o[v + '-' + w] = 1; return o; })({}), side: ['邻居 ' + w + ' <b>' + (visited[w] ? '去过' : '没去过') + '</b>'] });
-          if (!visited[w]) yield* dfs(w);
+          if (!visited[w]) {
+            yield FG(5, 'if (!visited[' + w + ']) DFS(G, ' + w + ')：一条路走到黑，先钻进去，回来再继续看下一个邻居。', G_DFS,
+              { state: state, cur: v, scan: { v: v, w: w }, edgeOn: (function (o) { o[v + '-' + w] = 1; return o; })({}),
+                side: ['递归进 V' + w, 'DFS 序 <b>' + order.join(' ') + '</b>'] });
+            yield* dfs(w);
+          }
         }
         st.pop();
         cs.pop();
@@ -42,7 +53,7 @@ CH('graph').demos.push({
       yield* dfs(0);
       setStack(null);
       var state = {}; order.forEach(function (x) { state[x] = 'done'; });
-      yield FG(5, 'DFS 序列：<b>' + order.join(' ') + '</b>。时间 O(V+E)，空间 O(V)（visited）+ O(h)（递归栈）。', G_DFS,
+      yield FG(6, 'DFS 序列：<b>' + order.join(' ') + '</b>。时间 O(V+E)，空间 O(V)（visited）+ O(h)（递归栈）。', G_DFS,
         { state: state, side: ['DFS 序 <b>' + order.join(' ') + '</b>'] });
     }
   });

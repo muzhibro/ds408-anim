@@ -26,7 +26,9 @@ CH('search').demos.push({
         depth++;
         var goLeft = key < +cur.val;
         path.push(cur.val); pathNodes.push(cur);
-        yield FT(2, '当前结点 ' + cur.val + '：' + key + (goLeft ? ' &lt; ' : ' &gt; ') + cur.val + ' → 往' + (goLeft ? '左' : '右') + '走。',
+        yield FT(1, 'while (T && T->data != key)：结点非空、且还没等于 key → 继续比。', root,
+          { mark: cur, ptrs: [{ name: 'p', node: cur }], side: ['比较次数 <b>' + depth + '</b>', '路径 <b>' + path.join(' → ') + '</b>'] });
+        yield FT(goLeft ? 2 : 3, '当前结点 ' + cur.val + '：' + key + (goLeft ? ' &lt; ' : ' &gt; ') + cur.val + ' → 往' + (goLeft ? '左' : '右') + '走' + (goLeft ? '（T = T->lchild）' : '（T = T->rchild）') + '。',
           root, { mark: cur, ptrs: [{ name: 'p', node: cur }], side: ['比较次数 <b>' + depth + '</b>', '路径 <b>' + path.join(' → ') + '</b>'],
             cmpTag: { text: 'key=' + key + ' ' + (goLeft ? '<' : '>') + ' ' + cur.val + ' → 往' + (goLeft ? '左' : '右'), ok: goLeft } });
         cur = goLeft ? cur.l : cur.r;
@@ -35,11 +37,11 @@ CH('search').demos.push({
         var tags = {};
         pathNodes.forEach(function (nd, i) { tags[nd.id] = i + 1; });
         tags[cur.id] = depth + 1;
-        yield FT(3, '命中：结点 ' + cur.val + '，查找成功。共比较 ' + (depth + 1) + ' 次。', root,
+        yield FT(5, '命中：结点 ' + cur.val + '，查找成功 → return T（返回的就是这个结点）。共比较 ' + (depth + 1) + ' 次。', root,
           { mark: cur, tags: tags, side: ['比较次数 <b>' + (depth + 1) + '</b>', '路径 <b>' + path.concat([cur.val]).join(' → ') + '</b>'],
             cmpTag: { text: 'key=' + key + ' == ' + cur.val + ' → 命中', ok: true } });
       } else {
-        yield FT(3, '走到空指针 → 查找失败（说明该 key 不在树里）。', root,
+        yield FT(5, '走到空指针 → return T 就是 return NULL，查找失败（该 key 不在树里）。', root,
           { side: ['比较次数 <b>' + depth + '</b>'], cmpTag: { text: 'key=' + key + ' 不在树里', ok: false } });
       }
     }

@@ -30,6 +30,8 @@ CH('list').demos.push({
       for (var i = 0; i < a.length; i++) {
         var s = mk(a[i]);
         var pending = [{ label: 's（新）', head: s }];
+        yield F(3, 'for (int i = 0; i < ' + a.length + '; i++)：第 ' + (i + 1) + ' 个元素 a[' + i + '] = ' + a[i] + '，为它造一个结点。',
+          rows(), [{ name: 'L', node: L }], L);
         yield F(4, 'i = ' + i + '：③ 申请新结点 s。', rows(pending), [{ name: 'L', node: L }, { name: 's', node: s }], s);
         yield F(5, '④ s->data = a[' + i + '] = ' + a[i] + '。', rows(pending), [{ name: 'L', node: L }, { name: 's', node: s }], s);
         var old = L.next;

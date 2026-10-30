@@ -43,6 +43,7 @@ CH('list').demos.push({
       yield F(4, '④ p->next = s：2 的 next 指向 s。四条链全部接好，插入完成。', rows, ptr(), s);
       yield F(4, '现在表是 1 ⇄ 2 ⇄ 3 ⇄ 4。下面演示删除 2 的后继（即 3）。', rows, [{ name: 'p', node: p }], p);
       q = p.next;
+      yield F(6, 'void DDeleteAfter(DNode *p){…}：删除 p 的后继，要动 next 和 prior 两条链，顺序不能反。', rows, [{ name: 'p', node: p }], p);
       yield F(7, '⑤ q = p->next，q 指向待删结点 3。', rows, [{ name: 'p', node: p }, { name: 'q', node: q }], q);
       yield F(8, '⑥ q 非空，可以删。', rows, [{ name: 'p', node: p }, { name: 'q', node: q }], q);
       p.next = q.next;

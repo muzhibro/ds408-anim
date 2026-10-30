@@ -7,6 +7,7 @@ import { ROOT } from './support/harness.mjs';
 const script = path.join(ROOT, 'scripts', 'coverage.mjs');
 
 function run(args = []) {
+  /* execFileSync 在非 0 退出码时抛异常，所以"能拿到输出"本身就等于"退出码是 0" */
   return execFileSync(process.execPath, [script, ...args], { cwd: ROOT, encoding: 'utf8' });
 }
 
@@ -17,16 +18,16 @@ test('覆盖率报告能跑通，并给出实质行覆盖总数', () => {
 });
 
 test('覆盖率报告永远成功退出（是报告不是闸门）', () => {
-  /* 即便存在缺口，也不应该让构建失败——否则补内容就成了"改测试" */
+  /* 即便还有缺口，也不应该让构建失败——否则补内容就变成了"改测试" */
   const out = run(['--all']);
-  assert.match(out, /\[(调用|赋值|分支|声明|签名|其它)\]/);
+  assert.match(out, /实质行覆盖：\d+ \/ \d+ 行/);
 });
 
-test('按章节筛选只列该章的模板', () => {
+test('按章节筛选只统计该章', () => {
   const out = run(['tree']);
-  const names = [...out.matchAll(/^(list|tree|graph|search|sort)\/([\w-]+)   覆盖/gm)].map((m) => m[1]);
-  assert.ok(names.length > 0, '应该列出模板');
-  assert.deepEqual([...new Set(names)], ['tree']);
+  assert.match(out, /（只看 tree）/);
+  const listed = [...out.matchAll(/^(list|tree|graph|search|sort)\/[\w-]+   覆盖/gm)].map((m) => m[1]);
+  assert.deepEqual([...new Set(listed)], listed.length ? ['tree'] : [], '不该混进别章');
 });
 
 test('章节名写错时提示可选值，且不报错', () => {

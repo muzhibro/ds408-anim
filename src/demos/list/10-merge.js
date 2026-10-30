@@ -78,6 +78,8 @@ CH('list').demos.push({
       yield F(8, 'r->next = ' + (p ? 'p' : 'q') + '：一个赋值接完整段剩余（千万别写成 while 一颗颗接）。', rows(true), ptr(), r);
       yield F(9, 'free(B)：B 的头结点已经没用了；B 里的结点此刻全在 C 里，一个都不能 free。',
         [{ label: 'C（合并结果）', head: A }], [{ name: 'r', node: r }], null);
+      yield F(10, 'return C：把 C 的头结点交回去 —— 调用者拿到的就是 "1→2→3→4→5→6→7" 这条链。',
+        [{ label: 'C（合并结果）', head: A }], [{ name: 'r', node: r }], null);
     }
   });
 })(window.DSANIM = window.DSANIM || {});

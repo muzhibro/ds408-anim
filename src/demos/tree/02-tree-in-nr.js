@@ -22,8 +22,12 @@ CH('tree').demos.push({
     run: function* () {
       var root = mkTree1(), st = [], p = root, tags = {}, order = [];
       var sv = function () { return st.map(function (x) { return x.val; }); };
-      yield FT(0, '准备：同一棵树。中序 = 左 → 根 → 右。递归换成"自己拿栈模拟"。', root, {});
+      yield FT(0, '准备：同一棵树。中序 = 左 → 根 → 右；递归版本由系统栈帮忙，这里自己拿数组当栈。', root, {});
+      yield FT(1, 'BiTree stack[MAXSIZE], p = T：一个数组当栈，指针 p 从根出发。', root, { mark: root, ptrs: [{ name: 'p', node: root }], stack: [], tags: tags });
+      yield FT(2, 'int top = -1：top 指向栈顶，−1 表示空栈。', root, { ptrs: [{ name: 'p', node: root }], stack: [], tags: tags });
       while (p || st.length) {
+        yield FT(3, 'while (p || top >= 0)：<b>指针没走到空</b>或者<b>栈里还有货</b>，就得继续——两个条件缺一不可。', root,
+          { ptrs: p ? [{ name: 'p', node: p }] : [], stack: sv(), tags: tags });
         while (p) {
           st.push(p);
           yield FT(4, 'p = ' + p.val + '：一路向左，压栈。', root, { mark: p, ptrs: [{ name: 'p', node: p }], stack: sv(), tags: tags });
@@ -36,7 +40,7 @@ CH('tree').demos.push({
         p = p.r;
         yield FT(7, '转向右子树' + (p ? '：' + p.val : '（空，准备弹下一个）') + '。', root, { mark: p || root, stack: sv(), tags: tags });
       }
-      yield FT(7, '中序序列：<b>' + order.join(' ') + '</b>。每个结点进栈一次、出栈一次 → O(n)。', root, { tags: tags, side: ['中序 <b>' + order.join(' ') + '</b>'] });
+      yield FT(8, '中序序列：<b>' + order.join(' ') + '</b>。每个结点进栈一次、出栈一次 → O(n)。', root, { tags: tags, side: ['中序 <b>' + order.join(' ') + '</b>'] });
     }
   });
 })(window.DSANIM = window.DSANIM || {});

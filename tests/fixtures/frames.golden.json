@@ -1,7 +1,7 @@
 {
-  "framesTotal": 2932,
-  "cases": 70,
-  "digest": "4db5df19a2fe5b02",
+  "framesTotal": 3008,
+  "cases": 74,
+  "digest": "3a5f330ec32584bc",
   "perCase": {
     "list/head#0": {
       "n": 29,
@@ -107,9 +107,25 @@
       "n": 23,
       "sha": "c7eee3e681ffe03a"
     },
+    "tree/tree-lca#1": {
+      "n": 23,
+      "sha": "15fa126713a69dfe"
+    },
+    "tree/tree-lca#2": {
+      "n": 19,
+      "sha": "3790f761d0c96d29"
+    },
+    "tree/tree-lca#3": {
+      "n": 23,
+      "sha": "958a8961db78e614"
+    },
+    "tree/tree-lca#4": {
+      "n": 11,
+      "sha": "c2a86b4de2ff3ab0"
+    },
     "tree/tree-swap#0": {
       "n": 44,
-      "sha": "9ec00ea097d35617"
+      "sha": "a65b1063c6f1c5ff"
     },
     "graph/graph-dfs#0": {
       "n": 37,
@@ -157,7 +173,7 @@
     },
     "search/srch-bst#0": {
       "n": 6,
-      "sha": "f30d2516aa6e0ddd"
+      "sha": "5d4d5c23bca01f85"
     },
     "search/srch-hash#0": {
       "n": 38,

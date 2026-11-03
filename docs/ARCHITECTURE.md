@@ -10,7 +10,7 @@ src/core/*.js                 帧工厂 + 注册表 + 递归栈，Node 里能直
 src/ui/*.js                   渲染 + 播放器，只认帧不认算法
 ```
 
-界线只有一条：**数据层在没有 `document` 的环境里必须能跑完**。`tests/support/harness.mjs` 的 `loadData()` 只加载 `manifest.data`，一个 DOM 对象都不给，照样拿到全部 2932 帧。
+界线只有一条：**数据层在没有 `document` 的环境里必须能跑完**。`tests/support/harness.mjs` 的 `loadData()` 只加载 `manifest.data`，一个 DOM 对象都不给，照样拿到全部 3008 帧。
 
 ## 模块怎么拼
 

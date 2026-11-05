@@ -75,9 +75,9 @@ test('demo 文件名与模板 id / 章节顺序一一对应', () => {
   }
 });
 
-test('章节与模板数量固定（38 个模板 / 5 章）', () => {
+test('章节与模板数量固定（40 个模板 / 5 章）', () => {
   const chapters = loadData().CHAPTERS;
   assert.equal(chapters.length, 5);
-  assert.equal(chapters.reduce((n, c) => n + c.demos.length, 0), 38);
+  assert.equal(chapters.reduce((n, c) => n + c.demos.length, 0), 40);
   assert.equal(chapters.map((c) => c.id).join(','), 'list,tree,graph,search,sort');
 });

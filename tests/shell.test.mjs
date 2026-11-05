@@ -37,10 +37,10 @@ test('在链表章搜图的模板，会直接跳章', () => {
   assert.equal(NS.app.chapters()[2].demos[NS.app.state().demo], 'graph-kruskal');
 });
 
-test('按章名搜：输入"二叉树"能出整章 9 个模板', () => {
+test('按章名搜：输入"二叉树"能出整章 11 个模板', () => {
   const { NS } = loadPage();
   NS.app.select(0, 0, 0);
-  assert.equal(NS.app.setFilter('二叉树'), 9);
+  assert.equal(NS.app.setFilter('二叉树'), 11);
   assert.match(NS.app.options()[0].text, /^二叉树 · /);
 });
 

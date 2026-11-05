@@ -36,6 +36,8 @@
     "src/demos/tree/07-tree-bst.js",
     "src/demos/tree/08-tree-lca.js",
     "src/demos/tree/09-tree-swap.js",
+    "src/demos/tree/10-tree-thread-build.js",
+    "src/demos/tree/11-tree-thread-walk.js",
     "src/demos/graph/_fixtures.js",
     "src/demos/graph/01-graph-dfs.js",
     "src/demos/graph/02-graph-bfs.js",

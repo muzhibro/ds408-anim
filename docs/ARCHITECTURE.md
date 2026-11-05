@@ -10,7 +10,7 @@ src/core/*.js                 帧工厂 + 注册表 + 递归栈，Node 里能直
 src/ui/*.js                   渲染 + 播放器，只认帧不认算法
 ```
 
-界线只有一条：**数据层在没有 `document` 的环境里必须能跑完**。`tests/support/harness.mjs` 的 `loadData()` 只加载 `manifest.data`，一个 DOM 对象都不给，照样拿到全部 3008 帧。
+界线只有一条：**数据层在没有 `document` 的环境里必须能跑完**。`tests/support/harness.mjs` 的 `loadData()` 只加载 `manifest.data`，一个 DOM 对象都不给，照样拿到全部 3242 帧。
 
 ## 模块怎么拼
 
@@ -30,7 +30,7 @@ src/ui/*.js                   渲染 + 播放器，只认帧不认算法
 
 加载顺序看 `src/manifest.json`：
 
-- `data`：`util → registry → stack → 四个帧工厂 → _cases → 各章 _fixtures → 38 个 demo`
+- `data`：`util → registry → stack → 四个帧工厂 → _cases → 各章 _fixtures → 40 个 demo`
 - `ui`：`svg → draw-list → draw-tree → draw-array → draw-graph → measure → types → highlight → app`
 
 依赖单向。`tests/structure.test.mjs` 检查 `src/` 下每个文件都登记且只登记一次——漏一个，构建产物就少一块，页面白屏。
@@ -56,7 +56,9 @@ src/ui/*.js                   渲染 + 播放器，只认帧不认算法
 | mode | 工厂 | 主要字段 |
 | --- | --- | --- |
 | list | `F(line, desc, rows, ptrs, mark, extra)` | `rows[].head/cut/cutNote`、`link{from,to,text,color}` |
-| tree | `FT(line, desc, root, opt)` | `opt.tags/stack/swapPair/cmpTag/side` |
+| tree | `FT(line, desc, root, opt)` | `opt.tags/stack/swapPair/cmpTag/side/threads` |
+
+线索二叉树用 `threads`：`{结点 id: {lt, rt, pl, pr}}`，`lt`/`rt` 是标记位，`pl`/`pr` 是前驱/后继的 id。线索不塞进 `l`/`r`——真塞进去就成环了，`cloneTree` 和布局都会跟着崩。
 | array | `FA(line, desc, arr, opt)` | `opt.marks/sorted/spans/labels/swap/jump/cmp/side` |
 | graph | `FG(line, desc, g, st)` | `st.state/labels/cur/edgeOn/scan/dsMark/dsFoot/ind` |
 

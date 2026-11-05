@@ -76,7 +76,7 @@ test('章节与用例清单没有意外增删', () => {
   const shape = JSON.parse(JSON.stringify(NS.CHAPTERS)).map((c) => c.id + ':' + c.demos.map((d) => d.id).join(','));
   assert.deepEqual(shape, [
     'list:head,tail,reverse,kth,mid,loop,common,absdup,delnode,merge,split,reorder,doubly,sorted',
-    'tree:tree-pre,tree-in-nr,tree-level,tree-height,tree-complete,tree-balanced,tree-bst,tree-lca,tree-swap',
+    'tree:tree-pre,tree-in-nr,tree-level,tree-height,tree-complete,tree-balanced,tree-bst,tree-lca,tree-swap,tree-thread-build,tree-thread-walk',
     'graph:graph-dfs,graph-bfs,graph-topo,graph-dijkstra,graph-prim,graph-kruskal',
     'search:srch-binary,srch-bst,srch-hash',
     'sort:sort-insert,sort-bubble,sort-select,sort-quick,sort-heap,sort-merge'

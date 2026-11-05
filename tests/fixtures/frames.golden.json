@@ -1,7 +1,7 @@
 {
-  "framesTotal": 3008,
-  "cases": 74,
-  "digest": "3a5f330ec32584bc",
+  "framesTotal": 3242,
+  "cases": 80,
+  "digest": "ef4c207fae224d00",
   "perCase": {
     "list/head#0": {
       "n": 29,
@@ -65,67 +65,91 @@
     },
     "tree/tree-pre#0": {
       "n": 45,
-      "sha": "4f97f56826a36553"
+      "sha": "e0189677553a73ae"
     },
     "tree/tree-in-nr#0": {
       "n": 39,
-      "sha": "94ddb19b18a3dfb7"
+      "sha": "663ad0315a18b6b2"
     },
     "tree/tree-level#0": {
       "n": 33,
-      "sha": "7ecf9fdfb34eb2d4"
+      "sha": "65d5062090465a21"
     },
     "tree/tree-height#0": {
       "n": 31,
-      "sha": "77ebbbbe27f44705"
+      "sha": "98ed921129a5b954"
     },
     "tree/tree-complete#0": {
       "n": 72,
-      "sha": "1f5f9687b8e7b02b"
+      "sha": "a78a4ec640f3ed32"
     },
     "tree/tree-balanced#0": {
       "n": 39,
-      "sha": "34316ec20838e6da"
+      "sha": "cbc9c7e73597926c"
     },
     "tree/tree-bst#0": {
       "n": 14,
-      "sha": "bccd0d24a048f162"
+      "sha": "9dba7cc23d033bf8"
     },
     "tree/tree-bst#1": {
       "n": 31,
-      "sha": "4ce4ade86770d3f6"
+      "sha": "fec4b92bcadb8695"
     },
     "tree/tree-bst#2": {
       "n": 15,
-      "sha": "2b1cdb95e4b00ac1"
+      "sha": "262c4501a2e90804"
     },
     "tree/tree-bst#3": {
       "n": 13,
-      "sha": "13b8f6d8b1dfc6e0"
+      "sha": "48de4b42d5244727"
     },
     "tree/tree-lca#0": {
       "n": 23,
-      "sha": "c7eee3e681ffe03a"
+      "sha": "5f3ad9d08d2fa0b9"
     },
     "tree/tree-lca#1": {
       "n": 23,
-      "sha": "15fa126713a69dfe"
+      "sha": "32920dd668782b62"
     },
     "tree/tree-lca#2": {
       "n": 19,
-      "sha": "3790f761d0c96d29"
+      "sha": "7115d0a283fb0fe9"
     },
     "tree/tree-lca#3": {
       "n": 23,
-      "sha": "958a8961db78e614"
+      "sha": "cdcad373e4463d00"
     },
     "tree/tree-lca#4": {
       "n": 11,
-      "sha": "c2a86b4de2ff3ab0"
+      "sha": "d73bd75a7bd131d0"
     },
     "tree/tree-swap#0": {
       "n": 44,
-      "sha": "a65b1063c6f1c5ff"
+      "sha": "4b4dc907bab908e1"
+    },
+    "tree/tree-thread-build#0": {
+      "n": 55,
+      "sha": "b1e7bc0d1f5eb51c"
+    },
+    "tree/tree-thread-build#1": {
+      "n": 55,
+      "sha": "3d2e1b19b8aab0c8"
+    },
+    "tree/tree-thread-build#2": {
+      "n": 34,
+      "sha": "be7a4bea28f44e96"
+    },
+    "tree/tree-thread-walk#0": {
+      "n": 35,
+      "sha": "b8e7e811bee2c7ce"
+    },
+    "tree/tree-thread-walk#1": {
+      "n": 35,
+      "sha": "29644ad97911ffc3"
+    },
+    "tree/tree-thread-walk#2": {
+      "n": 20,
+      "sha": "410fe4b1cde10760"
     },
     "graph/graph-dfs#0": {
       "n": 37,
@@ -173,7 +197,7 @@
     },
     "search/srch-bst#0": {
       "n": 6,
-      "sha": "5d4d5c23bca01f85"
+      "sha": "587eff7c668dac44"
     },
     "search/srch-hash#0": {
       "n": 38,

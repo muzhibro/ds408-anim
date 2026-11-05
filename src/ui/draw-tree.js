@@ -2,7 +2,7 @@
 (function (NS) {
   'use strict';
 
-  var el = NS.el, txt = NS.txt, rrect = NS.rrect, arrowHead = NS.arrowHead, line = NS.line;
+  var el = NS.el, txt = NS.txt, rrect = NS.rrect, arrowHead = NS.arrowHead, line = NS.line, quad = NS.quad;
 
   /* ---------- 布局：二叉树 ---------- */
   var TREE_DX = 82, TREE_DY = 74, TREE_W = 54, TREE_H = 36;
@@ -38,6 +38,26 @@
         var b = L.pos[c.id];
         var col = pair[1] < 0 ? '#3f5a8a' : '#4a6a3f';
         g.appendChild(line(a.x, a.y + TREE_H / 2, b.x, b.y - TREE_H / 2, 'edge', col));
+      });
+    }
+    /* 线索：空的左/右指针指向前驱/后继，画成虚线箭头。
+       前驱走结点上沿（往上拱），后继走下沿（往下拱），免得跟实线边叠在一起。 */
+    if (f.threads) {
+      var thread = function (ax, ay, bx, by, bend) {
+        g.appendChild(quad(ax, ay, bx, by, bend, 'thread'));
+        g.appendChild(arrowHead(bx, by, Math.atan2(by - ay, bx - ax), '#f59e0b'));
+      };
+      Object.keys(f.threads).forEach(function (id) {
+        var t = f.threads[id], a = L.pos[id];
+        if (!a) return;
+        if (t.lt && t.pl != null && L.pos[t.pl]) {
+          var b = L.pos[t.pl];
+          thread(a.x, a.y - TREE_H / 2, b.x, b.y - TREE_H / 2, -26);
+        }
+        if (t.rt && t.pr != null && L.pos[t.pr]) {
+          var c = L.pos[t.pr];
+          thread(a.x, a.y + TREE_H / 2, c.x, c.y + TREE_H / 2, 26);
+        }
       });
     }
     /* 结点 */
